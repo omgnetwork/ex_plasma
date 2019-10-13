@@ -18,6 +18,18 @@ defmodule ExPlasma do
   end
 
   @doc """
+  Returns the next child block to be mined.
+  """
+  @spec get_next_child_block() :: non_neg_integer()
+  def get_next_child_block() do
+    data = encode_data("nextChildBlock()", [])
+    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address}) do
+      {:ok, resp} -> List.first(decode_binary(resp, [{:uint, 256}]))
+      other -> other
+    end
+  end
+
+  @doc """
   Returns the contract address.
   """
   defp contract_address() do
