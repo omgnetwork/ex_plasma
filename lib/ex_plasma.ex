@@ -10,8 +10,8 @@ defmodule ExPlasma do
 
   ## Example
 
-  iex> ExPlasma.get_operator()
-  "ffcf8fdee72ac11b5c542428b35eef5769c409f0"
+    iex> ExPlasma.get_operator()
+    "ffcf8fdee72ac11b5c542428b35eef5769c409f0"
   """
   @spec get_operator() :: String.t() | tuple()
   def get_operator() do
@@ -31,6 +31,15 @@ defmodule ExPlasma do
 
   @doc """
   Returns a `ExPlasma.Block` for the given block number.
+
+  ## Example
+
+    iex> ExPlasma.get_block(0)
+    %ExPlasma.Block{
+      hash: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      timestamp: 0
+    }
   """
   @spec get_block(non_neg_integer()) :: Block.t()
   def get_block(blknum) do
@@ -53,6 +62,11 @@ defmodule ExPlasma do
   #
   @doc """
   Returns the next child block to be mined.
+
+  ## Example
+
+    iex> ExPlasma.get_next_child_block()
+    1000
   """
   @spec get_next_child_block() :: non_neg_integer()
   def get_next_child_block() do
@@ -67,6 +81,11 @@ defmodule ExPlasma do
   @doc """
   Returns the child block interval, which controls the incrementing
   block number for each child block.
+
+  ## Examples
+
+    iex> ExPlasma.get_child_block_interval()
+    1000
   """
   @spec get_child_block_interval() :: non_neg_integer()
   def get_child_block_interval() do
@@ -80,6 +99,11 @@ defmodule ExPlasma do
 
   @doc """
   Returns the next deposit block to be mined.
+
+  ## Examples
+
+    iex> ExPlasma.get_next_deposit_block()
+    1
   """
   @spec get_next_deposit_block() :: non_neg_integer()
   def get_next_deposit_block() do

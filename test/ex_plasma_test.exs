@@ -1,7 +1,6 @@
 defmodule ExPlasmaTest do
   use ExUnit.Case
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
-  doctest ExPlasma
 
   setup do
     Application.ensure_all_started(:ethereumex)
