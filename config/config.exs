@@ -2,6 +2,12 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
+config :ex_plasma,
+  contract_address: "0xd17e1233a03affb9092d5109179b43d6a8828607"
+
+config :ethereumex,
+  url: "http://localhost:8545"
+
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
 # file won't be loaded nor affect the parent project. For this reason,
