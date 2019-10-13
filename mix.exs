@@ -23,6 +23,7 @@ defmodule ExPlasma.MixProject do
   defp deps do
     [
       {:abi, "~> 0.1.13"},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.5.4"},
       {:exvcr, "~> 0.10", only: :test}
       # {:dep_from_hexpm, "~> 0.3.0"},

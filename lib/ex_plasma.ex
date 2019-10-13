@@ -13,7 +13,7 @@ defmodule ExPlasma do
   iex> ExPlasma.get_operator()
   "ffcf8fdee72ac11b5c542428b35eef5769c409f0"
   """
-  @spec get_operator() :: String.t()
+  @spec get_operator() :: String.t() | tuple()
   def get_operator() do
     data = encode_data("operator()", [])
 
@@ -102,7 +102,7 @@ defmodule ExPlasma do
     "0x" <> Base.encode16(data, case: :lower)
   end
 
-  @spec decode_response(binary(), list(tuple)) :: list()
+  @spec decode_response(binary(), list()) :: list()
   defp decode_response(binary_response, types) do
     binary_response
     |> String.replace_prefix("0x", "")
