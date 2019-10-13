@@ -33,6 +33,19 @@ defmodule ExPlasma do
   end
 
   @doc """
+  Returns the child block interval, which controls the incrementing
+  block number for each child block.
+  """
+  @spec get_child_block_interval() :: non_neg_integer()
+  def get_child_block_interval() do
+    data = encode_data("childBlockInterval()", [])
+    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address}) do
+      {:ok, resp} -> List.first(decode_response(resp, [{:uint, 256}]))
+      other -> other
+    end
+  end
+
+  @doc """
   Returns the contract address.
   """
   defp contract_address() do
