@@ -3,15 +3,18 @@ defmodule ExPlasma do
   Documentation for ExPlasma.
   """
 
+  alias ExPlasma.Block
+
   @doc """
   Returns a `ExPlasma.Block` for the given block number.
   """
+  @spec get_block(non_neg_integer()) :: Block.t()
   def get_block(blknum) do
     data = encode_data("blocks(uint256)", [blknum])
     case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
       {:ok, resp} ->
-        [merkle_root_hash, timestamp] = decode_binary(resp, [{:bytes, 32}, {:uint, 256}])
-        %ExPlasma.Block{hash: merkle_root_hash, timestamp: timestamp}
+        [merkle_root_hash, timestamp] = decode_response(resp, [{:bytes, 32}, {:uint, 256}])
+        %Block{hash: merkle_root_hash, timestamp: timestamp}
       other ->
         other
     end
@@ -24,7 +27,7 @@ defmodule ExPlasma do
   def get_next_child_block() do
     data = encode_data("nextChildBlock()", [])
     case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address}) do
-      {:ok, resp} -> List.first(decode_binary(resp, [{:uint, 256}]))
+      {:ok, resp} -> List.first(decode_response(resp, [{:uint, 256}]))
       other -> other
     end
   end
@@ -49,8 +52,8 @@ defmodule ExPlasma do
   @doc """
   Decodes the binary response from the contract.
   """
-  @spec decode_binary(binary(), list(tuple)) :: list()
-  defp decode_binary(binary_response, types) do
+  @spec decode_response(binary(), list(tuple)) :: list()
+  defp decode_response(binary_response, types) do
     binary_response
     |> String.replace_prefix("0x", "")
     |> Base.decode16!(case: :lower)
