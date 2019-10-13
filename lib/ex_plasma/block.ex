@@ -9,9 +9,9 @@ defmodule ExPlasma.Block do
   # TODO achiurizo
   # narrow the type definition
   @type t() :: %__MODULE__{
-    hash: binary(),
-    timestamp: binary()
-  }
+          hash: binary(),
+          timestamp: binary()
+        }
 
   defstruct [:hash, :timestamp]
 end

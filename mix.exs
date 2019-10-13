@@ -23,7 +23,8 @@ defmodule ExPlasma.MixProject do
   defp deps do
     [
       {:abi, "~> 0.1.13"},
-      {:ethereumex, "~> 0.5.4"}
+      {:ethereumex, "~> 0.5.4"},
+      {:exvcr, "~> 0.10", only: :test}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
