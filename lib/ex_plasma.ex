@@ -6,6 +6,22 @@ defmodule ExPlasma do
   alias ExPlasma.Block
 
   @doc """
+  Returns the operator address.
+  """
+  @spec get_operator() :: String.t()
+  def get_operator() do
+    data = encode_data("operator()", [])
+    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
+      {:ok, resp} ->
+        resp
+        |> decode_response([:address])
+        |> List.first()
+        |> Base.encode16(case: :lower)
+      other -> other
+    end
+  end
+
+  @doc """
   Returns a `ExPlasma.Block` for the given block number.
   """
   @spec get_block(non_neg_integer()) :: Block.t()
@@ -46,8 +62,21 @@ defmodule ExPlasma do
   end
 
   @doc """
+  Returns the next deposit block to be mined.
+  """
+  @spec get_next_deposit_block() :: non_neg_integer()
+  def get_next_deposit_block() do
+    data = encode_data("nextDepositBlock()", [])
+    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address}) do
+      {:ok, resp} -> List.first(decode_response(resp, [{:uint, 256}]))
+      other -> other
+    end
+  end
+
+  @doc """
   Returns the contract address.
   """
+  @spec contract_address() :: String.t()
   defp contract_address() do
     Application.get_env(:ex_plasma, :contract_address)
   end
