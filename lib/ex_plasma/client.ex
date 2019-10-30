@@ -99,6 +99,19 @@ defmodule ExPlasma.Client do
   end
 
   @doc """
+  Returns the existing standard exit for the given exit id. The exit id is connected
+  to a specific UTXO existing in the contract.
+  """
+  def get_standard_exit(exit_id) do
+    types = [:bool, {:uint, 192}, {:bytes, 32}, :address, {:uint, 256}, {:uint, 256}]
+    data = encode_data("standardExits(uint160)", [exit_id])
+    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
+      {:ok, resp} -> List.first(decode_response(resp, types))
+      other -> other
+    end
+  end
+
+  @doc """
   Returns the next deposit block to be mined.
 
   ## Examples
@@ -112,6 +125,21 @@ defmodule ExPlasma.Client do
 
     case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
       {:ok, resp} -> List.first(decode_response(resp, [{:uint, 256}]))
+      other -> other
+    end
+  end
+
+  def deposit(tx_bytes, from, to, value) do
+    data = encode_data("deposit(bytes)", [tx_bytes])
+    opts = %{gas: 180_000, value: value}
+
+    txmap =
+      %{from: to_hex(from), to: to_hex(to), data: data}
+      |> Map.merge(Map.new(opts))
+      |> encode_all_integer_opts()
+
+    case Ethereumex.HttpClient.eth_send_transaction(txmap) do
+      {:ok, receipt_enc} -> {:ok, Encoding.from_hex(receipt_enc)}
       other -> other
     end
   end
@@ -133,5 +161,17 @@ defmodule ExPlasma.Client do
     |> String.replace_prefix("0x", "")
     |> Base.decode16!(case: :lower)
     |> ABI.TypeDecoder.decode_raw(types)
+  end
+
+  @spec to_hex(binary | non_neg_integer) :: binary
+  defp to_hex(non_hex)
+
+  defp to_hex(raw) when is_binary(raw), do: "0x" <> Base.encode16(raw, case: :lower)
+  defp to_hex(int) when is_integer(int), do: "0x" <> Integer.to_string(int, 16)
+
+  defp encode_all_integer_opts(opts) do
+    opts
+    |> Enum.filter(fn {_k, v} -> is_integer(v) end)
+    |> Enum.into(opts, fn {k, v} -> {k, to_hex(v)} end)
   end
 end

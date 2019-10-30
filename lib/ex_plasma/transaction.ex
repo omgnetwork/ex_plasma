@@ -8,6 +8,12 @@ defprotocol ExPlasma.Transaction do
   """
 
   @doc """
+  Converts the given transaction into a list, which is consumed
+  by the encoding to generate the RLP encoding.
+  """
+  def to_list(transaction)
+
+  @doc """
   Converts the given transaction type into a RLP encoded
   data that can be sent to the contract.
   """
