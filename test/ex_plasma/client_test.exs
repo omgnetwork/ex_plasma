@@ -53,7 +53,8 @@ defmodule ExPlasma.ClientTest do
   end
 
   test "deposit/4 deposts" do
-    #use_cassette "deposit", match_requests_on: [:request_body] do
+    # TODO fix the amount passing to match value/sent amount
+    use_cassette "deposit", match_requests_on: [:request_body] do
       contract = "0x1967d06b1faba91eaadb1be33b277447ea24fa0e"
       alice = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
       currency = ExPlasma.Encoding.to_hex(<<0::160>>) # NB: Contracts currently sets 'eth' to a zero address.
@@ -62,8 +63,7 @@ defmodule ExPlasma.ClientTest do
       response =
         deposit
         |> Deposit.encode()
-        |> Client.deposit(alice, contract, 1)
-      require IEx; IEx.pry
-    #end
+        |> Client.deposit(alice, contract, 1) # TODO fix this ish to pick up from deposit
+    end
   end
 end

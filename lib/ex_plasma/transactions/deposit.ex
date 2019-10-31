@@ -131,7 +131,7 @@ defimpl ExPlasma.Transaction, for: ExPlasma.Transactions.Deposit do
   def to_list(%Deposit{inputs: [], outputs: [output], metadata: metadata}) do
     owner = to_binary(output[:owner])
     currency = to_binary(output[:currency])
-    amount = to_hex(output[:amount])
+    amount = output[:amount]
     ordered_output = [@output_type, owner, currency, amount]
     [@transaction_type, [], [ordered_output], to_binary(metadata)]
   end

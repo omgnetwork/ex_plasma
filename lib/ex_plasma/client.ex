@@ -138,11 +138,11 @@ defmodule ExPlasma.Client do
       to: to,
       data: data,
       gas: "0x" <> Integer.to_string(180_000, 16),
-      value: "0x" <> Integer.to_string(value, 16),
+      value: value
     }
 
     case Ethereumex.HttpClient.eth_send_transaction(txmap) do
-      {:ok, receipt_enc} -> {:ok, Encoding.from_hex(receipt_enc)}
+      {:ok, receipt_enc} -> {:ok, receipt_enc}
       other -> other
     end
   end
