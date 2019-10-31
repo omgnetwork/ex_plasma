@@ -105,6 +105,7 @@ defmodule ExPlasma.Client do
   def get_standard_exit(exit_id) do
     types = [:bool, {:uint, 192}, {:bytes, 32}, :address, {:uint, 256}, {:uint, 256}]
     data = encode_data("standardExits(uint160)", [exit_id])
+
     case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
       {:ok, resp} -> List.first(decode_response(resp, types))
       other -> other
@@ -131,12 +132,14 @@ defmodule ExPlasma.Client do
 
   def deposit(tx_bytes, from, to, value) do
     data = encode_data("deposit(bytes)", [tx_bytes])
-    opts = %{gas: 180_000, value: value}
 
-    txmap =
-      %{from: to_hex(from), to: to_hex(to), data: data}
-      |> Map.merge(Map.new(opts))
-      |> encode_all_integer_opts()
+    txmap = %{
+      from: from,
+      to: to,
+      data: data,
+      gas: "0x" <> Integer.to_string(180_000, 16),
+      value: "0x" <> Integer.to_string(value, 16),
+    }
 
     case Ethereumex.HttpClient.eth_send_transaction(txmap) do
       {:ok, receipt_enc} -> {:ok, Encoding.from_hex(receipt_enc)}
