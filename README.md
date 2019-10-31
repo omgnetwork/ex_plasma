@@ -17,11 +17,20 @@ end
 
 ### Quick Start
 
-Need to fill this out
 
+
+Most of the tests should have `exvcr` coverage, but for those that don't and need a live service, that's
+where docker comes in:
+
+```sh
+docker-compose up
 ```
-$ mix deps.get
-$ iex -S mix test
+
+
+Then run the tests. Optionally, with `iex` to pry into the code
+
+```sh
+iex -S mix test
 ```
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
