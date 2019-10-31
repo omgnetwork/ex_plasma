@@ -15,6 +15,15 @@ def deps do
 end
 ```
 
+### Quick Start
+
+Need to fill this out
+
+```
+$ mix deps.get
+$ iex -S mix test
+```
+
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/ex_plasma](https://hexdocs.pm/ex_plasma).
