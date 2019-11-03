@@ -1,4 +1,4 @@
-defprotocol ExPlasma.Transaction do
+defmodule ExPlasma.Transaction do
   @moduledoc """
   The base transaction for now. There's actually a lot of different
   transaction types.
@@ -7,20 +7,11 @@ defprotocol ExPlasma.Transaction do
   fix this pile of poo
   """
 
-  @doc """
-  Converts the given transaction into a list, which is consumed
-  by the encoding to generate the RLP encoding.
-  """
-  def to_list(transaction)
+  @callback new(map()) :: struct()
 
-  @doc """
-  Converts the given transaction type into a RLP encoded
-  data that can be sent to the contract.
-  """
-  def encode(transaction)
+  @callback to_list(struct()) :: list()
 
-  @doc """
-  Converts the given RLP encoded data back into the struct.
-  """
-  def decode(data)
+  @callback encode(struct()) :: binary()
+
+  # @callback decode(binary) :: struct()
 end

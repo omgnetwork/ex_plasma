@@ -174,9 +174,12 @@ defmodule ExPlasma.Transactions.Payment do
         ]
       }
   """
-  @spec decode(binary) :: Transaction.t
+  @spec decode(binary) :: Transaction.t()
   def decode(encoding) when is_list(encoding) == false, do: decode(ExRLP.decode(encoding))
-  def decode([sigs, inputs, outputs, metadata]), do: %{decode([inputs, outputs, metadata]) | sigs: sigs}
+
+  def decode([sigs, inputs, outputs, metadata]),
+    do: %{decode([inputs, outputs, metadata]) | sigs: sigs}
+
   def decode([inputs, outputs, metadata]) do
     decoded_inputs =
       Enum.map(inputs, fn [blknum, txindex, oindex] ->
@@ -197,7 +200,6 @@ defmodule ExPlasma.Transactions.Payment do
       end)
 
     decoded_metadata = List.first(metadata || [])
-
 
     struct(Transaction, %{
       inputs: decoded_inputs,
