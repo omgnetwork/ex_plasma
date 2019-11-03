@@ -104,6 +104,7 @@ defimpl ExRLP.Encode, for: ExPlasma.Transactions.Deposit do
   @spec encode(Deposit.t(), keyword) :: binary
   def encode(transaction, options \\ []) do
     transaction
+    # TODO pattern match this portion so you can also pass in list already
     |> Deposit.to_list()
     |> Encode.encode(options)
   end
