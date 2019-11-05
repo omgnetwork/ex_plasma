@@ -21,8 +21,6 @@ defmodule ExPlasma.Transaction do
 
   @callback new(map()) :: struct()
 
-  @callback encode(struct()) :: binary()
-
   @callback transaction_type() :: non_neg_integer()
 
   @callback output_type() :: non_neg_integer()

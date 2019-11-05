@@ -1,24 +1,31 @@
 defmodule ExPlasma.Transactions.Deposit do
   @moduledoc """
-  A Deposit `Transaction` type. We use this to
-  send money into the contract to be used.
+  A Deposit `Transaction` type. We use this to send money into the contract 
+  to be used. This is really just a Payment Transaction with no inputs
   """
 
   @behaviour ExPlasma.Transaction
 
+  # A Deposit Transaction is really a Payment Transaction according
+  # to the contracts. Therefor, the markers here are the same.
   @transaction_type 1
+
+  # TODO
+  # Do we need to think about moving this logic into the output itself?
   @output_type 1
 
-  alias __MODULE__
-  alias ExPlasma.Transaction
-
-  import ExPlasma.Encoding, only: [to_binary: 1]
+  @type t :: %__MODULE__{
+          inputs: list(),
+          outputs: list(map),
+          metadata: binary()
+        }
 
   defstruct(
     inputs: [],
     outputs: [],
     metadata: <<0::160>>
   )
+
 
   @doc """
   The associated value for the output type. It's a hard coded
