@@ -8,16 +8,18 @@ defmodule ExPlasma.Transaction do
   """
 
   alias __MODULE__
+  alias __MODULE__.Input
+  alias __MODULE__.Output
+
+  import ExPlasma.Encoding, only: [to_binary: 1]
 
   @type t :: %__MODULE__{
-    inputs: list(__MODULE__.Input.t()),
-    outputs: list(__MODULE__.Output.t()),
+    inputs: list(Input.t()),
+    outputs: list(Output.t()),
     metadata: binary()
   }
 
   @callback new(map()) :: struct()
-
-  @callback to_list(struct()) :: list()
 
   @callback encode(struct()) :: binary()
 
@@ -28,6 +30,22 @@ defmodule ExPlasma.Transaction do
   # @callback decode(binary) :: struct()
 
   defstruct(inputs: [], outputs: [], metadata: <<0::160>>)
+
+  @doc """
+  Generate an RLP-encodable list for the transaction.
+  """
+  @spec to_list(struct()) :: list()
+  def to_list(%module{inputs: inputs, outputs: outputs, metadata: metadata}) do
+    ordered_output = [module.output_type()] ++ Enum.map(outputs, &Output.to_list/1)
+    [module.transaction_type(), inputs, [ordered_output], to_binary(metadata)]
+  end
+
+
+  @doc """
+  Encodes a transaction into an RLP encodable list.
+  """
+  def encode(%module{inputs: _inputs, outputs: _outputs, metadata: _metadata} = transaction), do: 
+    transaction |> Transaction.to_list() |> ExRLP.encode()
 end
 
 defmodule ExPlasma.Transaction.Input do
