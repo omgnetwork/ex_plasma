@@ -1,14 +1,14 @@
 defmodule ExPlasma.Transactions.Payment do
   @moduledoc """
-  A `Transaction` on the child chain.
+  A Payment Transaction type. Used to send transactions from one party to another
+  on the child chain
 
-  * tx_hash - the transaction tx_hash
   * inputs - the list of inputs for this transaction
   * outputs - the list of outputs for this transaction
   * metadata - additional context.
   """
 
-  alias __MODULE__, as: Transaction
+  alias __MODULE__
 
   @contract_input_count 4
   @contract_output_count 4
@@ -20,22 +20,14 @@ defmodule ExPlasma.Transactions.Payment do
 
   defstruct(
     inputs: [],
-    metadata: nil,
     outputs: [],
-    signed_tx_bytes: nil,
-    sigs: [],
-    spenders: [],
-    tx_hash: nil
+    metadata: <<0::160>>
   )
 
-  @type t :: %Transaction{
-          inputs: list(map),
-          metadata: any,
-          outputs: list(any),
-          tx_hash: binary | nil,
-          signed_tx_bytes: any,
-          sigs: list(any),
-          spenders: list(any)
+  @type t :: %__MODULE__{
+          inputs: list(),
+          outputs: list(map),
+          metadata: binary()
         }
 
   @type input_t :: %{
@@ -59,14 +51,13 @@ defmodule ExPlasma.Transactions.Payment do
       Build a new empty Transaction
       iex(1)> ExPlasma.Transactions.Payment.new()
       %ExPlasma.Transactions.Payment{
-        tx_hash: nil,
         inputs: [
           %{blknum: 0, oindex: 0, txindex: 0},
           %{blknum: 0, oindex: 0, txindex: 0},
           %{blknum: 0, oindex: 0, txindex: 0},
           %{blknum: 0, oindex: 0, txindex: 0}
         ],
-        metadata: nil,
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [
           %{amount: 0, currency: 0, owner: 0},
           %{amount: 0, currency: 0, owner: 0},
@@ -78,7 +69,6 @@ defmodule ExPlasma.Transactions.Payment do
       Build a new Transaction with inputs, outputs, and metadata
       iex(2)> ExPlasma.Transactions.Payment.new(%{inputs: [%{blknum: 1, txindex: 2, oindex: 3}], outputs: [%{owner: 1, currency: 1, amount: 1}], metadata: "foo"})
       %ExPlasma.Transactions.Payment{
-        tx_hash: nil,
         inputs: [
           %{blknum: 1, oindex: 3, txindex: 2},
           %{blknum: 0, oindex: 0, txindex: 0},
@@ -107,7 +97,7 @@ defmodule ExPlasma.Transactions.Payment do
 
     filled_txn = Map.merge(txn, %{inputs: filled_inputs, outputs: filled_outputs})
 
-    struct(Transaction, filled_txn)
+    struct(__MODULE__, filled_txn)
   end
 
   @doc """
@@ -125,14 +115,11 @@ defmodule ExPlasma.Transactions.Payment do
       ]
   """
   @spec to_list(t) :: list(any)
-  def to_list(%Transaction{sigs: sigs, inputs: inputs, outputs: outputs, metadata: metadata}) do
+  def to_list(%__MODULE__{inputs: inputs, outputs: outputs, metadata: metadata}) do
     input_list = Enum.map(inputs, fn input -> Map.values(input) end)
     output_list = Enum.map(outputs, fn output -> Map.values(output) end)
-    metadata_list = Enum.reject([metadata], &is_nil/1)
 
-    if List.first(sigs),
-      do: [sigs, input_list, output_list, metadata_list],
-      else: [input_list, output_list, metadata_list]
+    [input_list, output_list, metadata]
   end
 
   @doc """
@@ -146,8 +133,8 @@ defmodule ExPlasma.Transactions.Payment do
       128, 128, 128, 208, 195, 128, 128, 128, 195, 128, 128, 128, 195, 128, 128,
       128, 195, 128, 128, 128, 192>>
   """
-  @spec encode(Transaction.t()) :: binary
-  def encode(%Transaction{} = transaction), do: ExRLP.encode(transaction)
+  @spec encode(__MODULE__.t()) :: binary
+  def encode(%__MODULE__{} = transaction), do: ExRLP.encode(transaction)
 
   @doc """
   Decodes a RLP encoding and transforms it back into a `Transaction`.
@@ -158,14 +145,13 @@ defmodule ExPlasma.Transactions.Payment do
       iex(2)> e = ExPlasma.Transactions.Payment.encode(t)
       iex(3)> ExPlasma.Transactions.Payment.decode(e)
       %ExPlasma.Transactions.Payment{
-        tx_hash: nil,
         inputs: [
           %{blknum: 0, oindex: 0, txindex: 0},
           %{blknum: 0, oindex: 0, txindex: 0},
           %{blknum: 0, oindex: 0, txindex: 0},
           %{blknum: 0, oindex: 0, txindex: 0}
         ],
-        metadata: nil,
+        metadata: 0,
         outputs: [
           %{amount: 0, currency: 0, owner: 0},
           %{amount: 0, currency: 0, owner: 0},
@@ -174,11 +160,8 @@ defmodule ExPlasma.Transactions.Payment do
         ]
       }
   """
-  @spec decode(binary) :: Transaction.t()
+  @spec decode(binary) :: __MODULE__.t()
   def decode(encoding) when is_list(encoding) == false, do: decode(ExRLP.decode(encoding))
-
-  def decode([sigs, inputs, outputs, metadata]),
-    do: %{decode([inputs, outputs, metadata]) | sigs: sigs}
 
   def decode([inputs, outputs, metadata]) do
     decoded_inputs =
@@ -199,12 +182,10 @@ defmodule ExPlasma.Transactions.Payment do
         }
       end)
 
-    decoded_metadata = List.first(metadata || [])
-
-    struct(Transaction, %{
+    struct(__MODULE__, %{
       inputs: decoded_inputs,
       outputs: decoded_outputs,
-      metadata: decoded_metadata
+      metadata: metadata
     })
   end
 
@@ -218,10 +199,10 @@ defmodule ExPlasma.Transactions.Payment do
       false
   """
   @spec valid?(t) :: boolean
-  def valid?(%Transaction{} = transaction) do
+  def valid?(%__MODULE__{} = transaction) do
     # TODO:
     # This should probably pass back tuples with why it's not valid.
-    !duplicate_inputs?(transaction) && inputs_signed?(transaction)
+    !duplicate_inputs?(transaction)
   end
 
   @doc """
@@ -234,39 +215,16 @@ defmodule ExPlasma.Transactions.Payment do
       true
   """
   @spec duplicate_inputs?(t) :: boolean
-  defp duplicate_inputs?(%Transaction{inputs: inputs}) do
+  defp duplicate_inputs?(%__MODULE__{inputs: inputs}) do
     inputs
     |> Enum.uniq()
     |> length() != length(inputs)
-  end
-
-  @doc """
-  Compares that the total amount of non-zero sigs match the total non-zero inputs.
-
-  ## Examples
-
-      iex(1)> t = ExPlasma.Transactions.Payment.new(%{inputs: [], outputs: [], sigs: ["foo"]})
-      iex(2)> ExPlasma.Transactions.Payment.inputs_signed?(t)
-      false
-  """
-  @spec inputs_signed?(t) :: boolean
-  defp inputs_signed?(%Transaction{inputs: inputs, sigs: sigs}) do
-    total_non_zero_sigs = Enum.count(sigs, &(&1 != @empty_sig))
-    total_non_zero_inputs = Enum.count(inputs, &(&1 != @empty_input))
-
-    # TODO:
-    # Do we have this return tuple responses? e.g {:ok, _} | {:error, _}
-    cond do
-      total_non_zero_sigs > total_non_zero_inputs -> false
-      total_non_zero_sigs < total_non_zero_inputs -> false
-      true -> true
-    end
   end
 end
 
 defimpl ExRLP.Encode, for: ExPlasma.Transactions.Payment do
   alias ExRLP.Encode
-  alias ExPlasma.Transactions.Payment, as: Transaction
+  alias ExPlasma.Transactions.Payment
 
   @doc """
   Encodes a `Transaction` into RLP
@@ -280,10 +238,10 @@ defimpl ExRLP.Encode, for: ExPlasma.Transactions.Payment do
         128, 128, 128, 208, 195, 128, 128, 128, 195, 128, 128, 128, 195, 128, 128,
         128, 195, 128, 128, 128, 192>>
   """
-  @spec encode(Transaction.t(), keyword) :: binary
+  @spec encode(Payment.t(), keyword) :: binary
   def encode(transaction, options \\ []) do
     transaction
-    |> Transaction.to_list()
+    |> Payment.to_list()
     |> Encode.encode(options)
   end
 end

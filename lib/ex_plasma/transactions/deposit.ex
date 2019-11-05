@@ -15,6 +15,7 @@ defmodule ExPlasma.Transactions.Deposit do
   @output_type 1
 
   alias __MODULE__
+  alias ExPlasma.Transaction
 
   import ExPlasma.Encoding, only: [to_binary: 1]
 
@@ -23,12 +24,6 @@ defmodule ExPlasma.Transactions.Deposit do
     outputs: [],
     metadata: <<0::160>>
   )
-
-  @type t :: %__MODULE__{
-          inputs: list(),
-          outputs: list(map),
-          metadata: binary()
-        }
 
   @doc """
   Generate a new Deposit transaction struct which should:
@@ -80,12 +75,9 @@ defmodule ExPlasma.Transactions.Deposit do
         241, 55, 0, 110>>
     ]
   """
-  @spec to_list(__MODULE__.t()) :: list()
+  @spec to_list(Transaction.t()) :: list()
   def to_list(%__MODULE__{inputs: [], outputs: [output], metadata: metadata}) do
-    owner = to_binary(output[:owner])
-    currency = to_binary(output[:currency])
-    amount = output[:amount]
-    ordered_output = [@output_type, owner, currency, amount]
+    ordered_output = [@output_type] ++ ExPlasma.Transaction.Output.to_list(output)
     [@transaction_type, [], [ordered_output], to_binary(metadata)]
   end
 
@@ -106,7 +98,7 @@ defmodule ExPlasma.Transactions.Deposit do
       29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 
       55, 0, 110>>
   """
-  @spec encode(__MODULE__.t()) :: binary
+  @spec encode(Transaction.t()) :: binary
   def encode(%__MODULE__{} = deposit), do: ExRLP.encode(deposit)
 end
 
