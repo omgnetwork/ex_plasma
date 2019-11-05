@@ -14,10 +14,10 @@ defmodule ExPlasma.Transaction do
   import ExPlasma.Encoding, only: [to_binary: 1]
 
   @type t :: %__MODULE__{
-    inputs: list(Input.t()),
-    outputs: list(Output.t()),
-    metadata: binary()
-  }
+          inputs: list(Input.t()),
+          outputs: list(Output.t()),
+          metadata: binary()
+        }
 
   @callback new(map()) :: struct()
 
@@ -41,8 +41,8 @@ defmodule ExPlasma.Transaction do
   @doc """
   Encodes a transaction into an RLP encodable list.
   """
-  def encode(%module{inputs: _inputs, outputs: _outputs, metadata: _metadata} = transaction), do: 
-    transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
+  def encode(%module{inputs: _inputs, outputs: _outputs, metadata: _metadata} = transaction),
+    do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
 end
 
 defmodule ExPlasma.Transaction.Input do
@@ -52,12 +52,12 @@ defmodule ExPlasma.Transaction.Input do
   """
 
   @type t :: %__MODULE__{
-    blknum: non_neg_integer(),
-    txindex: non_neg_integer(),
-    oindex: non_neg_integer()
-  }
+          blknum: non_neg_integer(),
+          txindex: non_neg_integer(),
+          oindex: non_neg_integer()
+        }
 
-  defstruct [blknum: 0, txindex: 0, oindex: 0]
+  defstruct blknum: 0, txindex: 0, oindex: 0
 end
 
 defmodule ExPlasma.Transaction.Output do
@@ -67,14 +67,14 @@ defmodule ExPlasma.Transaction.Output do
   """
 
   @type t :: %__MODULE__{
-    owner: String.t() | non_neg_integer(),
-    currency: String.t() | non_neg_integer(),
-    amount: non_neg_integer(),
-  }
+          owner: String.t() | non_neg_integer(),
+          currency: String.t() | non_neg_integer(),
+          amount: non_neg_integer()
+        }
 
   import ExPlasma.Encoding, only: [to_binary: 1]
 
-  defstruct [owner: 0, currency: 0, amount: 0]
+  defstruct owner: 0, currency: 0, amount: 0
 
   @doc """
   Converts a given Output into an RLP-encodable list.
@@ -95,9 +95,9 @@ defmodule ExPlasma.Transaction.Output do
   ]
   """
   @spec to_list(__MODULE__.t() | map()) :: list()
-  def to_list(%__MODULE__{owner: owner, currency: currency, amount: amount}), do:
-    to_list(%{owner: owner, currency: currency, amount: amount})
+  def to_list(%__MODULE__{owner: owner, currency: currency, amount: amount}),
+    do: to_list(%{owner: owner, currency: currency, amount: amount})
 
-  def to_list(%{owner: owner, currency: currency, amount: amount}), do:
-    [to_binary(owner), to_binary(currency), amount]
+  def to_list(%{owner: owner, currency: currency, amount: amount}),
+    do: [to_binary(owner), to_binary(currency), amount]
 end

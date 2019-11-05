@@ -14,6 +14,10 @@ defmodule ExPlasma.Transactions.Deposit do
   # Do we need to think about moving this logic into the output itself?
   @output_type 1
 
+  # A Deposit transaction can only have 0 inputs and 1 output.
+  @max_input_count 0
+  @max_output_count 1
+
   @type t :: %__MODULE__{
           inputs: list(),
           outputs: list(map),
@@ -25,7 +29,6 @@ defmodule ExPlasma.Transactions.Deposit do
     outputs: [],
     metadata: <<0::160>>
   )
-
 
   @doc """
   The associated value for the output type. It's a hard coded
@@ -60,6 +63,9 @@ defmodule ExPlasma.Transactions.Deposit do
     new(inputs: [], outputs: [output], metadata: metadata)
   end
 
-  def new(inputs: inputs, outputs: outputs, metadata: metadata),
-    do: %__MODULE__{inputs: inputs, outputs: outputs, metadata: metadata}
+  def new(inputs: inputs, outputs: outputs, metadata: metadata)
+      when is_list(inputs) and length(inputs) == @max_input_count and
+             is_list(outputs) and length(outputs) == @max_output_count do
+    %__MODULE__{inputs: inputs, outputs: outputs, metadata: metadata}
+  end
 end
