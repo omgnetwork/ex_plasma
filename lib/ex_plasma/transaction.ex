@@ -34,14 +34,15 @@ defmodule ExPlasma.Transaction do
   """
   @spec to_list(struct()) :: list()
   def to_list(%module{inputs: inputs, outputs: outputs, metadata: metadata}) do
+    ordered_inputs = Enum.map(inputs, &Input.to_list/1)
     ordered_outputs = Enum.map(outputs, fn o -> [module.output_type()] ++ Output.to_list(o) end)
-    [module.transaction_type(), inputs, ordered_outputs, to_binary(metadata)]
+    [module.transaction_type(), ordered_inputs, ordered_outputs, to_binary(metadata)]
   end
 
   @doc """
   Encodes a transaction into an RLP encodable list.
   """
-  def encode(%module{inputs: _inputs, outputs: _outputs, metadata: _metadata} = transaction),
+  def encode(%{inputs: _inputs, outputs: _outputs, metadata: _metadata} = transaction),
     do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
 end
 
@@ -58,6 +59,22 @@ defmodule ExPlasma.Transaction.Input do
         }
 
   defstruct blknum: 0, txindex: 0, oindex: 0
+
+  @doc """
+  Converts a given Input into an RLP-encodable list.
+
+  ## Examples
+
+  iex> output = %ExPlasma.Transaction.Input{blknum: 1, txindex: 2, oindex: 3}
+  iex> ExPlasma.Transaction.Input.to_list(output)
+  [1, 2, 3]
+  """
+  @spec to_list(__MODULE__.t() | map()) :: list()
+  def to_list(%__MODULE__{} = input), do: input |> Map.from_struct() |> to_list()
+
+  def to_list(%{blknum: blknum, txindex: txindex, oindex: oindex})
+      when is_integer(blknum) and is_integer(txindex) and is_integer(oindex),
+      do: [blknum, txindex, oindex]
 end
 
 defmodule ExPlasma.Transaction.Output do
@@ -95,9 +112,10 @@ defmodule ExPlasma.Transaction.Output do
   ]
   """
   @spec to_list(__MODULE__.t() | map()) :: list()
-  def to_list(%__MODULE__{owner: owner, currency: currency, amount: amount}),
-    do: to_list(%{owner: owner, currency: currency, amount: amount})
+  def to_list(%__MODULE__{} = output), do: output |> Map.from_struct() |> to_list()
 
+  # TODO
+  # Add guards to cover the values coming in
   def to_list(%{owner: owner, currency: currency, amount: amount}),
     do: [to_binary(owner), to_binary(currency), amount]
 end
