@@ -43,10 +43,4 @@ defmodule ExPlasma.Encoding do
 
     binary
   end
-
-  def encode_all_integer_opts(opts) do
-    opts
-    |> Enum.filter(fn {_k, v} -> is_integer(v) end)
-    |> Enum.into(opts, fn {k, v} -> {k, to_hex(v)} end)
-  end
 end

@@ -6,6 +6,7 @@ defmodule ExPlasma.Client do
 
   alias ExPlasma.Block
 
+
   @doc """
   Returns the operator address.
 
@@ -164,17 +165,5 @@ defmodule ExPlasma.Client do
     |> String.replace_prefix("0x", "")
     |> Base.decode16!(case: :lower)
     |> ABI.TypeDecoder.decode_raw(types)
-  end
-
-  @spec to_hex(binary | non_neg_integer) :: binary
-  defp to_hex(non_hex)
-
-  defp to_hex(raw) when is_binary(raw), do: "0x" <> Base.encode16(raw, case: :lower)
-  defp to_hex(int) when is_integer(int), do: "0x" <> Integer.to_string(int, 16)
-
-  defp encode_all_integer_opts(opts) do
-    opts
-    |> Enum.filter(fn {_k, v} -> is_integer(v) end)
-    |> Enum.into(opts, fn {k, v} -> {k, to_hex(v)} end)
   end
 end
