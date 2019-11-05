@@ -36,16 +36,15 @@ defmodule ExPlasma.Transaction do
   """
   @spec to_list(struct()) :: list()
   def to_list(%module{inputs: inputs, outputs: outputs, metadata: metadata}) do
-    ordered_output = [module.output_type()] ++ Enum.map(outputs, &Output.to_list/1)
-    [module.transaction_type(), inputs, [ordered_output], to_binary(metadata)]
+    ordered_outputs = Enum.map(outputs, fn o -> [module.output_type()] ++ Output.to_list(o) end)
+    [module.transaction_type(), inputs, ordered_outputs, to_binary(metadata)]
   end
-
 
   @doc """
   Encodes a transaction into an RLP encodable list.
   """
   def encode(%module{inputs: _inputs, outputs: _outputs, metadata: _metadata} = transaction), do: 
-    transaction |> Transaction.to_list() |> ExRLP.encode()
+    transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
 end
 
 defmodule ExPlasma.Transaction.Input do
