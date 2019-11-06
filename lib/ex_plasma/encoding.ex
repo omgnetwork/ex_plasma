@@ -35,9 +35,9 @@ defmodule ExPlasma.Encoding do
       55, 0, 110>>
   """
   @spec to_binary(String.t()) :: binary
-  def to_binary(hex) do
+  def to_binary("0x" <> unprefixed_hex) do
     {:ok, binary} =
-      String.replace_prefix(hex, "0x", "")
+      unprefixed_hex
       |> String.upcase()
       |> Base.decode16()
 
