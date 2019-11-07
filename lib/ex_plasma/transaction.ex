@@ -69,6 +69,12 @@ defmodule ExPlasma.Transaction do
 
   @doc """
   Encodes a transaction into an RLP encodable list.
+
+  ## Examples
+
+  iex> txn = %ExPlasma.Transaction{}
+  iex> ExPlasma.Transaction.encode(txn)
+  <<216, 128, 192, 192, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
   def encode(%{inputs: _inputs, outputs: _outputs, metadata: _metadata} = transaction),
     do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
