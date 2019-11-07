@@ -56,19 +56,16 @@ defmodule ExPlasma.Transaction do
   [0, [], [], <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
   @spec to_list(struct()) :: list()
-  def to_list(%module{sigs: sigs, inputs: inputs, outputs: outputs, metadata: metadata})
-      when is_list(sigs) and length(sigs) > 0 do
-    transaction = struct(module, inputs: inputs, outputs: outputs, metadata: metadata)
-    [sigs | to_list(transaction)]
-  end
-
-  def to_list(%module{inputs: inputs, outputs: outputs, metadata: metadata})
+  def to_list(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
       when is_list(inputs) and is_list(outputs) do
     computed_inputs = Enum.map(inputs, &Input.to_list/1)
     computed_outputs = Enum.map(outputs, fn o -> [module.output_type()] ++ Output.to_list(o) end)
     computed_metadata = metadata || @empty_metadata
     [module.transaction_type(), computed_inputs, computed_outputs, to_binary(computed_metadata)]
   end
+
+  def to_list(%_module{sigs: sigs} = transaction) when is_list(sigs),
+    do: [sigs | to_list(%{transaction | sigs: []})]
 
   @doc """
   Encodes a transaction into an RLP encodable list.
