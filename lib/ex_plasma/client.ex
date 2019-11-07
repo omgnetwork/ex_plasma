@@ -17,18 +17,14 @@ defmodule ExPlasma.Client do
   """
   @spec get_operator() :: String.t() | tuple()
   def get_operator() do
-    data = encode_data("operator()", [])
+    options = %{data: encode_data("operator()", []), to: contract_address()}
 
-    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
-      {:ok, resp} ->
+    eth_call(options, fn resp ->
         resp
         |> decode_response([:address])
         |> List.first()
         |> Base.encode16(case: :lower)
-
-      other ->
-        other
-    end
+    end)
   end
 
   @doc """
@@ -45,16 +41,12 @@ defmodule ExPlasma.Client do
   """
   @spec get_block(non_neg_integer()) :: Block.t()
   def get_block(blknum) do
-    data = encode_data("blocks(uint256)", [blknum])
+    options = %{data: encode_data("blocks(uint256)", [blknum]), to: contract_address()}
 
-    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
-      {:ok, resp} ->
-        [merkle_root_hash, timestamp] = decode_response(resp, [{:bytes, 32}, {:uint, 256}])
-        %Block{hash: merkle_root_hash, timestamp: timestamp}
-
-      other ->
-        other
-    end
+    eth_call(options, fn resp ->
+      [merkle_root_hash, timestamp] = decode_response(resp, [{:bytes, 32}, {:uint, 256}])
+      %Block{hash: merkle_root_hash, timestamp: timestamp}
+    end)
   end
 
   # TODO achiurizo
@@ -72,12 +64,11 @@ defmodule ExPlasma.Client do
   """
   @spec get_next_child_block() :: non_neg_integer()
   def get_next_child_block() do
-    data = encode_data("nextChildBlock()", [])
+    options = %{data: encode_data("nextChildBlock()", []), to: contract_address()}
 
-    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
-      {:ok, resp} -> List.first(decode_response(resp, [{:uint, 256}]))
-      other -> other
-    end
+    eth_call(options, fn resp ->
+      List.first(decode_response(resp, [{:uint, 256}]))
+    end)
   end
 
   @doc """
@@ -91,12 +82,11 @@ defmodule ExPlasma.Client do
   """
   @spec get_child_block_interval() :: non_neg_integer()
   def get_child_block_interval() do
-    data = encode_data("childBlockInterval()", [])
+    options = %{data: encode_data("childBlockInterval()", []), to: contract_address()}
 
-    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
-      {:ok, resp} -> List.first(decode_response(resp, [{:uint, 256}]))
-      other -> other
-    end
+    eth_call(options, fn resp ->
+      List.first(decode_response(resp, [{:uint, 256}]))
+    end)
   end
 
   @doc """
@@ -105,12 +95,11 @@ defmodule ExPlasma.Client do
   """
   def get_standard_exit(exit_id) do
     types = [:bool, {:uint, 192}, {:bytes, 32}, :address, {:uint, 256}, {:uint, 256}]
-    data = encode_data("standardExits(uint160)", [exit_id])
+    options = %{data: encode_data("standardExits(uint160)", [exit_id]), to: contract_address()}
 
-    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
-      {:ok, resp} -> List.first(decode_response(resp, types))
-      other -> other
-    end
+    eth_call(options, fn resp ->
+      List.first(decode_response(resp, types))
+    end)
   end
 
   @doc """
@@ -123,12 +112,11 @@ defmodule ExPlasma.Client do
   """
   @spec get_next_deposit_block() :: non_neg_integer()
   def get_next_deposit_block() do
-    data = encode_data("nextDepositBlock()", [])
+    options = %{to: contract_address(), data: encode_data("nextDepositBlock()", [])}
 
-    case Ethereumex.HttpClient.eth_call(%{data: data, to: contract_address()}) do
-      {:ok, resp} -> List.first(decode_response(resp, [{:uint, 256}]))
-      other -> other
-    end
+    eth_call(options, fn resp ->
+      List.first(decode_response(resp, [{:uint, 256}]))
+    end)
   end
 
   def deposit(tx_bytes, from, to, value) do
@@ -144,6 +132,13 @@ defmodule ExPlasma.Client do
 
     case Ethereumex.HttpClient.eth_send_transaction(txmap) do
       {:ok, receipt_enc} -> {:ok, receipt_enc}
+      other -> other
+    end
+  end
+
+  defp eth_call(%{} = options, callback) do
+    case Ethereumex.HttpClient.eth_call(options) do
+      {:ok, resp} -> callback.(resp)
       other -> other
     end
   end
