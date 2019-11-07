@@ -6,7 +6,6 @@ defmodule ExPlasma.Client do
 
   alias ExPlasma.Block
 
-
   @doc """
   Returns the operator address.
 
@@ -20,10 +19,10 @@ defmodule ExPlasma.Client do
     options = %{data: encode_data("operator()", []), to: contract_address()}
 
     eth_call(options, fn resp ->
-        resp
-        |> decode_response([:address])
-        |> List.first()
-        |> Base.encode16(case: :lower)
+      resp
+      |> decode_response([:address])
+      |> List.first()
+      |> Base.encode16(case: :lower)
     end)
   end
 
