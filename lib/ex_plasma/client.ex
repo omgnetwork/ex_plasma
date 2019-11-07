@@ -159,10 +159,9 @@ defmodule ExPlasma.Client do
     "0x" <> Base.encode16(data, case: :lower)
   end
 
-  @spec decode_response(binary(), list()) :: list()
-  defp decode_response(binary_response, types) do
-    binary_response
-    |> String.replace_prefix("0x", "")
+  @spec decode_response(String.t(), list()) :: list()
+  defp decode_response("0x" <> unprefixed_hash_response, types) do
+    unprefixed_hash_response
     |> Base.decode16!(case: :lower)
     |> ABI.TypeDecoder.decode_raw(types)
   end
