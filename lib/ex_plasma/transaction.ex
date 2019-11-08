@@ -11,6 +11,7 @@ defmodule ExPlasma.Transaction do
   @empty_metadata "0x0000000000000000000000000000000000000000"
 
   @type t :: %__MODULE__{
+          sigs: list(String.t()),
           inputs: list(Input.t()),
           outputs: list(Output.t()),
           metadata: binary()
