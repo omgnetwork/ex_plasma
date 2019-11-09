@@ -16,9 +16,7 @@ defmodule ExPlasma.Client do
   """
   @spec get_operator() :: String.t() | tuple()
   def get_operator() do
-    options = %{data: encode_data("operator()", []), to: contract_address()}
-
-    eth_call(options, fn resp ->
+    eth_call("operator()", [], fn resp ->
       resp
       |> decode_response([:address])
       |> List.first()
@@ -40,9 +38,7 @@ defmodule ExPlasma.Client do
   """
   @spec get_block(non_neg_integer()) :: Block.t()
   def get_block(blknum) do
-    options = %{data: encode_data("blocks(uint256)", [blknum]), to: contract_address()}
-
-    eth_call(options, fn resp ->
+    eth_call("blocks(uint256)", [blknum], fn resp ->
       [merkle_root_hash, timestamp] = decode_response(resp, [{:bytes, 32}, {:uint, 256}])
       %Block{hash: merkle_root_hash, timestamp: timestamp}
     end)
@@ -63,9 +59,7 @@ defmodule ExPlasma.Client do
   """
   @spec get_next_child_block() :: non_neg_integer()
   def get_next_child_block() do
-    options = %{data: encode_data("nextChildBlock()", []), to: contract_address()}
-
-    eth_call(options, fn resp ->
+    eth_call("nextChildBlock()", [], fn resp ->
       List.first(decode_response(resp, [{:uint, 256}]))
     end)
   end
@@ -81,9 +75,7 @@ defmodule ExPlasma.Client do
   """
   @spec get_child_block_interval() :: non_neg_integer()
   def get_child_block_interval() do
-    options = %{data: encode_data("childBlockInterval()", []), to: contract_address()}
-
-    eth_call(options, fn resp ->
+    eth_call("childBlockInterval()", [], fn resp ->
       List.first(decode_response(resp, [{:uint, 256}]))
     end)
   end
@@ -94,9 +86,7 @@ defmodule ExPlasma.Client do
   """
   def get_standard_exit(exit_id) do
     types = [:bool, {:uint, 192}, {:bytes, 32}, :address, {:uint, 256}, {:uint, 256}]
-    options = %{data: encode_data("standardExits(uint160)", [exit_id]), to: contract_address()}
-
-    eth_call(options, fn resp ->
+    eth_call("standardExits(uint160)", [exit_id], fn resp ->
       List.first(decode_response(resp, types))
     end)
   end
@@ -111,9 +101,7 @@ defmodule ExPlasma.Client do
   """
   @spec get_next_deposit_block() :: non_neg_integer()
   def get_next_deposit_block() do
-    options = %{to: contract_address(), data: encode_data("nextDepositBlock()", [])}
-
-    eth_call(options, fn resp ->
+    eth_call("nextDepositBlock()", [], fn resp ->
       List.first(decode_response(resp, [{:uint, 256}]))
     end)
   end
@@ -135,7 +123,9 @@ defmodule ExPlasma.Client do
     end
   end
 
-  defp eth_call(%{} = options, callback) do
+  @spec eth_call(String.t(), list(), fun()) :: tuple()
+  defp eth_call(contract_signature, data_types, callback) when is_list(data_types) do
+    options = %{data: encode_data(contract_signature, data_types), to: contract_address()}
     case Ethereumex.HttpClient.eth_call(options) do
       {:ok, resp} -> callback.(resp)
       other -> other

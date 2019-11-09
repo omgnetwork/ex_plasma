@@ -3,7 +3,8 @@
 use Mix.Config
 
 config :ex_plasma,
-  contract_address: "0xd17e1233a03affb9092d5109179b43d6a8828607"
+  contract_address: "0xd17e1233a03affb9092d5109179b43d6a8828607",
+  eth_vault_address: "0x1967d06b1faba91eaadb1be33b277447ea24fa0e"
 
 config :ethereumex,
   url: "http://localhost:8545"
