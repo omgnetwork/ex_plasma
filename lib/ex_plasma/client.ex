@@ -6,6 +6,9 @@ defmodule ExPlasma.Client do
 
   alias ExPlasma.Block
 
+  import ExPlasma.Encoding, only: [to_hex: 1, keccak_hash: 1]
+  import ExPlasma, only: [contract_address: 0, eth_vault_address: 0]
+
   @doc """
   Returns the operator address.
 
@@ -106,7 +109,11 @@ defmodule ExPlasma.Client do
     end)
   end
 
-  def deposit(tx_bytes, from, to, value) do
+  @spec deposit(binary(), non_neg_integer(), String.t(), String.t()) :: tuple()
+  def deposit(tx_bytes, value, from, :eth), 
+    do: deposit(tx_bytes, value, from, eth_vault_address())
+
+  def deposit(tx_bytes, value, from, to) do
     data = encode_data("deposit(bytes)", [tx_bytes])
 
     txmap = %{
@@ -130,11 +137,6 @@ defmodule ExPlasma.Client do
       {:ok, resp} -> callback.(resp)
       other -> other
     end
-  end
-
-  @spec contract_address() :: String.t()
-  defp contract_address() do
-    Application.get_env(:ex_plasma, :contract_address)
   end
 
   @spec encode_data(String.t(), list()) :: binary

@@ -68,7 +68,7 @@ defmodule ExPlasma.ClientTest do
                deposit
                |> Transaction.encode()
                # TODO fix this ish to pick up from deposit
-               |> Client.deposit(alice, contract, 1)
+               |> Client.deposit(1, alice, :eth)
     end
   end
 end
