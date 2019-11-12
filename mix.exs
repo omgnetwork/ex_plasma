@@ -24,7 +24,7 @@ defmodule ExPlasma.MixProject do
     [
       {:blockchain, "~>0.1.7", override: true},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-      {:ethereumex, "~> 0.5.4"},
+      {:ethereumex, "~> 0.5.5"},
       {:ex_abi, "~> 0.2.0"},
       {:ex_rlp, "~> 0.5.2", override: true},
       {:exth_crypto, "~> 0.1.6"},

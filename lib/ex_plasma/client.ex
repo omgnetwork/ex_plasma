@@ -6,7 +6,6 @@ defmodule ExPlasma.Client do
 
   alias ExPlasma.Block
 
-  import ExPlasma.Encoding, only: [to_hex: 1, keccak_hash: 1]
   import ExPlasma, only: [contract_address: 0, eth_vault_address: 0]
 
   @doc """
@@ -130,26 +129,6 @@ defmodule ExPlasma.Client do
     end
   end
 
-  @doc """
-  Returns all the deposit events for a given range.
-  """
-  @spec deposit_events(non_neg_integer(), non_neg_integer(), atom()) :: tuple()
-  def deposit_events(block_from, block_to, :eth),
-    do: deposit_events(block_from, block_to, eth_vault_address())
-
-  def deposit_events(block_from, block_to, contract) do
-    signature = "DepositCreated(address,uint256,address,uint256)"
-    encoded_signature = encode_event_topic_signature(signature)
-    topics = ["#{encoded_signature}"]
-
-    Ethereumex.HttpClient.eth_get_logs(%{
-      fromBlock: to_hex(block_from),
-      toBlock: to_hex(block_to),
-      address: contract,
-      topics: topics
-    })
-  end
-
   def submit_block(%ExPlasma.Block{hash: hash}, from, to, value),
     do: submit_block(hash, from, to, value)
 
@@ -190,12 +169,5 @@ defmodule ExPlasma.Client do
     unprefixed_hash_response
     |> Base.decode16!(case: :lower)
     |> ABI.TypeDecoder.decode_raw(types)
-  end
-
-  @spec encode_event_topic_signature(String.t()) :: String.t()
-  defp encode_event_topic_signature(signature) do
-    signature
-    |> keccak_hash()
-    |> to_hex()
   end
 end
