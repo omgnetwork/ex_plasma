@@ -130,6 +130,23 @@ defmodule ExPlasma.Client do
     end
   end
 
+  def deposit_events(block_from, block_to, :eth),
+    do: deposit_events(block_from, block_to, eth_vault_address())
+
+  @spec deposit_events(non_neg_integer(), non_neg_integer(), String.t()) :: tuple()
+  def deposit_events(block_from, block_to, contract) do
+    signature = "DepositCreated(address,uint256,address,uint256)"
+    encoded_signature = encode_event_topic_signature(signature)
+    topics = ["#{encoded_signature}"]
+
+    Ethereumex.HttpClient.eth_get_logs(%{
+      fromBlock: to_hex(block_from),
+      toBlock: to_hex(block_to),
+      address: contract,
+      topics: topics
+    })
+  end
+
   @spec eth_call(String.t(), list(), fun()) :: tuple()
   defp eth_call(contract_signature, data_types, callback) when is_list(data_types) do
     options = %{data: encode_data(contract_signature, data_types), to: contract_address()}

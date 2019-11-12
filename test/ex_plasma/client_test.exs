@@ -56,7 +56,6 @@ defmodule ExPlasma.ClientTest do
   test "deposit/4 sends deposit transaction into the contract" do
     # TODO fix the amount passing to match value/sent amount
     use_cassette "deposit", match_requests_on: [:request_body] do
-      contract = "0x1967d06b1faba91eaadb1be33b277447ea24fa0e"
       alice = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
       # NB: Contracts currently sets 'eth' to a zero address.
       currency = ExPlasma.Encoding.to_hex(<<0::160>>)
@@ -69,6 +68,31 @@ defmodule ExPlasma.ClientTest do
                |> Transaction.encode()
                # TODO fix this ish to pick up from deposit
                |> Client.deposit(1, alice, :eth)
+    end
+  end
+
+  describe "deposit_events/3" do
+    test "it returns events for eth deposits" do
+      use_cassette "deposit_events", match_requests_on: [:request_body] do
+        alice = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+        # NB: Contracts currently sets 'eth' to a zero address.
+        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+        # TODO: We need to do something about this 0 bytes thing
+        metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
+        deposit = Deposit.new(alice, currency, 1, metadata)
+
+        assert {:ok, _receipt_hash} =
+                 deposit
+                 |> Transaction.encode()
+                 # TODO fix this ish to pick up from deposit
+                 |> Client.deposit(1, alice, :eth)
+
+        assert {:ok, results} =
+          Client.deposit_events(0, 1000, :eth)
+
+        event = hd(results)
+        assert is_map(event)
+      end
     end
   end
 end
