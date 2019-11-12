@@ -63,6 +63,20 @@ defmodule ExPlasma.Encoding do
   def to_hex(int) when is_integer(int), do: "0x" <> Integer.to_string(int, 16)
 
   @doc """
+  Converts a hex string into the integer value.
+
+  ## Examples
+
+  iex> ExPlasma.Encoding.to_int("0xb")
+  11
+  """
+  @spec to_int(String.t()) :: non_neg_integer
+  def to_int("0x" <> encoded) do
+    {return, ""} = Integer.parse(encoded, 16)
+    return
+  end
+
+  @doc """
   Converts a hex string into a binary.
 
   ## Examples
