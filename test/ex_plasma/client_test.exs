@@ -2,9 +2,13 @@ defmodule ExPlasma.ClientTest do
   use ExUnit.Case
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
+  alias ExPlasma.Block
   alias ExPlasma.Client
   alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.Input
+  alias ExPlasma.Transaction.Output
   alias ExPlasma.Transactions.Deposit
+  alias ExPlasma.Transactions.Payment
 
   setup do
     Application.ensure_all_started(:ethereumex)
@@ -92,6 +96,25 @@ defmodule ExPlasma.ClientTest do
 
         event = hd(results)
         assert is_map(event)
+      end
+    end
+  end
+
+  describe "submit_block/3" do
+    test "it submits a block of transactions" do
+      use_cassette "submit_block", match_requests_on: [:request_body] do
+        owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+        currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
+        amount = 1
+        metadata = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+        output = %Output{owner: owner, currency: currency, amount: amount}
+        input = %Input{}
+        transaction = Payment.new(inputs: [input], outputs: [output], metadata: metadata)
+
+        assert {:ok, _receipt_hash} =
+          Block.new([transaction])
+          |>
+          Client.submit_block(owner, owner, 1)
       end
     end
   end

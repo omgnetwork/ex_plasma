@@ -130,10 +130,13 @@ defmodule ExPlasma.Client do
     end
   end
 
+  @doc """
+  Returns all the deposit events for a given range.
+  """
+  @spec deposit_events(non_neg_integer(), non_neg_integer(), atom()) :: tuple()
   def deposit_events(block_from, block_to, :eth),
     do: deposit_events(block_from, block_to, eth_vault_address())
 
-  @spec deposit_events(non_neg_integer(), non_neg_integer(), String.t()) :: tuple()
   def deposit_events(block_from, block_to, contract) do
     signature = "DepositCreated(address,uint256,address,uint256)"
     encoded_signature = encode_event_topic_signature(signature)
@@ -145,6 +148,26 @@ defmodule ExPlasma.Client do
       address: contract,
       topics: topics
     })
+  end
+
+  def submit_block(%ExPlasma.Block{hash: hash}, from, to, value),
+    do: submit_block(hash, from, to, value)
+
+  def submit_block(block_hash, from, to, value) do
+    data = encode_data("submitBlock(bytes32)", [block_hash])
+
+    txmap = %{
+      from: from,
+      to: to,
+      data: data,
+      gas: "0x" <> Integer.to_string(180_000, 16),
+      value: value
+    }
+
+    case Ethereumex.HttpClient.eth_send_transaction(txmap) do
+      {:ok, receipt_enc} -> {:ok, receipt_enc}
+      other -> other
+    end
   end
 
   @spec eth_call(String.t(), list(), fun()) :: tuple()
@@ -167,5 +190,12 @@ defmodule ExPlasma.Client do
     unprefixed_hash_response
     |> Base.decode16!(case: :lower)
     |> ABI.TypeDecoder.decode_raw(types)
+  end
+
+  @spec encode_event_topic_signature(String.t()) :: String.t()
+  defp encode_event_topic_signature(signature) do
+    signature
+    |> keccak_hash()
+    |> to_hex()
   end
 end
