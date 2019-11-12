@@ -7,6 +7,7 @@ config :ex_plasma,
   eth_vault_address: "0x1967d06b1faba91eaadb1be33b277447ea24fa0e"
 
 config :ethereumex,
+  id_reset: true,
   url: "http://localhost:8545"
 
 # This configuration is loaded before any dependency and is restricted
