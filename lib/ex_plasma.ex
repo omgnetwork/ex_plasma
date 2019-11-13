@@ -4,6 +4,10 @@ defmodule ExPlasma do
   """
 
   @spec contract_address() :: String.t()
+  def authority_address(), do:
+    Application.get_env(:ex_plasma, :authority_address)
+
+  @spec contract_address() :: String.t()
   def contract_address(), do:
     Application.get_env(:ex_plasma, :contract_address)
   

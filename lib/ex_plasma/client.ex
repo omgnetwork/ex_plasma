@@ -6,7 +6,11 @@ defmodule ExPlasma.Client do
 
   alias ExPlasma.Block
 
-  import ExPlasma, only: [contract_address: 0, eth_vault_address: 0]
+  import ExPlasma, only: [
+    authority_address: 0,
+    contract_address: 0,
+    eth_vault_address: 0
+  ]
 
   @doc """
   Returns the operator address.
