@@ -15,6 +15,8 @@ def deps do
 end
 ```
 
+## WIP
+
 ### Quick Start
 
 
@@ -45,18 +47,30 @@ docker-compose up
 ##### Depositing Eth into contract
 
 ```elixir
-contract = "0x1967d06b1faba91eaadb1be33b277447ea24fa0e"
-alice = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
 currency = ExPlasma.Encoding.to_hex(<<0::160>>)
 metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
-deposit = Deposit.new(alice, currency, 1, metadata)
-deposit
-|> Transaction.encode()
-|> Client.deposit(alice, contract, 1)
+deposit = Deposit.new(authority_address(), currency, 1, metadata)
+
+Client.deposit(deposit, :eth)
 ```
 
+##### Submitting a Block as an Authority
+
+```elixir
+alias ExPlasma.Transaction.Output
+alias ExPlasma.Transaction.Input0
+
+authority = "0x22d491bde2303f2f43325b2108d26f1eaba1e32b"
+currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
+metadata = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+output = %Output{owner: authority, currency: currency, amount: 1}
+input = %Input{}
+transaction = Payment.new(inputs: [input], outputs: [output], metadata: metadata)
+
+ Block.new([transaction])
+ |> Client.submit_block()
+```
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/ex_plasma](https://hexdocs.pm/ex_plasma).
-

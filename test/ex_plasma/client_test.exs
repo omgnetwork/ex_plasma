@@ -111,8 +111,6 @@ defmodule ExPlasma.ClientTest do
         %ExPlasma.Block{hash: txbytes} = ExPlasma.Block.new([deposit])
         proof = ExPlasma.Encoding.merkle_proof([txbytes], 1)
 
-        require IEx; IEx.pry
-
         assert {:ok, _receipt_hash} =
                  Client.start_standard_exit(authority_address(), 1000, txbytes, proof)
       end
