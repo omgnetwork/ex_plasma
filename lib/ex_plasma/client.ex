@@ -133,18 +133,20 @@ defmodule ExPlasma.Client do
     end
   end
 
-  def submit_block(%ExPlasma.Block{hash: hash}, from, to, value),
-    do: submit_block(hash, from, to, value)
-
-  def submit_block(block_hash, from, to, value) do
-    data = encode_data("submitBlock(bytes32)", [block_hash])
+  @doc """
+  Submits a block to the contract.
+  """
+  @spec submit_block(ExPlasma.Block.t(), non_neg_integer(), non_neg_integer) :: tuple()
+  def submit_block(%ExPlasma.Block{hash: hash}, nonce, gas \\ 100_000) do
+    data = encode_data("submitBlock(bytes32)", [hash])
 
     txmap = %{
-      from: from,
-      to: to,
+      from: authority_address(),
+      to: contract_address(),
       data: data,
-      gas: "0x" <> Integer.to_string(180_000, 16),
-      value: value
+      gas: gas,
+      nonce: nonce,
+      value: 0
     }
 
     case Ethereumex.HttpClient.eth_send_transaction(txmap) do

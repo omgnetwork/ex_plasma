@@ -3,7 +3,7 @@ defmodule ExPlasma do
   Documentation for ExPlasma.
   """
 
-  @spec contract_address() :: String.t()
+  @spec authority_address() :: String.t()
   def authority_address(), do:
     Application.get_env(:ex_plasma, :authority_address)
 

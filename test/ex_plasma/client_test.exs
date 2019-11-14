@@ -73,18 +73,18 @@ defmodule ExPlasma.ClientTest do
   describe "submit_block/3" do
     test "it submits a block of transactions" do
       use_cassette "submit_block", match_requests_on: [:request_body] do
-        owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+        authority = "0x22d491bde2303f2f43325b2108d26f1eaba1e32b"
         currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
         amount = 1
         metadata = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
-        output = %Output{owner: owner, currency: currency, amount: amount}
+        output = %Output{owner: authority, currency: currency, amount: amount}
         input = %Input{}
         transaction = Payment.new(inputs: [input], outputs: [output], metadata: metadata)
 
         assert {:ok, _receipt_hash} =
           Block.new([transaction])
           |>
-          Client.submit_block(owner, owner, 1)
+          Client.submit_block(1)
       end
     end
   end
