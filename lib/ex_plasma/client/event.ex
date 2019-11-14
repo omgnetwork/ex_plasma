@@ -7,6 +7,14 @@ defmodule ExPlasma.Client.Event do
   import ExPlasma.Encoding, only: [to_hex: 1, keccak_hash: 1]
 
   @doc """
+  Get blocks submitted for a specific range.
+  """
+  def blocks_submitted(from: from, to: to) do
+    signature = "BlockSubmitted(uint256)"
+    get_events(signature, contract_address(), from, to)
+  end
+
+  @doc """
   Return deposit created events for a specific range.
   """
   def deposits(:eth, from: from, to: to) do
