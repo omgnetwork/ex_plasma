@@ -22,6 +22,14 @@ defmodule ExPlasma.Client.Event do
     get_events(signature, eth_vault_address(), from, to)
   end
 
+  @doc """
+  Return deposit created events for a specific range.
+  """
+  def exit_queues_added(from: from, to: to) do
+    signature = "ExitQueueAdded(uint256,address)"
+    get_events(signature, contract_address(), from, to)
+  end
+
   defp get_events(signature, contract, from, to) do
     encoded_topic = encode_event_topic_signature(signature)
 

@@ -148,19 +148,7 @@ defmodule ExPlasma.Client do
   @spec submit_block(ExPlasma.Block.t()) :: tuple()
   def submit_block(%ExPlasma.Block{hash: hash}) do
     data = encode_data("submitBlock(bytes32)", [hash])
-
-    txmap = %{
-      from: authority_address(),
-      to: contract_address(),
-      data: data,
-      gas: gas(),
-      value: 0
-    }
-
-    case Ethereumex.HttpClient.eth_send_transaction(txmap) do
-      {:ok, receipt_enc} -> {:ok, receipt_enc}
-      other -> other
-    end
+    eth_send_transaction(%{data: data, value: 0})
   end
 
   @doc """
@@ -175,22 +163,24 @@ defmodule ExPlasma.Client do
   def start_standard_exit(owner, utxo_pos, txbyte, proof, outputGuardPreImage \\ "") do
     data =
       encode_data(
-        "startStandardExit((uint192,bytes,bytes,bytes))",
+        "startStandardExit((uint256,bytes,bytes,bytes))",
         [{utxo_pos, to_binary(txbyte), outputGuardPreImage, to_binary(proof)}]
       )
 
-    txmap = %{
+    eth_send_transaction(%{
       from: owner,
       to: exit_game_address(),
       value: standard_exit_bond_size(),
       data: data,
-      gas: gas()
-    }
+    })
+  end
 
-    case Ethereumex.HttpClient.eth_send_transaction(txmap) do
-      {:ok, receipt_enc} -> {:ok, receipt_enc}
-      other -> other
-    end
+  @doc """
+  Adds an exit queue for the given vault and token address.
+  """
+  def add_exit_queue(vault_id, token_address) do
+    data = encode_data("addExitQueue(uint256,address)", [vault_id, token_address])
+    eth_send_transaction(%{data: data})
   end
 
   @spec eth_call(String.t(), list(), fun()) :: tuple()

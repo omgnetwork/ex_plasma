@@ -22,8 +22,18 @@ defmodule ExPlasma.Client.EventTest do
   describe "deposits/3" do
     test "it returns events for eth deposits" do
       use_cassette "deposits", match_requests_on: [:request_body] do
-        assert {:ok, results} =
-          Event.deposits(:eth, from: 0, to: 1000)
+        assert {:ok, results} = Event.deposits(:eth, from: 0, to: 1000)
+
+        event = hd(results)
+        assert is_map(event)
+      end
+    end
+  end
+
+  describe "exit_queues_added/3" do
+    test "it returns events for exit queues added" do
+      use_cassette "exit_queues_added", match_requests_on: [:request_body] do
+        assert {:ok, results} = Event.exit_queues_added(from: 0, to: 1000)
 
         event = hd(results)
         assert is_map(event)

@@ -3,7 +3,6 @@ defmodule ExPlasma.ClientTest do
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
   alias ExPlasma.Block
-  alias ExPlasma.Encoding
   alias ExPlasma.Client
   alias ExPlasma.Transaction
   alias ExPlasma.Transaction.Input
@@ -75,7 +74,6 @@ defmodule ExPlasma.ClientTest do
       # TODO: We need to do something about this 0 bytes thing
       metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
       deposit = Deposit.new(authority_address(), currency, 1, metadata)
-      value = ExPlasma.Encoding.to_hex(1)
 
       assert {:ok, _receipt_hash} =
                deposit
@@ -107,9 +105,9 @@ defmodule ExPlasma.ClientTest do
   describe "start_standard_exit/3" do
     test "it starts a standard exit for the owner" do
       use_cassette "start_standard_exit", match_requests_on: [:request_body] do
-        currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
+        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
         amount = 1
-        metadata = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+        metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
         output = %Output{owner: authority_address(), currency: currency, amount: amount}
         input = %Input{}
         transaction = Payment.new(inputs: [input], outputs: [output], metadata: metadata)
@@ -118,6 +116,16 @@ defmodule ExPlasma.ClientTest do
 
         assert {:ok, _receipt_hash} =
                  Client.start_standard_exit(authority_address(), 1, txbytes, proof)
+      end
+    end
+  end
+
+  describe "add_exit_queue/2" do
+    test "it adds an exit queue for a given vault id and token address" do
+      use_cassette "add_exit_queue", match_requests_on: [:request_body] do
+        alice = "0xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E"
+        assert {:ok, _receipt_hash} =
+        Client.add_exit_queue(1, <<0::160>>)
       end
     end
   end
