@@ -164,7 +164,7 @@ defmodule ExPlasma.Client do
     data =
       encode_data(
         "startStandardExit((uint256,bytes,bytes,bytes))",
-        [{utxo_pos, to_binary(txbyte), outputGuardPreImage, to_binary(proof)}]
+        [{utxo_pos, txbyte, outputGuardPreImage, proof}]
       )
 
     eth_send_transaction(%{

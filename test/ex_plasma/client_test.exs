@@ -104,20 +104,19 @@ defmodule ExPlasma.ClientTest do
   @tag :skip
   describe "start_standard_exit/3" do
     test "it starts a standard exit for the owner" do
-      use_cassette "start_standard_exit", match_requests_on: [:request_body] do
+      #use_cassette "start_standard_exit", match_requests_on: [:request_body] do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
-        amount = 1
         metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
-        output = %Output{owner: authority_address(), currency: currency, amount: amount}
-        input = %Input{}
-        transaction = Payment.new(inputs: [input], outputs: [output], metadata: metadata)
-        txbytes = Transaction.encode(transaction) |> ExPlasma.Encoding.to_hex()
-        proof = ExPlasma.Encoding.merkle_proof([txbytes], 0) |> ExPlasma.Encoding.to_hex()
+        deposit = Deposit.new(authority_address(), currency, 1, metadata)
+        %ExPlasma.Block{hash: txbytes} = ExPlasma.Block.new([deposit])
+        proof = ExPlasma.Encoding.merkle_proof([txbytes], 1)
+
+        require IEx; IEx.pry
 
         assert {:ok, _receipt_hash} =
-                 Client.start_standard_exit(authority_address(), 1, txbytes, proof)
+                 Client.start_standard_exit(authority_address(), 1000, txbytes, proof)
       end
-    end
+    #end
   end
 
   describe "add_exit_queue/2" do
