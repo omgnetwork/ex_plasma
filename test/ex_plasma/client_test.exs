@@ -20,9 +20,10 @@ defmodule ExPlasma.ClientTest do
     :ok
   end
 
-  test "get_operator/0 returns the operator address" do
-    use_cassette "get_operator", match_requests_on: [:request_body] do
-      assert Client.get_operator() == "ffcf8fdee72ac11b5c542428b35eef5769c409f0"
+  test "get_authority/0 returns the authority address" do
+    use_cassette "get_authority", match_requests_on: [:request_body] do
+      "0x" <> address = authority_address()
+      assert Client.get_authority() == address
     end
   end
 
@@ -92,6 +93,7 @@ defmodule ExPlasma.ClientTest do
     end
   end
 
+  @tag :skip
   describe "start_standard_exit/3" do
     test "it starts a standard exit for the owner" do
       use_cassette "start_standard_exit", match_requests_on: [:request_body] do

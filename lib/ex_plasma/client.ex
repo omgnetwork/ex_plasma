@@ -19,16 +19,16 @@ defmodule ExPlasma.Client do
   import ExPlasma.Encoding, only: [to_binary: 1, to_hex: 1]
 
   @doc """
-  Returns the operator address.
+  Returns the authority address.
 
   ## Example
 
-    iex> ExPlasma.Client.get_operator()
+    iex> ExPlasma.Client.get_authority()
     "ffcf8fdee72ac11b5c542428b35eef5769c409f0"
   """
-  @spec get_operator() :: String.t() | tuple()
-  def get_operator() do
-    eth_call("operator()", [], fn resp ->
+  @spec get_authority() :: String.t() | tuple()
+  def get_authority() do
+    eth_call("authority()", [], fn resp ->
       resp
       |> decode_response([:address])
       |> List.first()
