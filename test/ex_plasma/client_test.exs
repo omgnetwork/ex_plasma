@@ -105,7 +105,7 @@ defmodule ExPlasma.ClientTest do
         proof = ExPlasma.Encoding.merkle_proof([txbytes], 0) |> ExPlasma.Encoding.to_hex()
 
         assert {:ok, _receipt_hash} =
-          Client.start_standard_exit(authority_address(), 1, txbytes, proof)
+                 Client.start_standard_exit(authority_address(), 1, txbytes, proof)
       end
     end
   end

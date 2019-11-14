@@ -13,11 +13,11 @@ defmodule ExPlasma do
   def eth_vault_address(), do: Application.get_env(:ex_plasma, :eth_vault_address)
 
   @spec exit_game_address() :: String.t()
-  def exit_game_address(),  do: Application.get_env(:ex_plasma, :exit_game_address)
+  def exit_game_address(), do: Application.get_env(:ex_plasma, :exit_game_address)
 
   @spec gas() :: String.t()
-  def gas(),  do: Application.get_env(:ex_plasma, :gas)
+  def gas(), do: Application.get_env(:ex_plasma, :gas)
 
   @spec standard_exit_bond_size() :: String.t()
-  def standard_exit_bond_size(),  do: Application.get_env(:ex_plasma, :standard_exit_bond_size)
+  def standard_exit_bond_size(), do: Application.get_env(:ex_plasma, :standard_exit_bond_size)
 end

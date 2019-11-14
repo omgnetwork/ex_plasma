@@ -172,8 +172,11 @@ defmodule ExPlasma.Client do
     * outputGuardPreImage - TODO
   """
   def start_standard_exit(owner, utxo_pos, txbyte, proof, outputGuardPreImage \\ "") do
-    data = encode_data("startStandardExit((uint192,bytes,bytes,bytes))", 
-      [{utxo_pos, to_binary(txbyte),  outputGuardPreImage, to_binary(proof)}])
+    data =
+      encode_data(
+        "startStandardExit((uint192,bytes,bytes,bytes))",
+        [{utxo_pos, to_binary(txbyte), outputGuardPreImage, to_binary(proof)}]
+      )
 
     txmap = %{
       from: owner,

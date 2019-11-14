@@ -12,8 +12,7 @@ defmodule ExPlasma.Client.EventTest do
 
   test "blocks_submitted/2 retuns block submitted events for a range" do
     use_cassette "blocks_submitted", match_requests_on: [:request_body] do
-      assert {:ok, results} =
-        Event.blocks_submitted(from: 0, to: 1000)
+      assert {:ok, results} = Event.blocks_submitted(from: 0, to: 1000)
 
       event = hd(results)
       assert is_map(event)
