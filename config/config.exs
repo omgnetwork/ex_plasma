@@ -5,7 +5,10 @@ use Mix.Config
 config :ex_plasma,
   authority_address: "0x22d491bde2303f2f43325b2108d26f1eaba1e32b",
   contract_address: "0xd17e1233a03affb9092d5109179b43d6a8828607",
-  eth_vault_address: "0x1967d06b1faba91eaadb1be33b277447ea24fa0e"
+  eth_vault_address: "0x1967d06b1faba91eaadb1be33b277447ea24fa0e",
+  exit_game_address: "0x902719f192aa5240632f704aa7a94bab61b86550",
+  gas: 100_000,
+  standard_exit_bond_size: 100
 
 config :ethereumex,
   id_reset: true,

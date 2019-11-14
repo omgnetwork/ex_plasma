@@ -22,6 +22,17 @@ defmodule ExPlasma.Encoding do
   @spec keccak_hash(binary()) :: hash_t()
   def keccak_hash(message), do: ExthCrypto.Hash.hash(message, ExthCrypto.Hash.kec())
 
+  # Creates a Merkle proof that transaction under a given transaction index
+  # is included in block consisting of hashed transactions
+  @spec merkle_proof(list(String.t()), non_neg_integer()) :: binary()
+  def merkle_proof(hashed_txs, txindex) do
+    build(hashed_txs)
+    |> prove(txindex)
+    |> (& &1.hashes).()
+    |> Enum.reverse()
+    |> Enum.join()
+  end
+
   @doc """
   Generate a Merkle Root hash for the given list of transactions in encoded byte form.
 
@@ -96,4 +107,17 @@ defmodule ExPlasma.Encoding do
   end
 
   defp default_leaf(), do: <<0>> |> List.duplicate(32) |> Enum.join() |> keccak_hash()
+
+  defp build(hashed_txs) do
+    MerkleTree.build(hashed_txs,
+      hash_function: &keccak_hash/1,
+      hash_leaves: false,
+      height: @transaction_merkle_tree_height,
+      default_data_block: default_leaf()
+    )
+  end
+
+  defp prove(hash, txindex) do
+    MerkleTree.Proof.prove(hash, txindex)
+  end
 end

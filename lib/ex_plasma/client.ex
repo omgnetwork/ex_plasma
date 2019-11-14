@@ -6,11 +6,17 @@ defmodule ExPlasma.Client do
 
   alias ExPlasma.Block
 
-  import ExPlasma, only: [
-    authority_address: 0,
-    contract_address: 0,
-    eth_vault_address: 0
-  ]
+  import ExPlasma,
+    only: [
+      authority_address: 0,
+      contract_address: 0,
+      eth_vault_address: 0,
+      exit_game_address: 0,
+      gas: 0,
+      standard_exit_bond_size: 0
+    ]
+
+  import ExPlasma.Encoding, only: [to_binary: 1, to_hex: 1]
 
   @doc """
   Returns the operator address.
@@ -92,6 +98,7 @@ defmodule ExPlasma.Client do
   """
   def get_standard_exit(exit_id) do
     types = [:bool, {:uint, 192}, {:bytes, 32}, :address, {:uint, 256}, {:uint, 256}]
+
     eth_call("standardExits(uint160)", [exit_id], fn resp ->
       List.first(decode_response(resp, types))
     end)
@@ -113,7 +120,7 @@ defmodule ExPlasma.Client do
   end
 
   @spec deposit(binary(), non_neg_integer(), String.t(), String.t()) :: tuple()
-  def deposit(tx_bytes, value, from, :eth), 
+  def deposit(tx_bytes, value, from, :eth),
     do: deposit(tx_bytes, value, from, eth_vault_address())
 
   def deposit(tx_bytes, value, from, to) do
@@ -155,9 +162,37 @@ defmodule ExPlasma.Client do
     end
   end
 
+  @doc """
+  Start a Standard Exit
+
+    * owner    - Who's starting the standard exit.
+    * utxo_pos - The position of the utxo.
+    * txybtes  - The encoded hash of the transaction that created the utxo.
+    * proof    - The merkle proof.
+    * outputGuardPreImage - TODO
+  """
+  def start_standard_exit(owner, utxo_pos, txbyte, proof, outputGuardPreImage \\ "") do
+    data = encode_data("startStandardExit((uint192,bytes,bytes,bytes))", 
+      [{utxo_pos, to_binary(txbyte),  outputGuardPreImage, to_binary(proof)}])
+
+    txmap = %{
+      from: owner,
+      to: exit_game_address(),
+      value: standard_exit_bond_size(),
+      data: data,
+      gas: gas()
+    }
+
+    case Ethereumex.HttpClient.eth_send_transaction(txmap) do
+      {:ok, receipt_enc} -> {:ok, receipt_enc}
+      other -> other
+    end
+  end
+
   @spec eth_call(String.t(), list(), fun()) :: tuple()
   defp eth_call(contract_signature, data_types, callback) when is_list(data_types) do
     options = %{data: encode_data(contract_signature, data_types), to: contract_address()}
+
     case Ethereumex.HttpClient.eth_call(options) do
       {:ok, resp} -> callback.(resp)
       other -> other

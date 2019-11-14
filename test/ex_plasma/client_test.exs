@@ -3,12 +3,16 @@ defmodule ExPlasma.ClientTest do
   use ExVCR.Mock, adapter: ExVCR.Adapter.Hackney
 
   alias ExPlasma.Block
+  alias ExPlasma.Encoding
   alias ExPlasma.Client
   alias ExPlasma.Transaction
   alias ExPlasma.Transaction.Input
   alias ExPlasma.Transaction.Output
   alias ExPlasma.Transactions.Deposit
   alias ExPlasma.Transactions.Payment
+
+  import ExPlasma,
+    only: [authority_address: 0]
 
   setup do
     Application.ensure_all_started(:ethereumex)
@@ -82,9 +86,26 @@ defmodule ExPlasma.ClientTest do
         transaction = Payment.new(inputs: [input], outputs: [output], metadata: metadata)
 
         assert {:ok, _receipt_hash} =
-          Block.new([transaction])
-          |>
-          Client.submit_block(1)
+                 Block.new([transaction])
+                 |> Client.submit_block(1)
+      end
+    end
+  end
+
+  describe "start_standard_exit/3" do
+    test "it starts a standard exit for the owner" do
+      use_cassette "start_standard_exit", match_requests_on: [:request_body] do
+        currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
+        amount = 1
+        metadata = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+        output = %Output{owner: authority_address(), currency: currency, amount: amount}
+        input = %Input{}
+        transaction = Payment.new(inputs: [input], outputs: [output], metadata: metadata)
+        txbytes = Transaction.encode(transaction) |> ExPlasma.Encoding.to_hex()
+        proof = ExPlasma.Encoding.merkle_proof([txbytes], 0) |> ExPlasma.Encoding.to_hex()
+
+        assert {:ok, _receipt_hash} =
+          Client.start_standard_exit(authority_address(), 1, txbytes, proof)
       end
     end
   end
