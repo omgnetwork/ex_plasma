@@ -143,16 +143,15 @@ defmodule ExPlasma.Client do
   @doc """
   Submits a block to the contract.
   """
-  @spec submit_block(ExPlasma.Block.t(), non_neg_integer(), non_neg_integer) :: tuple()
-  def submit_block(%ExPlasma.Block{hash: hash}, nonce, gas \\ 100_000) do
+  @spec submit_block(ExPlasma.Block.t()) :: tuple()
+  def submit_block(%ExPlasma.Block{hash: hash}) do
     data = encode_data("submitBlock(bytes32)", [hash])
 
     txmap = %{
       from: authority_address(),
       to: contract_address(),
       data: data,
-      gas: gas,
-      nonce: nonce,
+      gas: gas(),
       value: 0
     }
 

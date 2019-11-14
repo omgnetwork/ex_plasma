@@ -87,7 +87,7 @@ defmodule ExPlasma.ClientTest do
 
         assert {:ok, _receipt_hash} =
                  Block.new([transaction])
-                 |> Client.submit_block(1)
+                 |> Client.submit_block()
       end
     end
   end
