@@ -1,4 +1,4 @@
-FROM node:8.16-alpine
+FROM node:10-alpine
 
 MAINTAINER OmiseGO Engineering <eng@omise.co>
 
@@ -12,5 +12,5 @@ RUN apk add --update \
 		git
 
 RUN git clone https://github.com/omisego/plasma-contracts.git
-RUN cd /home/node/plasma-contracts && git checkout ea36f5ff46ab72ec5c281fa0a3dffe3bcc83178b
+RUN cd /home/node/plasma-contracts
 RUN cd /home/node/plasma-contracts/plasma_framework && npm install
