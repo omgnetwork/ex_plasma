@@ -123,7 +123,6 @@ defmodule ExPlasma.ClientTest do
   describe "add_exit_queue/2" do
     test "it adds an exit queue for a given vault id and token address" do
       use_cassette "add_exit_queue", match_requests_on: [:request_body] do
-        alice = "0xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E"
         assert {:ok, _receipt_hash} =
         Client.add_exit_queue(1, <<0::160>>)
       end
