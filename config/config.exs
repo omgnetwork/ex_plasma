@@ -7,7 +7,7 @@ config :ex_plasma,
   contract_address: "0xd17e1233a03affb9092d5109179b43d6a8828607",
   eth_vault_address: "0x1967d06b1faba91eaadb1be33b277447ea24fa0e",
   exit_game_address: "0x902719f192aa5240632f704aa7a94bab61b86550",
-  gas: 100_000,
+  gas: 180_000,
   standard_exit_bond_size: 100
 
 config :ethereumex,

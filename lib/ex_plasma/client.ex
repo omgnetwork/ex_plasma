@@ -5,6 +5,7 @@ defmodule ExPlasma.Client do
   """
 
   alias ExPlasma.Block
+  alias ExPlasma.Transaction
 
   import ExPlasma,
     only: [
@@ -119,6 +120,13 @@ defmodule ExPlasma.Client do
     end)
   end
 
+  @spec deposit(ExPlasma.Transactions.Deposit.t(), atom()) :: tuple()
+  def deposit(%ExPlasma.Transactions.Deposit{outputs: [output]} = transaction, :eth) do
+    transaction
+    |> Transaction.encode()
+    |> deposit(output[:amount], output[:owner], :eth)
+  end
+
   @spec deposit(binary(), non_neg_integer(), String.t(), String.t()) :: tuple()
   def deposit(tx_bytes, value, from, :eth),
     do: deposit(tx_bytes, value, from, eth_vault_address())
@@ -126,18 +134,12 @@ defmodule ExPlasma.Client do
   def deposit(tx_bytes, value, from, to) do
     data = encode_data("deposit(bytes)", [tx_bytes])
 
-    txmap = %{
-      from: from,
-      to: to,
+    eth_send_transaction(%{
       data: data,
-      gas: "0x" <> Integer.to_string(180_000, 16),
+      from: from,
+      to: to, 
       value: value
-    }
-
-    case Ethereumex.HttpClient.eth_send_transaction(txmap) do
-      {:ok, receipt_enc} -> {:ok, receipt_enc}
-      other -> other
-    end
+    })
   end
 
   @doc """
@@ -197,6 +199,24 @@ defmodule ExPlasma.Client do
 
     case Ethereumex.HttpClient.eth_call(options) do
       {:ok, resp} -> callback.(resp)
+      other -> other
+    end
+  end
+
+  @spec eth_send_transaction(map()) :: tuple()
+  defp eth_send_transaction(%{} = options) do
+    default_options = %{ 
+      from: authority_address(),
+      to: contract_address(),
+      gas: gas(),
+      value: 0
+    }
+
+    txmap = Map.merge(default_options, options)
+    txmap = %{txmap | gas: to_hex(txmap[:gas]), value: to_hex(txmap[:value]) }
+
+    case Ethereumex.HttpClient.eth_send_transaction(txmap) do
+      {:ok, receipt_enc} -> {:ok, receipt_enc}
       other -> other
     end
   end
