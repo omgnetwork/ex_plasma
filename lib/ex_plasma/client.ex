@@ -17,7 +17,7 @@ defmodule ExPlasma.Client do
       standard_exit_bond_size: 0
     ]
 
-  import ExPlasma.Encoding, only: [to_binary: 1, to_hex: 1]
+  import ExPlasma.Encoding, only: [to_hex: 1]
 
   @doc """
   Returns the authority address.
