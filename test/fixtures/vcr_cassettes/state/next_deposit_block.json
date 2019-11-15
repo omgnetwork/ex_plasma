@@ -1,7 +1,7 @@
 [
   {
     "request": {
-      "body": "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"eth_call\",\"params\":[{\"data\":\"0x570ca735\",\"to\":\"0xd17e1233a03affb9092d5109179b43d6a8828607\"},\"latest\"]}",
+      "body": "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"eth_call\",\"params\":[{\"data\":\"0x8701fc5d\",\"to\":\"0xd17e1233a03affb9092d5109179b43d6a8828607\"},\"latest\"]}",
       "headers": {
         "Content-Type": "application/json"
       },
@@ -14,10 +14,10 @@
     },
     "response": {
       "binary": false,
-      "body": "{\"id\":1,\"jsonrpc\":\"2.0\",\"result\":\"0x000000000000000000000000ffcf8fdee72ac11b5c542428b35eef5769c409f0\"}",
+      "body": "{\"id\":1,\"jsonrpc\":\"2.0\",\"result\":\"0x0000000000000000000000000000000000000000000000000000000000000001\"}",
       "headers": {
         "Content-Type": "application/json",
-        "Date": "Sun, 13 Oct 2019 23:06:54 GMT",
+        "Date": "Fri, 15 Nov 2019 21:16:24 GMT",
         "Connection": "keep-alive",
         "Transfer-Encoding": "chunked"
       },
