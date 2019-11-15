@@ -120,6 +120,17 @@ defmodule ExPlasma.Client do
     end)
   end
 
+  @doc """
+  Returns whether the exit queue has been added for a given vault_id and token.
+  """
+  @spec has_exit_queue(non_neg_integer(), String.t()) :: boolean()
+  def has_exit_queue(vault_id, token_address) do
+    eth_call("hasExitQueue(uint256,address)", [vault_id, token_address], fn resp ->
+      [result] = decode_response(resp, [:bool])
+      result
+    end)
+  end
+
   @spec deposit(ExPlasma.Transactions.Deposit.t(), atom()) :: tuple()
   def deposit(%ExPlasma.Transactions.Deposit{outputs: [output]} = transaction, :eth) do
     transaction

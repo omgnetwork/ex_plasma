@@ -125,4 +125,11 @@ defmodule ExPlasma.ClientTest do
       end
     end
   end
+
+  test "has_exit_queue/2 returns if an exit queue exists" do
+      use_cassette "has_exit_queue", match_requests_on: [:request_body] do
+        # NB: Exit Queue has not been added by default after migration
+        assert false == Client.has_exit_queue(1, <<0::160>>)
+      end
+  end
 end
