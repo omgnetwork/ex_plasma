@@ -29,8 +29,8 @@ defmodule ExPlasma.Block do
 
     iex> %ExPlasma.Transaction{} |> List.wrap() |> ExPlasma.Block.new
     %ExPlasma.Block{
-      hash: <<223, 96, 101, 248, 81, 250, 16, 13, 34, 24, 61, 77, 203, 50, 91, 79,
-        208, 239, 84, 191, 208, 233, 166, 0, 105, 150, 209, 251, 94, 178, 255, 30>>,
+      hash: <<149, 58, 222, 131, 150, 64, 243, 225, 160, 113, 220, 242, 131, 231, 
+      1, 234, 63, 128, 16, 184, 26, 217, 7, 67, 46, 88, 90, 152, 177, 230, 3, 137>>,
       timestamp: nil,
       transactions: [
         %ExPlasma.Transaction{inputs: [], metadata: nil, outputs: [], sigs: []}
