@@ -64,7 +64,7 @@ defmodule ExPlasma.ClientTest do
     end
   end
 
-  @tag :solo
+  @tag :skip
   describe "start_standard_exit/3" do
     test "it starts a standard exit for the owner" do
       #use_cassette "start_standard_exit", match_requests_on: [:request_body] do
