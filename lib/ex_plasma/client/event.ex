@@ -3,7 +3,7 @@ defmodule ExPlasma.Client.Event do
   Grabs contract events.
   """
 
-  import ExPlasma, only: [contract_address: 0, eth_vault_address: 0]
+  import ExPlasma.Client.Config, only: [contract_address: 0, eth_vault_address: 0]
   import ExPlasma.Encoding, only: [to_hex: 1, keccak_hash: 1]
 
   @doc """

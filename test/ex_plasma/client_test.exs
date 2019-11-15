@@ -10,20 +10,13 @@ defmodule ExPlasma.ClientTest do
   alias ExPlasma.Transactions.Deposit
   alias ExPlasma.Transactions.Payment
 
-  import ExPlasma,
+  import ExPlasma.Client.Config,
     only: [authority_address: 0]
 
   setup do
     Application.ensure_all_started(:ethereumex)
     ExVCR.Config.cassette_library_dir("./test/fixtures/vcr_cassettes")
     :ok
-  end
-
-  test "get_authority/0 returns the authority address" do
-    use_cassette "get_authority", match_requests_on: [:request_body] do
-      "0x" <> address = authority_address()
-      assert Client.get_authority() == address
-    end
   end
 
   test "get_block/1 returns a block struct" do
@@ -104,32 +97,32 @@ defmodule ExPlasma.ClientTest do
   @tag :skip
   describe "start_standard_exit/3" do
     test "it starts a standard exit for the owner" do
-      #use_cassette "start_standard_exit", match_requests_on: [:request_body] do
-        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
-        metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
-        deposit = Deposit.new(authority_address(), currency, 1, metadata)
-        %ExPlasma.Block{hash: txbytes} = ExPlasma.Block.new([deposit])
-        proof = ExPlasma.Encoding.merkle_proof([txbytes], 1)
+      # use_cassette "start_standard_exit", match_requests_on: [:request_body] do
+      currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+      metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
+      deposit = Deposit.new(authority_address(), currency, 1, metadata)
+      %ExPlasma.Block{hash: txbytes} = ExPlasma.Block.new([deposit])
+      proof = ExPlasma.Encoding.merkle_proof([txbytes], 1)
 
-        assert {:ok, _receipt_hash} =
-                 Client.start_standard_exit(authority_address(), 1000, txbytes, proof)
-      end
-    #end
+      assert {:ok, _receipt_hash} =
+               Client.start_standard_exit(authority_address(), 1000, txbytes, proof)
+    end
+
+    # end
   end
 
   describe "add_exit_queue/2" do
     test "it adds an exit queue for a given vault id and token address" do
       use_cassette "add_exit_queue", match_requests_on: [:request_body] do
-        assert {:ok, _receipt_hash} =
-        Client.add_exit_queue(1, <<0::160>>)
+        assert {:ok, _receipt_hash} = Client.add_exit_queue(1, <<0::160>>)
       end
     end
   end
 
   test "has_exit_queue/2 returns if an exit queue exists" do
-      use_cassette "has_exit_queue", match_requests_on: [:request_body] do
-        # NB: Exit Queue has not been added by default after migration
-        assert false == Client.has_exit_queue(1, <<0::160>>)
-      end
+    use_cassette "has_exit_queue", match_requests_on: [:request_body] do
+      # NB: Exit Queue has not been added by default after migration
+      assert false == Client.has_exit_queue(1, <<0::160>>)
+    end
   end
 end

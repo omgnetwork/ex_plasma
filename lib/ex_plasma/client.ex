@@ -7,7 +7,7 @@ defmodule ExPlasma.Client do
   alias ExPlasma.Block
   alias ExPlasma.Transaction
 
-  import ExPlasma,
+  import ExPlasma.Client.Config,
     only: [
       authority_address: 0,
       contract_address: 0,
@@ -148,7 +148,7 @@ defmodule ExPlasma.Client do
     eth_send_transaction(%{
       data: data,
       from: from,
-      to: to, 
+      to: to,
       value: value
     })
   end
@@ -182,7 +182,7 @@ defmodule ExPlasma.Client do
       from: owner,
       to: exit_game_address(),
       value: standard_exit_bond_size(),
-      data: data,
+      data: data
     })
   end
 
@@ -206,7 +206,7 @@ defmodule ExPlasma.Client do
 
   @spec eth_send_transaction(map()) :: tuple()
   defp eth_send_transaction(%{} = options) do
-    default_options = %{ 
+    default_options = %{
       from: authority_address(),
       to: contract_address(),
       gas: gas(),
@@ -214,7 +214,7 @@ defmodule ExPlasma.Client do
     }
 
     txmap = Map.merge(default_options, options)
-    txmap = %{txmap | gas: to_hex(txmap[:gas]), value: to_hex(txmap[:value]) }
+    txmap = %{txmap | gas: to_hex(txmap[:gas]), value: to_hex(txmap[:value])}
 
     case Ethereumex.HttpClient.eth_send_transaction(txmap) do
       {:ok, receipt_enc} -> {:ok, receipt_enc}
