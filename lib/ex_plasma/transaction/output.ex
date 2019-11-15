@@ -29,7 +29,7 @@ defmodule ExPlasma.Transaction.Output do
     241, 55, 0, 110>>,
   <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
     241, 55, 0, 110>>,
-  1
+  <<0, 0, 0, 0, 0, 0, 0, 1>>
   ]
   """
   @spec to_list(__MODULE__.t() | map()) :: list()
@@ -38,5 +38,5 @@ defmodule ExPlasma.Transaction.Output do
   # TODO
   # Add guards to cover the values coming in
   def to_list(%{owner: owner, currency: currency, amount: amount}),
-    do: [to_binary(owner), to_binary(currency), amount]
+    do: [to_binary(owner), to_binary(currency), <<amount::integer-size(64)>>]
 end

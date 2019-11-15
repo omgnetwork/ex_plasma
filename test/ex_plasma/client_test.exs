@@ -76,6 +76,7 @@ defmodule ExPlasma.ClientTest do
     end
   end
 
+  @tag :focus
   describe "submit_block/3" do
     test "it submits a block of transactions" do
       use_cassette "submit_block", match_requests_on: [:request_body] do
