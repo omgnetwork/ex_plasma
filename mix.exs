@@ -22,6 +22,7 @@ defmodule ExPlasma.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.5.5"},
       {:ex_abi, "~> 0.2.0"},
