@@ -17,6 +17,10 @@ defmodule ExPlasma.Transaction do
           metadata: binary()
         }
 
+  @type tx_bytes :: <<_::632>>
+  @type address :: <<_::160>>      # Binary representation of an address
+  @type address_hash :: <<_::336>> # Hash string representation of an address
+
   @callback new(map()) :: struct()
 
   @callback transaction_type() :: non_neg_integer()
