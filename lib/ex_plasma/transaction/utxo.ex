@@ -75,13 +75,13 @@ defmodule ExPlasma.Transaction.Utxo do
         amount: amount,
         currency: <<_::336>> = currency,
         owner: <<_::336>> = owner
-      }),
-      do:
-        to_output_list(%__MODULE__{
-          amount: amount,
-          currency: to_binary(currency),
-          owner: to_binary(owner)
-        })
+      }) do
+    to_output_list(%__MODULE__{
+      amount: amount,
+      currency: to_binary(currency),
+      owner: to_binary(owner)
+    })
+  end
 
   def to_output_list(%__MODULE__{
         amount: amount,

@@ -16,8 +16,9 @@ defmodule ExPlasma.Transactions.Payment do
   @max_output_count 4
 
   @type t :: %__MODULE__{
-          inputs: list(),
-          outputs: list(map),
+          sigs: list(String.t()),
+          inputs: list(Utxo.t()),
+          outputs: list(Utxo.t()),
           metadata: binary()
         }
 

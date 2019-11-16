@@ -22,7 +22,7 @@ defmodule ExPlasma.Client do
   def deposit(%ExPlasma.Transactions.Deposit{outputs: [output]} = transaction, :eth) do
     transaction
     |> Transaction.encode()
-    |> deposit(output[:amount], output[:owner], :eth)
+    |> deposit(output.amount, output.owner, :eth)
   end
 
   @spec deposit(binary(), non_neg_integer(), String.t(), String.t()) :: tuple()

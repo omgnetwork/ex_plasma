@@ -13,7 +13,7 @@ defmodule ExPlasma.Transaction do
   # are 0 value for now so that we can test these functions.
   @transaction_type 0
   @output_type 0
-  @empty_metadata "0x0000000000000000000000000000000000000000"
+  @empty_metadata <<0::160>>
 
   @type t :: %__MODULE__{
           sigs: list(String.t()),
@@ -27,6 +27,8 @@ defmodule ExPlasma.Transaction do
   @type address :: <<_::160>>
   # Hash string representation of an address
   @type address_hash :: <<_::336>>
+  # Metadata field. Currently unusued.
+  @type metadata :: <<_::160>>
 
   @callback new(map()) :: struct()
   @callback transaction_type() :: non_neg_integer()
@@ -85,13 +87,13 @@ defmodule ExPlasma.Transaction do
     computed_outputs =
       Enum.map(outputs, fn o -> [<<module.output_type()>>] ++ Utxo.to_output_list(o) end)
 
-    computed_metadata = metadata || @empty_metadata
+    metadata = metadata || @empty_metadata
 
     [
       <<module.transaction_type()>>,
       computed_inputs,
       computed_outputs,
-      to_binary(computed_metadata)
+      metadata
     ]
   end
 
