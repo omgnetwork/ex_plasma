@@ -1,17 +1,17 @@
 defmodule ExPlasma.Transactions.Deposit do
   @moduledoc """
-  A Deposit `Transaction` type. We use this to send money into the contract 
+  A Deposit `Transaction` type. We use this to send money into the contract
   to be used. This is really just a Payment Transaction with no inputs
   """
 
-  @behaviour ExPlasma.Transaction
+  alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.Utxo
+
+  @behaviour Transaction
 
   # A Deposit Transaction is really a Payment Transaction according
   # to the contracts. Therefor, the markers here are the same.
   @transaction_type 1
-
-  # TODO
-  # Do we need to think about moving this logic into the output itself?
   @output_type 1
 
   # A Deposit transaction can only have 0 inputs and 1 output.
@@ -19,8 +19,9 @@ defmodule ExPlasma.Transactions.Deposit do
   @max_output_count 1
 
   @type t :: %__MODULE__{
-          inputs: list(),
-          outputs: list(map),
+          sigs: list(String.t()),
+          inputs: list(Utxo.t()),
+          outputs: list(Utxo.t()),
           metadata: binary()
         }
 
@@ -47,21 +48,54 @@ defmodule ExPlasma.Transactions.Deposit do
 
   ## Examples
 
-  iex> ExPlasma.Transactions.Deposit.new("dog", "eth", 1, "dog money")
+  # Generate with a single output Utxo
+  iex> alias ExPlasma.Transaction.Utxo
+  iex> alias ExPlasma.Transactions.Deposit
+  iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+  iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
+  iex> Deposit.new(%Utxo{owner: address, currency: currency, amount: 1})
   %ExPlasma.Transactions.Deposit{
     inputs: [],
-    metadata: "dog money",
-    outputs: [%{amount: 1, currency: "eth", owner: "dog"}]
+    sigs: [],
+    metadata: nil,
+    outputs: [%ExPlasma.Transaction.Utxo{
+      amount: 1,
+      blknum: 0,
+      currency: "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e",
+      oindex: 0,
+      owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
+      txindex: 0}]
+  }
+
+  # Generate the whole structure
+  iex> alias ExPlasma.Transaction.Utxo
+  iex> alias ExPlasma.Transactions.Deposit
+  iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+  iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
+  iex> utxo = %Utxo{owner: address, currency: currency, amount: 1}
+  iex> Deposit.new(%{inputs: [], outputs: [utxo]})
+  %ExPlasma.Transactions.Deposit{
+    inputs: [],
+    sigs: [],
+    metadata: nil,
+    outputs: [%ExPlasma.Transaction.Utxo{
+      amount: 1,
+      blknum: 0,
+      currency: "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e",
+      oindex: 0,
+      owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
+      txindex: 0}]
   }
   """
-  def new(owner, currency, amount, metadata) do
-    output = %{owner: owner, currency: currency, amount: amount}
-    new(inputs: [], outputs: [output], metadata: metadata)
+  @spec new(Utxo.t()) :: __MODULE__.t()
+  def new(%Utxo{} = utxo) do
+    Transaction.new(%__MODULE__{inputs: [], outputs: [utxo]})
   end
 
-  def new(inputs: inputs, outputs: outputs, metadata: metadata)
-      when is_list(inputs) and length(inputs) == @max_input_count and
-             is_list(outputs) and length(outputs) == @max_output_count do
-    %__MODULE__{inputs: inputs, outputs: outputs, metadata: metadata}
+  @spec new(map()) :: __MODULE__.t()
+  def new(%{inputs: inputs, outputs: outputs} = deposit)
+      when is_list(inputs) and length(inputs) <= @max_input_count and
+             is_list(outputs) and length(outputs) <= @max_output_count do
+    Transaction.new(struct(__MODULE__, deposit))
   end
 end

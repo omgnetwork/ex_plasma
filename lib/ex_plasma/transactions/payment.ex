@@ -4,12 +4,11 @@ defmodule ExPlasma.Transactions.Payment do
   another on the child chain.
   """
 
-  @behaviour ExPlasma.Transaction
+  alias ExPlasma.Transaction
+
+  @behaviour Transaction
 
   @transaction_type 1
-
-  # TODO
-  # Do we need to think about moving this logic into the output itself?
   @output_type 1
 
   # A payment transaction is only allowed to have up to 4 inputs/outputs.
@@ -44,19 +43,29 @@ defmodule ExPlasma.Transactions.Payment do
 
   ## Examples
 
-  iex> input = %ExPlasma.Transaction.Input{}
-  iex> output = %ExPlasma.Transaction.Output{}
-  iex> ExPlasma.Transactions.Payment.new(inputs: [input], outputs: [output], metadata: nil)
+  iex> alias ExPlasma.Transaction.Utxo
+  iex> alias ExPlasma.Transactions.Payment
+  iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+  iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
+  iex> utxo = %Utxo{owner: address, currency: currency, amount: 1}
+  iex> Payment.new(%{inputs: [], outputs: [utxo]})
   %ExPlasma.Transactions.Payment{
-    inputs: [%ExPlasma.Transaction.Input{blknum: 0, oindex: 0, txindex: 0}],
+    inputs: [],
+    sigs: [],
     metadata: nil,
-    outputs: [%ExPlasma.Transaction.Output{amount: 0, currency: 0, owner: 0}]
+    outputs: [%ExPlasma.Transaction.Utxo{
+      amount: 1,
+      blknum: 0,
+      currency: "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e",
+      oindex: 0,
+      owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
+      txindex: 0}]
   }
   """
   @spec new(map()) :: __MODULE__.t()
-  def new(inputs: inputs, outputs: outputs, metadata: metadata)
-      when is_list(inputs) and length(inputs) <= @max_input_count
-      when is_list(outputs) and length(outputs) <= @max_output_count do
-    %__MODULE__{inputs: inputs, outputs: outputs, metadata: metadata}
+  def new(%{inputs: inputs, outputs: outputs} = payment)
+      when is_list(inputs) and length(inputs) <= @max_input_count and
+             is_list(outputs) and length(outputs) <= @max_output_count do
+    Transaction.new(struct(__MODULE__, payment))
   end
 end

@@ -4,6 +4,11 @@ defmodule ExPlasma.Transaction do
   transaction types.
   """
 
+  alias __MODULE__
+  alias __MODULE__.Utxo
+
+  import ExPlasma.Encoding, only: [to_binary: 1]
+
   # This is the base Transaction. It's not meant to be used, so these
   # are 0 value for now so that we can test these functions.
   @transaction_type 0
@@ -12,28 +17,22 @@ defmodule ExPlasma.Transaction do
 
   @type t :: %__MODULE__{
           sigs: list(String.t()),
-          inputs: list(Input.t()),
-          outputs: list(Output.t()),
+          inputs: list(Utxo.t()),
+          outputs: list(Utxo.t()),
           metadata: binary()
         }
 
   @type tx_bytes :: <<_::632>>
-  @type address :: <<_::160>>      # Binary representation of an address
-  @type address_hash :: <<_::336>> # Hash string representation of an address
+  # Binary representation of an address
+  @type address :: <<_::160>>
+  # Hash string representation of an address
+  @type address_hash :: <<_::336>>
 
   @callback new(map()) :: struct()
-
   @callback transaction_type() :: non_neg_integer()
-
   @callback output_type() :: non_neg_integer()
 
   # @callback decode(binary) :: struct()
-
-  alias __MODULE__
-  alias __MODULE__.Input
-  alias __MODULE__.Output
-
-  import ExPlasma.Encoding, only: [to_binary: 1]
 
   defstruct(sigs: [], inputs: [], outputs: [], metadata: nil)
 
@@ -52,6 +51,24 @@ defmodule ExPlasma.Transaction do
   def transaction_type(), do: @transaction_type
 
   @doc """
+  Generate a new Transaction. This generates an empty transaction
+  as this is the base class.
+
+  ## Examples
+
+    iex> ExPlasma.Transaction.new(%ExPlasma.Transaction{inputs: [], outputs: []})
+    %ExPlasma.Transaction{
+      inputs: [],
+      outputs: [],
+      metadata: nil
+    }
+  """
+  def new(%module{inputs: inputs, outputs: outputs} = transaction)
+      when is_list(inputs) and is_list(outputs) do
+    struct(module, Map.from_struct(transaction))
+  end
+
+  @doc """
   Generate an RLP-encodable list for the transaction.
 
   ## Examples
@@ -63,10 +80,10 @@ defmodule ExPlasma.Transaction do
   @spec to_list(struct()) :: list()
   def to_list(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
       when is_list(inputs) and is_list(outputs) do
-    computed_inputs = Enum.map(inputs, &Input.to_list/1)
+    computed_inputs = Enum.map(inputs, &Utxo.to_input_list/1)
 
     computed_outputs =
-      Enum.map(outputs, fn o -> [<<module.output_type()>>] ++ Output.to_list(o) end)
+      Enum.map(outputs, fn o -> [<<module.output_type()>>] ++ Utxo.to_output_list(o) end)
 
     computed_metadata = metadata || @empty_metadata
 

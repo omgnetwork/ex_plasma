@@ -23,12 +23,9 @@ defmodule ExPlasma.Transaction.Utxo do
   @empty_integer 0
   @empty_address to_hex(<<0::160>>)
 
-  # These are used for an `input`
   defstruct blknum: @empty_integer,
             oindex: @empty_integer,
             txindex: @empty_integer,
-
-            # These are used for an `output`
             amount: @empty_integer,
             currency: @empty_address,
             owner: @empty_address
@@ -74,10 +71,23 @@ defmodule ExPlasma.Transaction.Utxo do
       <<0, 0, 0, 0, 0, 0, 0, 1>>
     ]
   """
-  def to_output_list(%__MODULE__{amount: amount, currency: <<_::336>> = currency, owner: <<_::336>> = owner}),
-    do: to_output_list(%__MODULE__{amount: amount, currency: to_binary(currency), owner: to_binary(owner)})
+  def to_output_list(%__MODULE__{
+        amount: amount,
+        currency: <<_::336>> = currency,
+        owner: <<_::336>> = owner
+      }),
+      do:
+        to_output_list(%__MODULE__{
+          amount: amount,
+          currency: to_binary(currency),
+          owner: to_binary(owner)
+        })
 
-  def to_output_list(%__MODULE__{amount: amount, currency: <<_::160>> = currency, owner: <<_::160>> = owner})
+  def to_output_list(%__MODULE__{
+        amount: amount,
+        currency: <<_::160>> = currency,
+        owner: <<_::160>> = owner
+      })
       when is_integer(amount) do
     [owner, currency, <<amount::integer-size(64)>>]
   end

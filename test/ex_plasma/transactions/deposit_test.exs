@@ -3,25 +3,19 @@ defmodule ExPlasma.Transactions.DepositTest do
   doctest ExPlasma.Transactions.Deposit
 
   alias ExPlasma.Transaction
-  alias ExPlasma.Transaction.Input
-  alias ExPlasma.Transaction.Output
+  alias ExPlasma.Transaction.Utxo
   alias ExPlasma.Transactions.Deposit
 
   describe "new/1" do
     test "does not allow more than 0 input" do
-      inputs = [%Input{}]
-      outputs = [%Output{}]
-
       assert_raise FunctionClauseError, fn ->
-        Deposit.new(inputs: inputs, outputs: outputs, metadata: nil)
+        Deposit.new(%{inputs: [%Utxo{}], outputs: [%Utxo{}]})
       end
     end
 
     test "does not allow more than 1 output" do
-      outputs = List.duplicate(%Output{}, 2)
-
       assert_raise FunctionClauseError, fn ->
-        Deposit.new(inputs: [], outputs: outputs, metadata: nil)
+        Deposit.new(%{inputs: [], outputs: List.duplicate(%Utxo{}, 2)})
       end
     end
   end
@@ -29,10 +23,11 @@ defmodule ExPlasma.Transactions.DepositTest do
   test "to_list/1 forms an RLP-encodable list for a deposit transaction" do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
-    amount = 1
-    metadata = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
-    transaction = Deposit.new(owner, currency, amount, metadata)
-    list = Transaction.to_list(transaction)
+
+    list =
+      %Utxo{owner: owner, currency: currency, amount: 1}
+      |> Deposit.new()
+      |> Transaction.to_list()
 
     assert list == [
              <<1>>,
@@ -47,24 +42,23 @@ defmodule ExPlasma.Transactions.DepositTest do
                  <<0, 0, 0, 0, 0, 0, 0, 1>>
                ]
              ],
-             <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
-               0, 110>>
+             <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
            ]
   end
 
   test "encode/1 RLP encodes a deposit transaction" do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
-    amount = 1
-    metadata = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
-    transaction = Deposit.new(owner, currency, amount, metadata)
-    rlp_encoded = Transaction.encode(transaction)
 
-    assert rlp_encoded ==
-      <<248, 77, 1, 192, 245, 244, 1, 148, 29, 246, 47, 41, 27, 46, 150, 159, 176,
-         132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46, 38, 45, 41, 28,
-         46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 136, 0,
-         0, 0, 0, 0, 0, 0, 1, 148, 29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157,
-       153, 217, 206, 65, 226, 241, 55, 0, 110>>
+    encoded =
+      %Utxo{owner: owner, currency: currency, amount: 1}
+      |> Deposit.new()
+      |> Transaction.encode()
+
+    assert encoded ==
+             <<248, 77, 1, 192, 245, 244, 1, 148, 29, 246, 47, 41, 27, 46, 150, 159, 176, 132,
+               157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46, 38, 45, 41, 28, 46, 150,
+               159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 136, 0, 0, 0, 0, 0, 0,
+               0, 1, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   end
 end
