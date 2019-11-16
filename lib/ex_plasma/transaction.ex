@@ -7,8 +7,6 @@ defmodule ExPlasma.Transaction do
   alias __MODULE__
   alias __MODULE__.Utxo
 
-  import ExPlasma.Encoding, only: [to_binary: 1]
-
   # This is the base Transaction. It's not meant to be used, so these
   # are 0 value for now so that we can test these functions.
   @transaction_type 0
