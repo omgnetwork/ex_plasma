@@ -54,28 +54,20 @@ defmodule ExPlasma.ClientTest do
     end
   end
 
-  @tag :skip
+  @tag :solo
   describe "start_standard_exit/3" do
     test "it starts a standard exit for the owner" do
-      # use_cassette "start_standard_exit", match_requests_on: [:request_body] do
-      currency = ExPlasma.Encoding.to_hex(<<0::160>>)
-      metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
-      deposit = Deposit.new(authority_address(), currency, 1, metadata)
-      # %ExPlasma.Block{hash: txbytes} = ExPlasma.Block.new([deposit])
+      use_cassette "start_standard_exit", match_requests_on: [:request_body] do
+        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+        utxo = %Utxo{owner: authority_address(), currency: currency, amount: 1}
+        deposit = Deposit.new(utxo)
+        txbytes = deposit |> Transaction.encode() |> ExPlasma.Encoding.to_hex()
+        utxo_pos = 5_023_000_000_000
+        proof = ExPlasma.Encoding.merkle_proof([txbytes], 1)
 
-      txbytes = deposit |> Transaction.encode() |> ExPlasma.Encoding.to_hex()
-      utxo_pos = 5_023_000_000_000
-
-      # txbytes = "0xf85901c0f5f4019469d162b209e5bb6858e8f0ae7a651995fe166236940000000000000000000000000000000000000000880de0b6b3a7640000a00000000000000000000000000000000000000000000000000000000000000000"
-
-      proof = ExPlasma.Encoding.merkle_proof([txbytes], 1)
-
-      # proof ="0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563633dc4d7da7256660a892f8f1604a44b5432649cc8ec5cb3ced4c4e6ac94dd1d890740a8eb06ce9be422cb8da5cdafc2b58c0a5e24036c578de2a433c828ff7d3b8ec09e026fdc305365dfc94e189a81b38c7597b3d941c279f042e8206e0bd8ecd50eee38e386bd62be9bedb990706951b65fe053bd9d8a521af753d139e2dadefff6d330bb5403f63b14f33b578274160de3a50df4efecf0e0db73bcdd3da5617bdd11f7c0a11f49db22f629387a12da7596f9d1704d7465177c63d88ec7d7292c23a9aa1d8bea7e2435e555a4a60e379a5a35f3f452bae60121073fb6eeade1cea92ed99acdcb045a6726b2f87107e8a61620a232cf4d7d5b5766b3952e107ad66c0a68c72cb89e4fb4303841966e4062a76ab97451e3b9fb526a5ceb7f82e026cc5a4aed3c22a58cbd3d2ac754c9352c5436f638042dca99034e836365163d04cffd8b46a874edf5cfae63077de85f849a660426697b06a829c70dd1409cad676aa337a485e4728a0b240d92b3ef7b3c372d06d189322bfd5f61f1e7203ea2fca4a49658f9fab7aa63289c91b7c7b6c832a6d0e69334ff5b0a3483d09dab4ebfd9cd7bca2505f7bef59cc1c12ecc708fff26ae4af19abe852afe9e20c8622def10d13dd169f550f578bda343d9717a138562e0093b3"
-
-      assert {:ok, _receipt_hash} =
-               Client.start_standard_exit(authority_address(), utxo_pos, txbytes, proof)
-
-      # end
+        assert {:ok, _receipt_hash} =
+                 Client.start_standard_exit(authority_address(), utxo_pos, txbytes, proof)
+       end
     end
   end
 

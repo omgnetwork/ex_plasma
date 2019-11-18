@@ -9,6 +9,7 @@ config :ex_plasma,
   exit_game_address: "0x902719f192aa5240632f704aa7a94bab61b86550",
   # TODO figure out gas amount management
   gas: 1_000_000,
+  gas_price: 1_000_000,
   standard_exit_bond_size: 14_000_000_000_000_000
 
 config :ethereumex,

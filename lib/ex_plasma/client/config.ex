@@ -18,6 +18,9 @@ defmodule ExPlasma.Client.Config do
   @spec gas() :: String.t()
   def gas(), do: Application.get_env(:ex_plasma, :gas)
 
+  @spec gas_price() :: String.t()
+  def gas_price(), do: Application.get_env(:ex_plasma, :gas_price)
+
   @spec standard_exit_bond_size() :: String.t()
   def standard_exit_bond_size(), do: Application.get_env(:ex_plasma, :standard_exit_bond_size)
 end

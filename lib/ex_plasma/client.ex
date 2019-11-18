@@ -13,6 +13,7 @@ defmodule ExPlasma.Client do
       eth_vault_address: 0,
       exit_game_address: 0,
       gas: 0,
+      gas_price: 0,
       standard_exit_bond_size: 0
     ]
 
@@ -84,11 +85,16 @@ defmodule ExPlasma.Client do
       from: authority_address(),
       to: contract_address(),
       gas: gas(),
+      gasPrice: gas_price(),
       value: 0
     }
 
     txmap = Map.merge(default_options, options)
-    txmap = %{txmap | gas: to_hex(txmap[:gas]), value: to_hex(txmap[:value])}
+    txmap = %{txmap | 
+      gas: to_hex(txmap[:gas]), 
+      gasPrice: to_hex(txmap[:gasPrice]),
+      value: to_hex(txmap[:value])
+    }
 
     case Ethereumex.HttpClient.eth_send_transaction(txmap) do
       {:ok, receipt_enc} -> {:ok, receipt_enc}
