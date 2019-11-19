@@ -32,11 +32,14 @@ defmodule ExPlasma.ClientTest do
   test "deposit/4 sends deposit transaction into the contract" do
     use_cassette "deposit", match_requests_on: [:request_body] do
       currency = ExPlasma.Encoding.to_hex(<<0::160>>)
-      tx_bytes = %Utxo{owner: authority_address(), currency: currency, amount: 1}
-               |> Deposit.new()
-               |> Transaction.encode()
 
-      assert {:ok, _receipt_hash} = Client.deposit(tx_bytes, %{from: authority_address(), to: :eth, value: 1})
+      tx_bytes =
+        %Utxo{owner: authority_address(), currency: currency, amount: 1}
+        |> Deposit.new()
+        |> Transaction.encode()
+
+      assert {:ok, _receipt_hash} =
+               Client.deposit(tx_bytes, %{from: authority_address(), to: :eth, value: 1})
     end
   end
 
@@ -63,7 +66,11 @@ defmodule ExPlasma.ClientTest do
         proof = ExPlasma.Encoding.merkle_proof([tx_bytes], 1)
 
         assert {:ok, _receipt_hash} =
-                 Client.start_standard_exit(tx_bytes, %{from: authority_address(), utxo_pos: utxo_pos, proof: proof})
+                 Client.start_standard_exit(tx_bytes, %{
+                   from: authority_address(),
+                   utxo_pos: utxo_pos,
+                   proof: proof
+                 })
       end
     end
   end
@@ -72,7 +79,12 @@ defmodule ExPlasma.ClientTest do
     test "it processes a standard exit for the owner" do
       use_cassette "process_exits", match_requests_on: [:request_body] do
         assert {:ok, _receipt_hash} =
-                 Client.process_exits(0, %{from: authority_address(), vault_id: 1, currency: <<0::160>>, total_exits: 1})
+                 Client.process_exits(0, %{
+                   from: authority_address(),
+                   vault_id: 1,
+                   currency: <<0::160>>,
+                   total_exits: 1
+                 })
       end
     end
   end

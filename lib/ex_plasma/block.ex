@@ -6,8 +6,6 @@ defmodule ExPlasma.Block do
     * transactions - the list of Transactions associated with this given block
   """
 
-  # TODO achiurizo
-  # narrow the type definition
   @type t() :: %__MODULE__{
           hash: binary() | nil,
           timestamp: non_neg_integer() | nil,

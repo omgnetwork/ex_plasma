@@ -22,8 +22,10 @@ defmodule ExPlasma.Client do
 
   @spec deposit(Deposit.t() | binary()) :: tuple()
   def deposit(tx_bytes, options \\ %{})
+
   def deposit(%Deposit{outputs: [output]} = transaction, options) do
     options = Map.merge(options, %{from: output.owner, to: :eth, value: output.amount})
+
     transaction
     |> Transaction.encode()
     |> deposit(options)
@@ -42,7 +44,9 @@ defmodule ExPlasma.Client do
   """
   @spec submit_block(ExPlasma.Block.t() | String.t(), map()) :: tuple()
   def submit_block(block_hash, options \\ %{})
-  def submit_block(%ExPlasma.Block{hash: block_hash}, options), do: submit_block(block_hash, options)
+
+  def submit_block(%ExPlasma.Block{hash: block_hash}, options),
+    do: submit_block(block_hash, options)
 
   def submit_block(block_hash, options) do
     data = encode_data("submitBlock(bytes32)", [block_hash])
@@ -83,18 +87,24 @@ defmodule ExPlasma.Client do
   set number of exits. 
   """
   @spec process_exits(non_neg_integer(), map()) :: tuple()
-  def process_exits(exit_id, %{from: from, vault_id: vault_id, currency: currency, total_exits: total_exits } = options) do
+  def process_exits(
+        exit_id,
+        %{from: from, vault_id: vault_id, currency: currency, total_exits: total_exits} = options
+      ) do
     data =
       encode_data(
         "processExits(uint256,address,uint160,uint256)",
         [vault_id, currency, exit_id, total_exits]
       )
 
-    eth_send_transaction(%{
-      from: from || authority_address(),
-      to: contract_address(),
-      data: data,
-      }, options)
+    eth_send_transaction(
+      %{
+        from: from || authority_address(),
+        to: contract_address(),
+        data: data
+      },
+      options
+    )
   end
 
   @doc """
@@ -106,20 +116,35 @@ defmodule ExPlasma.Client do
     eth_send_transaction(%{data: data}, options)
   end
 
-  @spec eth_send_transaction(map()) :: tuple()
-  defp eth_send_transaction(%{} = details, options \\ %{}) do
-    txmap = Map.merge(details, %{
-      from: options[:from] || details[:from] || authority_address(),
-      gas: to_hex(options[:gas] || details[:gas] || gas()),
-      gasPrice: to_hex(options[:gas_price] || details[:gas_price] || gas_price()),
-      to: details[:to] || contract_address(),
-      value: to_hex(options[:value] || details[:value] || 0)
-    })
+  defp eth_send_transaction(%{} = details, options) do
+    txmap = merge_default_options(details, options)
 
     case Ethereumex.HttpClient.eth_send_transaction(txmap) do
       {:ok, receipt_hash} -> {:ok, receipt_hash}
       other -> other
     end
+  end
+
+  defp merge_default_options(details, %{} = options) do
+    options = default_options() |> Map.merge(details) |> Map.merge(options)
+    %{
+      data: options[:data],
+      from: options[:from],
+      gas: to_hex(options[:gas]),
+      gasPrice: to_hex(options[:gasPrice] || options[:gas_price]),
+      to: options[:to],
+      value: to_hex(options[:value])
+    }
+  end
+
+  defp default_options() do
+    %{
+      from: authority_address(),
+      gas: gas(),
+      gasPrice: gas_price(),
+      to: contract_address(),
+      value: 0
+    }
   end
 
   @spec encode_data(String.t(), list()) :: binary
