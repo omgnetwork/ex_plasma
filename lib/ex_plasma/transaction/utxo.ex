@@ -43,6 +43,7 @@ defmodule ExPlasma.Transaction.Utxo do
       <<0, 0, 0, 0, 0, 0, 0, 0>>
     ]
   """
+  @spec to_input_list(__MODULE__.t()) :: list(binary)
   def to_input_list(%__MODULE__{blknum: blknum, oindex: oindex, txindex: txindex})
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
     [<<blknum::integer-size(64)>>, <<txindex::integer-size(64)>>, <<oindex::integer-size(64)>>]
@@ -71,6 +72,7 @@ defmodule ExPlasma.Transaction.Utxo do
       <<0, 0, 0, 0, 0, 0, 0, 1>>
     ]
   """
+  @spec to_output_list(struct()) :: list(binary)
   def to_output_list(%__MODULE__{
         amount: amount,
         currency: <<_::336>> = currency,
@@ -88,7 +90,7 @@ defmodule ExPlasma.Transaction.Utxo do
         currency: <<_::160>> = currency,
         owner: <<_::160>> = owner
       })
-      when is_integer(amount) do
+      when is_integer(amount) and amount >= 0 do
     [owner, currency, <<amount::integer-size(64)>>]
   end
 end

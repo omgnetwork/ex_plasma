@@ -25,10 +25,7 @@ defmodule ExPlasma.Client do
 
   def deposit(%Deposit{outputs: [output]} = transaction, options) do
     options = Map.merge(options, %{from: output.owner, to: :eth, value: output.amount})
-
-    transaction
-    |> Transaction.encode()
-    |> deposit(options)
+    transaction |> Transaction.encode() |> deposit(options)
   end
 
   def deposit(tx_bytes, %{to: :eth} = options),
@@ -50,7 +47,7 @@ defmodule ExPlasma.Client do
 
   def submit_block(block_hash, options) do
     data = encode_data("submitBlock(bytes32)", [block_hash])
-    eth_send_transaction(%{data: data, value: 0}, options)
+    eth_send_transaction(%{data: data}, options)
   end
 
   @doc """
@@ -127,6 +124,7 @@ defmodule ExPlasma.Client do
 
   defp merge_default_options(details, %{} = options) do
     options = default_options() |> Map.merge(details) |> Map.merge(options)
+
     %{
       data: options[:data],
       from: options[:from],

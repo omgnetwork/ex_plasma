@@ -13,13 +13,7 @@ defmodule ExPlasma.Transaction do
   @output_type 0
   @empty_metadata <<0::160>>
 
-  @type t :: %__MODULE__{
-          sigs: list(String.t()),
-          inputs: list(Utxo.t()),
-          outputs: list(Utxo.t()),
-          metadata: binary()
-        }
-
+  # The RLP encoded transaction as a binary
   @type tx_bytes :: <<_::632>>
   # Binary representation of an address
   @type address :: <<_::160>>
@@ -27,6 +21,13 @@ defmodule ExPlasma.Transaction do
   @type address_hash :: <<_::336>>
   # Metadata field. Currently unusued.
   @type metadata :: <<_::160>>
+
+  @type t :: %__MODULE__{
+          sigs: [binary()] | [],
+          inputs: [Utxo.t()] | [],
+          outputs: [Utxo.t()] | [],
+          metadata: __MODULE__.metadata() | nil
+        }
 
   @callback new(map()) :: struct()
   @callback transaction_type() :: non_neg_integer()
@@ -63,6 +64,7 @@ defmodule ExPlasma.Transaction do
       metadata: nil
     }
   """
+  @spec new(struct()) :: struct()
   def new(%module{inputs: inputs, outputs: outputs} = transaction)
       when is_list(inputs) and is_list(outputs) do
     struct(module, Map.from_struct(transaction))
@@ -107,6 +109,6 @@ defmodule ExPlasma.Transaction do
   iex> ExPlasma.Transaction.encode(txn)
   <<216, 0, 192, 192, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
-  def encode(%{inputs: _inputs, outputs: _outputs, metadata: _metadata} = transaction),
-    do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
+  @spec encode(map()) :: __MODULE__.tx_bytes()
+  def encode(%{} = transaction), do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
 end
