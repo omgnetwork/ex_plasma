@@ -72,6 +72,26 @@ defmodule ExPlasma.Client do
   end
 
   @doc """
+  Process exits in Plasma. This will allow you to process your a specific exit or a
+  set number of exits. 
+  """
+  def process_exits(owner, vault_id, currency_address, exit_id \\ 0, total_exits \\ 1) do
+    data =
+      encode_data("processExits(uint256,address,uint160,uint256)",
+        [vault_id, currency_address, exit_id, total_exits]
+      )
+
+    # TODO need to make it easier to pass in custom gas amounts
+    eth_send_transaction(%{
+      from: owner,
+      to: contract_address(),
+      data: data,
+      gas: gas(),
+      gasPrice: gas_price()
+    })
+  end
+
+  @doc """
   Adds an exit queue for the given vault and token address.
   """
   def add_exit_queue(vault_id, token_address) do

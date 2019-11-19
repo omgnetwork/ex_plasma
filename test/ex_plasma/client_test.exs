@@ -54,7 +54,6 @@ defmodule ExPlasma.ClientTest do
     end
   end
 
-  @tag :solo
   describe "start_standard_exit/3" do
     test "it starts a standard exit for the owner" do
       use_cassette "start_standard_exit", match_requests_on: [:request_body] do
@@ -67,6 +66,15 @@ defmodule ExPlasma.ClientTest do
 
         assert {:ok, _receipt_hash} =
                  Client.start_standard_exit(authority_address(), utxo_pos, txbytes, proof)
+       end
+    end
+  end
+
+  describe "process_exits/5" do
+    test "it processes a standard exit for the owner" do
+      use_cassette "process_exits", match_requests_on: [:request_body] do
+        assert {:ok, _receipt_hash} =
+                 Client.process_exits(authority_address(), 1, <<0::160>>, 0, 1)
        end
     end
   end
