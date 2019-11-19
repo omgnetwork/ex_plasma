@@ -87,12 +87,8 @@ defmodule ExPlasma.Transactions.Deposit do
       txindex: 0}]
   }
   """
-  @spec new(Utxo.t()) :: __MODULE__.t()
-  def new(%Utxo{} = utxo) do
-    Transaction.new(%__MODULE__{inputs: [], outputs: [utxo]})
-  end
-
-  @spec new(map()) :: __MODULE__.t()
+  @spec new(Utxo.t() | map()) :: __MODULE__.t()
+  def new(%Utxo{} = utxo), do: new(%{inputs: [], outputs: [utxo]})
   def new(%{inputs: inputs, outputs: outputs} = deposit)
       when is_list(inputs) and length(inputs) <= @max_input_count and
              is_list(outputs) and length(outputs) <= @max_output_count do

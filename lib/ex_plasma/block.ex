@@ -9,9 +9,9 @@ defmodule ExPlasma.Block do
   # TODO achiurizo
   # narrow the type definition
   @type t() :: %__MODULE__{
-          hash: binary(),
-          timestamp: non_neg_integer(),
-          transactions: list(Transaction.t())
+          hash: binary() | nil,
+          timestamp: non_neg_integer() | nil,
+          transactions: maybe_improper_list()
         }
 
   defstruct(hash: nil, timestamp: nil, transactions: [])
@@ -37,7 +37,7 @@ defmodule ExPlasma.Block do
       ]
     }
   """
-  @spec new(list(Transaction.t())) :: __MODULE__.t()
+  @spec new(maybe_improper_list()) :: __MODULE__.t()
   def new(transactions) when is_list(transactions),
     do: %__MODULE__{transactions: transactions, hash: merkle_root_hash(transactions)}
 

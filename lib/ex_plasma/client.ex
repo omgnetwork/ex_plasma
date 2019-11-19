@@ -5,6 +5,7 @@ defmodule ExPlasma.Client do
   """
 
   alias ExPlasma.Transaction
+  alias ExPlasma.Transactions.Deposit
 
   import ExPlasma.Client.Config,
     only: [
@@ -19,16 +20,15 @@ defmodule ExPlasma.Client do
 
   import ExPlasma.Encoding, only: [to_hex: 1]
 
-  @spec deposit(ExPlasma.Transactions.Deposit.t(), atom()) :: tuple()
+  @spec deposit(Deposit.t() | binary()) :: tuple()
   def deposit(tx_bytes, options \\ %{})
-  def deposit(%ExPlasma.Transactions.Deposit{outputs: [output]} = transaction, options) do
+  def deposit(%Deposit{outputs: [output]} = transaction, options) do
     options = Map.merge(options, %{from: output.owner, to: :eth, value: output.amount})
     transaction
     |> Transaction.encode()
     |> deposit(options)
   end
 
-  #@spec deposit(binary(), non_neg_integer(), String.t(), String.t()) :: tuple()
   def deposit(tx_bytes, %{to: :eth} = options),
     do: deposit(tx_bytes, %{options | to: eth_vault_address()})
 
@@ -58,6 +58,7 @@ defmodule ExPlasma.Client do
     * proof    - The merkle proof.
     * output_guard_pre_image 
   """
+  @spec start_standard_exit(binary(), map()) :: tuple()
   def start_standard_exit(tx_bytes, %{utxo_pos: utxo_pos, proof: proof} = options) do
     output_guard_pre_image = options[:output_guard_pre_image] || ""
 
@@ -81,6 +82,7 @@ defmodule ExPlasma.Client do
   Process exits in Plasma. This will allow you to process your a specific exit or a
   set number of exits. 
   """
+  @spec process_exits(non_neg_integer(), map()) :: tuple()
   def process_exits(exit_id, %{from: from, vault_id: vault_id, currency: currency, total_exits: total_exits } = options) do
     data =
       encode_data(
@@ -98,6 +100,7 @@ defmodule ExPlasma.Client do
   @doc """
   Adds an exit queue for the given vault and token address.
   """
+  @spec add_exit_queue(non_neg_integer(), binary(), map()) :: tuple()
   def add_exit_queue(vault_id, token_address, options \\ %{}) do
     data = encode_data("addExitQueue(uint256,address)", [vault_id, token_address])
     eth_send_transaction(%{data: data}, options)

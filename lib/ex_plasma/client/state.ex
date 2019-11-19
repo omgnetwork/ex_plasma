@@ -27,13 +27,8 @@ defmodule ExPlasma.Client.State do
 
   @doc """
   Returns the next child block to be mined.
-
-  ## Example
-
-    iex> ExPlasma.Client.next_child_block()
-    1000
   """
-  @spec next_child_block() :: non_neg_integer()
+  @spec next_child_block() :: non_neg_integer() | tuple()
   def next_child_block() do
     eth_call("nextChildBlock()", [], fn resp ->
       List.first(decode_response(resp, [{:uint, 256}]))
@@ -43,13 +38,8 @@ defmodule ExPlasma.Client.State do
   @doc """
   Returns the child block interval, which controls the incrementing
   block number for each child block.
-
-  ## Examples
-
-    iex> ExPlasma.Client.child_block_interval()
-    1000
   """
-  @spec child_block_interval() :: non_neg_integer()
+  @spec child_block_interval() :: non_neg_integer() | tuple()
   def child_block_interval() do
     eth_call("childBlockInterval()", [], fn resp ->
       List.first(decode_response(resp, [{:uint, 256}]))
@@ -58,18 +48,9 @@ defmodule ExPlasma.Client.State do
 
   @doc """
   Returns a `ExPlasma.Block` for the given block number.
-
-  ## Example
-
-    iex> ExPlasma.Client.get_block(0)
-    %ExPlasma.Block{
-      hash: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      timestamp: 0
-    }
   """
-  @spec get_block(non_neg_integer()) :: Block.t()
-  def get_block(blknum) do
+  @spec get_block(pos_integer()) :: Block.t() | tuple()
+  def get_block(blknum) when is_integer(blknum) do
     eth_call("blocks(uint256)", [blknum], fn resp ->
       [merkle_root_hash, timestamp] = decode_response(resp, [{:bytes, 32}, {:uint, 256}])
       %Block{hash: merkle_root_hash, timestamp: timestamp}
@@ -96,7 +77,7 @@ defmodule ExPlasma.Client.State do
     iex> ExPlasma.Client.next_deposit_block()
     1
   """
-  @spec next_deposit_block() :: non_neg_integer()
+  @spec next_deposit_block() :: tuple() | non_neg_integer()
   def next_deposit_block() do
     eth_call("nextDepositBlock()", [], fn resp ->
       List.first(decode_response(resp, [{:uint, 256}]))
@@ -106,7 +87,7 @@ defmodule ExPlasma.Client.State do
   @doc """
   Returns whether the exit queue has been added for a given vault_id and token.
   """
-  @spec has_exit_queue(non_neg_integer(), String.t()) :: boolean()
+  @spec has_exit_queue(non_neg_integer(), String.t()) :: boolean() | tuple()
   def has_exit_queue(vault_id, token_address) do
     eth_call("hasExitQueue(uint256,address)", [vault_id, token_address], fn resp ->
       [result] = decode_response(resp, [:bool])
