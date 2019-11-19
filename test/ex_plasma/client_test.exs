@@ -25,20 +25,18 @@ defmodule ExPlasma.ClientTest do
       assert {:ok, _receipt_hash} =
                %Utxo{owner: authority_address(), currency: currency, amount: 1}
                |> Deposit.new()
-               |> Client.deposit(:eth)
+               |> Client.deposit(%{to: :eth})
     end
   end
 
   test "deposit/4 sends deposit transaction into the contract" do
-    # TODO fix the amount passing to match value/sent amount
     use_cassette "deposit", match_requests_on: [:request_body] do
       currency = ExPlasma.Encoding.to_hex(<<0::160>>)
-
-      assert {:ok, _receipt_hash} =
-               %Utxo{owner: authority_address(), currency: currency, amount: 1}
+      tx_bytes = %Utxo{owner: authority_address(), currency: currency, amount: 1}
                |> Deposit.new()
                |> Transaction.encode()
-               |> Client.deposit(1, authority_address(), :eth)
+
+      assert {:ok, _receipt_hash} = Client.deposit(tx_bytes, %{from: authority_address(), to: :eth, value: 1})
     end
   end
 
@@ -60,13 +58,13 @@ defmodule ExPlasma.ClientTest do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
         utxo = %Utxo{owner: authority_address(), currency: currency, amount: 1}
         deposit = Deposit.new(utxo)
-        txbytes = deposit |> Transaction.encode() |> ExPlasma.Encoding.to_hex()
+        tx_bytes = deposit |> Transaction.encode() |> ExPlasma.Encoding.to_hex()
         utxo_pos = 5_023_000_000_000
-        proof = ExPlasma.Encoding.merkle_proof([txbytes], 1)
+        proof = ExPlasma.Encoding.merkle_proof([tx_bytes], 1)
 
         assert {:ok, _receipt_hash} =
-                 Client.start_standard_exit(authority_address(), utxo_pos, txbytes, proof)
-       end
+                 Client.start_standard_exit(tx_bytes, %{from: authority_address(), utxo_pos: utxo_pos, proof: proof})
+      end
     end
   end
 
@@ -74,8 +72,8 @@ defmodule ExPlasma.ClientTest do
     test "it processes a standard exit for the owner" do
       use_cassette "process_exits", match_requests_on: [:request_body] do
         assert {:ok, _receipt_hash} =
-                 Client.process_exits(authority_address(), 1, <<0::160>>, 0, 1)
-       end
+                 Client.process_exits(0, %{from: authority_address(), vault_id: 1, currency: <<0::160>>, total_exits: 1})
+      end
     end
   end
 
