@@ -2,6 +2,8 @@
 
 **TODO: Add description**
 
+(ExPlasma)[] is an elixir client library to interact with the OmiseGO Plasma contracts.
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
@@ -44,14 +46,50 @@ First, start up the ethereum client and load up the contracts. You can do this b
 docker-compose up
 ```
 
-##### Depositing Eth into contract
+### Usage
+
+
+
+### Depositing to the Contract
+#### Creating an eth deposit transaction
+#### Sending the deposit transaction to the contract
+#### Decoding a deposit transaction
+
+### Generating and Submitting Blocks
+#### Creating a block
+#### Submitting a block to the contract
+
+### Standard Exits
+#### Starting a standard exit
+#### Processing a standard exit
+#### Challenge a standard exit
+
+### InFlight Exits
+#### Starting an in-flight exit
+#### Processing an in-flight exit
+#### Challenge an in-flight exit
+
+
+
+##### Creating a Transaction
+
+To work with the contracts, we need to understand the different flows and transaction available.
+
+###### Creating a Deposit transaction
+
+##### Depositing Eth into the contract
 
 ```elixir
-currency = ExPlasma.Encoding.to_hex(<<0::160>>)
-metadata = ExPlasma.Encoding.to_hex(<<0::256>>)
-deposit = Deposit.new(authority_address(), currency, 1, metadata)
+alias ExPlasma.Client
+alias ExPlasma.Transaction.Utxo
+alias ExPlasma.Transactions.Deposit
 
-Client.deposit(deposit, :eth)
+owner_address = "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
+currency_address = "0x0000000000000000000000000000000000000000"
+
+%Utxo{owner: owner_address, currency_address: currency_address, amount: 1}
+|> Deposit.new()
+|> Client.deposit()
 ```
 
 ##### Submitting a Block as an Authority

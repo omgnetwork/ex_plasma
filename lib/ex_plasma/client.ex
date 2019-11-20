@@ -20,6 +20,24 @@ defmodule ExPlasma.Client do
 
   import ExPlasma.Encoding, only: [to_hex: 1]
 
+  @doc """
+  Deposit a transaction to the contracts.
+
+  ## Examples
+
+  # Deposit 1 ETH to the contracts.
+
+    alias ExPlasma.Client
+    alias ExPlasma.Transaction.Utxo
+    alias ExPlasma.Transactions.Deposit
+
+    owner_address = "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
+    currency_address = "0x0000000000000000000000000000000000000000"
+
+    %Utxo{owner: owner_address, currency_address: currency_address, amount: 1}
+    |> Deposit.new()
+    |> Client.deposit()
+  """
   @spec deposit(Deposit.t() | binary()) :: tuple()
   def deposit(tx_bytes, options \\ %{})
 
@@ -38,6 +56,16 @@ defmodule ExPlasma.Client do
 
   @doc """
   Submits a block to the contract.
+
+  ## Example
+
+    input_utxo = %Utxo{blknum: 0, oindex: 0, txindex: 0}
+    output_utxo = %Utxo{owner: owner_address, currency: currency_address, amount: 1}
+    payment = Payment.new(%{inputs: [input_utxo], outputs: [output_utxo]})
+
+    [payment] 
+    |> Block.new() 
+    |> Client.submit_block()
   """
   @spec submit_block(ExPlasma.Block.t() | String.t(), map()) :: tuple()
   def submit_block(block_hash, options \\ %{})
@@ -53,11 +81,22 @@ defmodule ExPlasma.Client do
   @doc """
   Start a Standard Exit
 
-    * owner    - Who's starting the standard exit.
-    * utxo_pos - The position of the utxo.
-    * tx_bytes  - The encoded hash of the transaction that created the utxo.
-    * proof    - The merkle proof.
-    * output_guard_pre_image 
+    * tx_bytes               - The encoded hash of the transaction that created the utxo.
+    * owner                  - Who's starting the standard exit.
+    * utxo_pos               - The position of the utxo.
+    * proof                  - The merkle proof.
+    * output_guard_pre_image - TBD
+
+  ## Example
+
+    %Utxo{owner: owner_address, currency_address: currency_address, amount: 1}
+    |> Deposit.new()
+    |> Transaction.encode()
+    |> Client.start_standard_exit(%{
+       from: authority_address(),
+       utxo_pos: utxo_pos,
+       proof: proof
+     })
   """
   @spec start_standard_exit(binary(), map()) :: tuple()
   def start_standard_exit(tx_bytes, %{utxo_pos: utxo_pos, proof: proof} = options) do
@@ -113,6 +152,7 @@ defmodule ExPlasma.Client do
     eth_send_transaction(%{data: data}, options)
   end
 
+  @spec eth_send_transaction(map(), map()) :: tuple()
   defp eth_send_transaction(%{} = details, options) do
     txmap = merge_default_options(details, options)
 
@@ -122,6 +162,7 @@ defmodule ExPlasma.Client do
     end
   end
 
+  @spec merge_default_options(map(), map()) :: map()
   defp merge_default_options(details, %{} = options) do
     options = default_options() |> Map.merge(details) |> Map.merge(options)
 
@@ -135,6 +176,7 @@ defmodule ExPlasma.Client do
     }
   end
 
+  @spec default_options() :: map()
   defp default_options() do
     %{
       from: authority_address(),
