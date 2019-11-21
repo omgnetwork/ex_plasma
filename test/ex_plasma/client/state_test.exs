@@ -48,6 +48,17 @@ defmodule ExPlasma.Client.StateTest do
     end
   end
 
+  test "get_standard_exit_id/3 returns an exit id as uint160" do
+    use_cassette "get_standard_exit_id", match_requests_on: [:request_body] do
+      standard_exit_id = State.get_standard_exit_id(
+        true, 
+        ExPlasma.Encoding.to_binary("0xf85901c0f5f40194c817898296b27589230b891f144dd71a892b0c18940000000000000000000000000000000000000000880de0b6b3a7640000a00000000000000000000000000000000000000000000000000000000000000000"),
+        13000000000)
+
+      assert standard_exit_id == 1781569376013285581529144574075905971817810818
+    end
+  end
+
   test "next_child_block/9 returns the next child block to be mined" do
     use_cassette "next_child_block", match_requests_on: [:request_body] do
       assert State.next_child_block() == 1000

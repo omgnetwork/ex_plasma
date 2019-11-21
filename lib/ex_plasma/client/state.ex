@@ -5,10 +5,11 @@ defmodule ExPlasma.Client.State do
 
   alias ExPlasma.Block
 
-  import ExPlasma.Client.Config, only: [
-    contract_address: 0,
-    exit_game_address: 0
-  ]
+  import ExPlasma.Client.Config,
+    only: [
+      contract_address: 0,
+      exit_game_address: 0
+    ]
 
   @doc """
   Returns the authority address.
@@ -85,6 +86,20 @@ defmodule ExPlasma.Client.State do
   end
 
   @doc """
+  Returns the exit id for the given tx_bytes and utxo_pos.
+  """
+  def get_standard_exit_id(is_deposit, tx_bytes, utxo_pos) do
+    eth_call(
+      "getStandardExitId(bool,bytes,uint256)",
+      [is_deposit, tx_bytes, utxo_pos],
+      [to: exit_game_address()],
+      fn resp ->
+        resp |> decode_response([{:uint, 160}]) |> hd()
+      end
+    )
+  end
+
+  @doc """
   Returns the next deposit block to be mined.
 
   ## Examples
@@ -95,7 +110,7 @@ defmodule ExPlasma.Client.State do
   @spec next_deposit_block() :: tuple() | non_neg_integer()
   def next_deposit_block() do
     eth_call("nextDepositBlock()", [], fn resp ->
-      List.first(decode_response(resp, [{:uint, 256}]))
+      resp |> decode_response([{:uint, 256}]) |> hd()
     end)
   end
 
@@ -112,6 +127,7 @@ defmodule ExPlasma.Client.State do
 
   @spec eth_call(String.t(), list(), fun()) :: tuple()
   defp eth_call(contract_signature, data_types, state \\ [to: nil], callback)
+
   defp eth_call(contract_signature, data_types, [to: to], callback) when is_list(data_types) do
     to = to || contract_address()
     options = %{data: encode_data(contract_signature, data_types), to: to}
