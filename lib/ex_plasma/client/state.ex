@@ -5,7 +5,10 @@ defmodule ExPlasma.Client.State do
 
   alias ExPlasma.Block
 
-  import ExPlasma.Client.Config, only: [contract_address: 0]
+  import ExPlasma.Client.Config, only: [
+    contract_address: 0,
+    exit_game_address: 0
+  ]
 
   @doc """
   Returns the authority address.
@@ -18,10 +21,7 @@ defmodule ExPlasma.Client.State do
   @spec authority() :: String.t() | tuple()
   def authority() do
     eth_call("authority()", [], fn resp ->
-      resp
-      |> decode_response([:address])
-      |> List.first()
-      |> Base.encode16(case: :lower)
+      resp |> decode_response([:address]) |> hd()
     end)
   end
 
@@ -31,7 +31,7 @@ defmodule ExPlasma.Client.State do
   @spec next_child_block() :: non_neg_integer() | tuple()
   def next_child_block() do
     eth_call("nextChildBlock()", [], fn resp ->
-      List.first(decode_response(resp, [{:uint, 256}]))
+      resp |> decode_response([{:uint, 256}]) |> hd()
     end)
   end
 
@@ -42,7 +42,7 @@ defmodule ExPlasma.Client.State do
   @spec child_block_interval() :: non_neg_integer() | tuple()
   def child_block_interval() do
     eth_call("childBlockInterval()", [], fn resp ->
-      List.first(decode_response(resp, [{:uint, 256}]))
+      resp |> decode_response([{:uint, 256}]) |> hd()
     end)
   end
 
@@ -62,8 +62,13 @@ defmodule ExPlasma.Client.State do
   """
   def get_exit_game_address(txn_type_id) when is_integer(txn_type_id) do
     eth_call("exitGames(uint256)", [txn_type_id], fn resp ->
-      [address] = decode_response(resp, [:address])
-      address
+      resp |> decode_response([:address]) |> hd()
+    end)
+  end
+
+  def standard_exit_bond_size() do
+    eth_call("startStandardExitBondSize()", [], [to: exit_game_address()], fn resp ->
+      resp |> decode_response([{:uint, 128}]) |> hd()
     end)
   end
 
@@ -106,8 +111,10 @@ defmodule ExPlasma.Client.State do
   end
 
   @spec eth_call(String.t(), list(), fun()) :: tuple()
-  defp eth_call(contract_signature, data_types, callback) when is_list(data_types) do
-    options = %{data: encode_data(contract_signature, data_types), to: contract_address()}
+  defp eth_call(contract_signature, data_types, state \\ [to: nil], callback)
+  defp eth_call(contract_signature, data_types, [to: to], callback) when is_list(data_types) do
+    to = to || contract_address()
+    options = %{data: encode_data(contract_signature, data_types), to: to}
 
     case Ethereumex.HttpClient.eth_call(options) do
       {:ok, resp} -> callback.(resp)

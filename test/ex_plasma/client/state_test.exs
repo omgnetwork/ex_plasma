@@ -4,9 +4,6 @@ defmodule ExPlasma.Client.StateTest do
 
   alias ExPlasma.Client.State
 
-  import ExPlasma.Client.Config,
-    only: [authority_address: 0]
-
   setup do
     Application.ensure_all_started(:ethereumex)
     ExVCR.Config.cassette_library_dir("./test/fixtures/vcr_cassettes/state")
@@ -15,8 +12,9 @@ defmodule ExPlasma.Client.StateTest do
 
   test "authority/0 returns the authority address" do
     use_cassette "authority", match_requests_on: [:request_body] do
-      "0x" <> address = authority_address()
-      assert State.authority() == address
+      assert State.authority() ==
+               <<34, 212, 145, 189, 226, 48, 63, 47, 67, 50, 91, 33, 8, 210, 111, 30, 171, 161,
+                 227, 43>>
     end
   end
 
@@ -39,6 +37,14 @@ defmodule ExPlasma.Client.StateTest do
       assert exit_game_address ==
                <<144, 39, 25, 241, 146, 170, 82, 64, 99, 47, 112, 74, 167, 169, 75, 171, 97, 184,
                  101, 80>>
+    end
+  end
+
+  test "standard_exit_bond_size/0 returns an integer bond size" do
+    use_cassette "standard_exit_bond_size", match_requests_on: [:request_body] do
+      standard_exit_bond_size = State.standard_exit_bond_size()
+
+      assert standard_exit_bond_size == 14_000_000_000_000_000
     end
   end
 
