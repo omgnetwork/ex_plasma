@@ -94,3 +94,41 @@ defmodule ExPlasma.Transaction.Utxo do
     [owner, currency, <<amount::integer-size(64)>>]
   end
 end
+
+defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Utxo do
+  alias ExPlasma.Encoding
+  alias ExPlasma.Transaction.Utxo
+
+  @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
+  @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
+
+  @doc """
+  """
+  def encode(%Utxo{amount: _, currency: _, owner: _} = utxo) do
+    # FIXME this is from the Transaction. move it here.
+    output_type = <<1>>
+    [owner, currency, amount] = Utxo.to_output_list(utxo)
+
+    [
+      @output_signature,
+      ABI.TypeEncoder.encode_raw([:binary.decode_unsigned(output_type)], [{:uint, 256}]),
+      ABI.TypeEncoder.encode_raw([owner], [{:bytes, 20}]),
+      ABI.TypeEncoder.encode_raw([currency], [:address]),
+      ABI.TypeEncoder.encode_raw([amount], [{:uint, 256}])
+    ]
+  end
+
+  def hash(%{} = utxo), do: utxo |> encode() |> hash()
+
+  def hash([signature, encoded_output_type, encoded_owner, encoded_currency, encoded_amount]) do
+    [
+      Encoding.keccak_hash(signature),
+      encoded_output_type,
+      encoded_owner,
+      encoded_currency,
+      encoded_amount
+    ]
+    |> Enum.join()
+    |> Encoding.keccak_hash()
+  end
+end
