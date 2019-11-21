@@ -23,12 +23,17 @@ defmodule ExPlasma.Transaction.Utxo do
   @empty_integer 0
   @empty_address to_hex(<<0::160>>)
 
+  # Currently this is the only output type available.
+  @payment_output_type 1
+
   defstruct blknum: @empty_integer,
             oindex: @empty_integer,
             txindex: @empty_integer,
+            output_type: @payment_output_type,
             amount: @empty_integer,
             currency: @empty_address,
             owner: @empty_address
+
 
   @doc """
   Convert a given utxo into an RLP-encodable input list.
@@ -57,6 +62,7 @@ defmodule ExPlasma.Transaction.Utxo do
     iex> alias ExPlasma.Transaction.Utxo
     iex> %Utxo{} |> Utxo.to_output_list()
     [
+      <<1>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0>>
@@ -67,6 +73,7 @@ defmodule ExPlasma.Transaction.Utxo do
     iex> address = "0x0000000000000000000000000000000000000000"
     iex> %Utxo{owner: address, currency: address, amount: 1} |> Utxo.to_output_list()
     [
+      <<1>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 1>>
@@ -74,11 +81,13 @@ defmodule ExPlasma.Transaction.Utxo do
   """
   @spec to_output_list(struct()) :: list(binary)
   def to_output_list(%__MODULE__{
+        output_type: output_type,
         amount: amount,
         currency: <<_::336>> = currency,
         owner: <<_::336>> = owner
       }) do
     to_output_list(%__MODULE__{
+      output_type: output_type,
       amount: amount,
       currency: to_binary(currency),
       owner: to_binary(owner)
@@ -86,12 +95,13 @@ defmodule ExPlasma.Transaction.Utxo do
   end
 
   def to_output_list(%__MODULE__{
+        output_type: output_type,
         amount: amount,
         currency: <<_::160>> = currency,
         owner: <<_::160>> = owner
       })
       when is_integer(amount) and amount >= 0 do
-    [owner, currency, <<amount::integer-size(64)>>]
+    [<<output_type>>, owner, currency, <<amount::integer-size(64)>>]
   end
 end
 
@@ -104,10 +114,8 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Utxo do
 
   @doc """
   """
-  def encode(%Utxo{amount: _, currency: _, owner: _} = utxo) do
-    # FIXME this is from the Transaction. move it here.
-    output_type = <<1>>
-    [owner, currency, amount] = Utxo.to_output_list(utxo)
+  def encode(%Utxo{output_type: _, amount: _, currency: _, owner: _} = utxo) do
+    [output_type, owner, currency, amount] = Utxo.to_output_list(utxo)
 
     [
       @output_signature,

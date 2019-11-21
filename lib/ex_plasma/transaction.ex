@@ -83,9 +83,7 @@ defmodule ExPlasma.Transaction do
   def to_list(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
       when is_list(inputs) and is_list(outputs) do
     computed_inputs = Enum.map(inputs, &Utxo.to_input_list/1)
-
-    computed_outputs =
-      Enum.map(outputs, fn o -> [<<module.output_type()>>] ++ Utxo.to_output_list(o) end)
+    computed_outputs = Enum.map(outputs, &Utxo.to_output_list/1)
 
     metadata = metadata || @empty_metadata
 
