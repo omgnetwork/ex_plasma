@@ -58,6 +58,16 @@ defmodule ExPlasma.Client.State do
   end
 
   @doc """
+  Returns the exit game address for the given transaction type id.
+  """
+  def get_exit_game_address(txn_type_id) when is_integer(txn_type_id) do
+    eth_call("exitGames(uint256)", [txn_type_id], fn resp ->
+      [address] = decode_response(resp, [:address])
+      address
+    end)
+  end
+
+  @doc """
   Returns the existing standard exit for the given exit id. The exit id is connected
   to a specific UTXO existing in the contract.
   """

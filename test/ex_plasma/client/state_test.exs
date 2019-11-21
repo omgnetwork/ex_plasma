@@ -32,6 +32,16 @@ defmodule ExPlasma.Client.StateTest do
     end
   end
 
+  test "get_exit_game_address/1 returns an address" do
+    use_cassette "get_exit_game_address", match_requests_on: [:request_body] do
+      exit_game_address = State.get_exit_game_address(1)
+
+      assert exit_game_address ==
+               <<144, 39, 25, 241, 146, 170, 82, 64, 99, 47, 112, 74, 167, 169, 75, 171, 97, 184,
+                 101, 80>>
+    end
+  end
+
   test "next_child_block/9 returns the next child block to be mined" do
     use_cassette "next_child_block", match_requests_on: [:request_body] do
       assert State.next_child_block() == 1000
