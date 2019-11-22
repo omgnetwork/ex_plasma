@@ -110,3 +110,26 @@ defmodule ExPlasma.Transaction do
   @spec encode(map()) :: __MODULE__.tx_bytes()
   def encode(%{} = transaction), do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
 end
+
+defimpl ExPlasma.TypedData, for: [
+  ExPlasma.Transaction,
+  ExPlasma.Transactions.Deposit,
+  ExPlasma.Transactions.Payment] do
+
+    @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)"
+
+    def encode(%module{inputs: inputs, outputs: outputs}) do
+      encoded_inputs = Enum.map(inputs, &ExPlasma.TypedData.encode/1)
+      encoded_outputs = Enum.map(outputs, &ExPlasma.TypedData.encode/1)
+      transaction_type = :binary.decode_unsigned(module.transaction_type())
+      encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
+
+      [
+        @signature,
+        encoded_transaction_type,
+        encoded_inputs,
+        encoded_outputs,
+        encoded_metadata
+      ]
+    end
+end
