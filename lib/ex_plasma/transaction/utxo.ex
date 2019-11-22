@@ -94,6 +94,39 @@ defmodule ExPlasma.Transaction.Utxo do
     do: blknum * @block_offset + txindex * @transaction_offset + oindex
 
   @doc """
+  Converts a Utxo into an RLP-encodable list. If your Utxo contains both sets of input/output data,
+  use the `to_input_list` or `to_output_list` methods instead.
+
+  ## Example
+
+    # Convert from an `input` Utxo
+    iex> alias ExPlasma.Transaction.Utxo
+    iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
+    iex> Utxo.to_list(utxo)
+    [<<119, 53, 187, 17>>]
+
+    # Convert from an `output` Utxo
+    iex> alias ExPlasma.Transaction.Utxo
+    iex> utxo = %Utxo{amount: 2}
+    iex> Utxo.to_list(utxo)
+    [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      <<0, 0, 0, 0, 0, 0, 0, 2>>
+    ]
+  """
+  def to_list(
+        %__MODULE__{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} =
+          utxo
+      ),
+      do: to_output_list(utxo)
+
+  def to_list(
+        %__MODULE__{owner: @empty_address, currency: @empty_address, amount: @empty_integer} =
+          utxo
+      ),
+      do: to_input_list(utxo)
+
+  @doc """
   Convert a given utxo into an RLP-encodable input list.
 
   ## Examples
