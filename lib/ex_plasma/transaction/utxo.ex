@@ -39,7 +39,7 @@ defmodule ExPlasma.Transaction.Utxo do
 
   ## Examples
 
-      # Create a Utxo from an RLP list
+      # Create a Utxo from an Output RLP list
       iex> alias ExPlasma.Transaction.Utxo
       iex> Utxo.new([<<1>>, <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>])
       %ExPlasma.Transaction.Utxo{
@@ -49,6 +49,18 @@ defmodule ExPlasma.Transaction.Utxo do
         oindex: 0,
         owner: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125,
           202, 87, 133, 226, 40, 180>>,
+        txindex: 0
+      }
+
+      # Create a Utxo from an Input RLP Item
+      iex> alias ExPlasma.Transaction.Utxo
+      iex> Utxo.new(<<233, 16, 63, 218, 0>>)
+      %ExPlasma.Transaction.Utxo{
+        amount: 0,
+        blknum: 1001,
+        currency: "0x0000000000000000000000000000000000000000",
+        oindex: 0,
+        owner: "0x0000000000000000000000000000000000000000",
         txindex: 0
       }
 
@@ -73,10 +85,13 @@ defmodule ExPlasma.Transaction.Utxo do
     }
   end
 
-  def new(pos) when is_integer(pos) do
-    blknum = div(pos, @block_offset)
-    txindex = pos |> rem(@block_offset) |> div(@transaction_offset)
-    oindex = rem(pos, @transaction_offset)
+  def new(encoded_pos) when is_binary(encoded_pos),
+    do: encoded_pos |> :binary.decode_unsigned(:big) |> new()
+
+  def new(utxo_pos) when is_integer(utxo_pos) do
+    blknum = div(utxo_pos, @block_offset)
+    txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
+    oindex = rem(utxo_pos, @transaction_offset)
     %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}
   end
 
@@ -103,7 +118,7 @@ defmodule ExPlasma.Transaction.Utxo do
     iex> alias ExPlasma.Transaction.Utxo
     iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
     iex> Utxo.to_list(utxo)
-    [<<119, 53, 187, 17>>]
+    <<119, 53, 187, 17>>
 
     # Convert from an `output` Utxo
     iex> alias ExPlasma.Transaction.Utxo
@@ -133,15 +148,12 @@ defmodule ExPlasma.Transaction.Utxo do
 
     iex> alias ExPlasma.Transaction.Utxo
     iex> %Utxo{} |> Utxo.to_input_list()
-    [<<0>>]
+    <<0>>
   """
-  @spec to_input_list(__MODULE__.t()) :: list(binary)
+  @spec to_input_list(__MODULE__.t()) :: binary()
   def to_input_list(%__MODULE__{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
-    utxo
-    |> pos()
-    |> :binary.encode_unsigned(:big)
-    |> List.wrap()
+    utxo |> pos() |> :binary.encode_unsigned(:big)
   end
 
   @doc """
