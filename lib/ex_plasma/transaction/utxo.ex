@@ -129,7 +129,7 @@ defmodule ExPlasma.Transaction.Utxo do
     iex> alias ExPlasma.Transaction.Utxo
     iex> utxo = %Utxo{amount: 2}
     iex> Utxo.to_list(utxo)
-    [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+    [<<1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 2>>
     ]
