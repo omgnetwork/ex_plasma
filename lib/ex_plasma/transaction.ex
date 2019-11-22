@@ -63,11 +63,41 @@ defmodule ExPlasma.Transaction do
       outputs: [],
       metadata: nil
     }
+
+    # Create a transaction from a RLP list
+    iex> rlp = [
+    ...>  <<1>>,
+    ...>  [<<0>>],
+    ...>  [
+    ...>    [
+    ...>      <<1>>,
+    ...>      <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
+    ...>        226, 241, 55, 0, 110>>,
+    ...>      <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
+    ...>        241, 55, 0, 110>>,
+    ...>      <<0, 0, 0, 0, 0, 0, 0, 1>>
+    ...>    ]
+    ...>  ],
+    ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+    ...>]
+    iex> ExPlasma.Transaction.new(rlp)
+  	 %ExPlasma.Transaction{inputs: [%ExPlasma.Transaction.Utxo{amount: 0, blknum: 0, currency: "0x0000000000000000000000000000000000000000", oindex: 0, owner: "0x0000000000000000000000000000000000000000", txindex: 0 }],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [%ExPlasma.Transaction.Utxo{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, blknum: 0, currency: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, oindex: 0, owner: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, txindex: 0}],
+        sigs: []}
   """
   @spec new(struct()) :: struct()
   def new(%module{inputs: inputs, outputs: outputs} = transaction)
       when is_list(inputs) and is_list(outputs) do
     struct(module, Map.from_struct(transaction))
+  end
+
+  def new([_transaction_type, inputs, outputs, metadata]) do
+    %__MODULE__{
+      inputs: Enum.map(inputs, &Utxo.new/1),
+      outputs: Enum.map(outputs, &Utxo.new/1),
+      metadata: metadata
+    }
   end
 
   @doc """
@@ -109,6 +139,20 @@ defmodule ExPlasma.Transaction do
   """
   @spec encode(map()) :: __MODULE__.tx_bytes()
   def encode(%{} = transaction), do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
+
+  @doc """
+  Encodes a transaction into an RLP encodable list.
+
+  ## Examples
+
+    iex> rlp_encoded = <<248, 78, 1, 193, 0, 245, 244, 1, 148, 29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 136, 0, 0, 0, 0, 0, 0, 0, 1, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+    iex> ExPlasma.Transaction.decode(rlp_encoded)
+    %ExPlasma.Transaction{inputs: [%ExPlasma.Transaction.Utxo{amount: 0, blknum: 0, currency: "0x0000000000000000000000000000000000000000", oindex: 0, owner: "0x0000000000000000000000000000000000000000", txindex: 0 }],
+     metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+     outputs: [%ExPlasma.Transaction.Utxo{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, blknum: 0, currency: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, oindex: 0, owner: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, txindex: 0}],
+     sigs: []}
+  """
+  def decode(rlp_encoded_txn), do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
 end
 
 defimpl ExPlasma.TypedData, for: [

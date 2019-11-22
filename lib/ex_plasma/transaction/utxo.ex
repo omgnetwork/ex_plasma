@@ -2,7 +2,7 @@ defmodule ExPlasma.Transaction.Utxo do
   @moduledoc """
   Represents an unspent output. This struct exits in two forms:
 
-  * An `output` where the `owner`, `currency`, and `amount` 
+  * An `output` where the `owner`, `currency`, and `amount`
     are specified in a transaction.
   * An `input` where the `blknum`, `txindex`, and `oindex`
     are specified in a transaction.
@@ -26,6 +26,10 @@ defmodule ExPlasma.Transaction.Utxo do
   # Currently this is the only output type available.
   @payment_output_type 1
 
+  # Contract settings
+  @block_offset 1_000_000_000
+  @transaction_offset 10_000
+
   defstruct blknum: @empty_integer,
             oindex: @empty_integer,
             txindex: @empty_integer,
@@ -36,22 +40,125 @@ defmodule ExPlasma.Transaction.Utxo do
 
 
   @doc """
+  Builds a Utxo
+
+  ## Examples
+
+      # Create a Utxo from an Output RLP list
+      iex> alias ExPlasma.Transaction.Utxo
+      iex> Utxo.new([<<1>>, <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>])
+      %ExPlasma.Transaction.Utxo{
+        amount: <<13, 224, 182, 179, 167, 100, 0, 0>>,
+        blknum: 0,
+        currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        oindex: 0,
+        owner: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125,
+          202, 87, 133, 226, 40, 180>>,
+        txindex: 0
+      }
+
+      # Create a Utxo from an Input RLP Item
+      iex> alias ExPlasma.Transaction.Utxo
+      iex> Utxo.new(<<233, 16, 63, 218, 0>>)
+      %ExPlasma.Transaction.Utxo{
+        amount: 0,
+        blknum: 1001,
+        currency: "0x0000000000000000000000000000000000000000",
+        oindex: 0,
+        owner: "0x0000000000000000000000000000000000000000",
+        txindex: 0
+      }
+
+      # Create a Utxo from a Utxo position.
+      iex> alias ExPlasma.Transaction.Utxo
+      iex> pos = 2000010001
+      iex> Utxo.new(pos)
+      %ExPlasma.Transaction.Utxo{
+        amount: 0,
+        blknum: 2,
+        currency: "0x0000000000000000000000000000000000000000",
+        oindex: 1,
+        owner: "0x0000000000000000000000000000000000000000",
+        txindex: 1
+      }
+  """
+  def new([_output_type, owner, currency, amount]) do
+    %__MODULE__{
+      amount: amount,
+      currency: currency,
+      owner: owner
+    }
+  end
+
+  def new(encoded_pos) when is_binary(encoded_pos),
+    do: encoded_pos |> :binary.decode_unsigned(:big) |> new()
+
+  def new(utxo_pos) when is_integer(utxo_pos) do
+    blknum = div(utxo_pos, @block_offset)
+    txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
+    oindex = rem(utxo_pos, @transaction_offset)
+    %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}
+  end
+
+  @doc """
+  Returns the UTxo position(pos) number.
+
+  ## Examples
+
+    iex> alias ExPlasma.Transaction.Utxo
+    iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
+    iex> Utxo.pos(utxo)
+    2000010001
+  """
+  def pos(%__MODULE__{blknum: blknum, oindex: oindex, txindex: txindex}),
+    do: blknum * @block_offset + txindex * @transaction_offset + oindex
+
+  @doc """
+  Converts a Utxo into an RLP-encodable list. If your Utxo contains both sets of input/output data,
+  use the `to_input_list` or `to_output_list` methods instead.
+
+  ## Example
+
+    # Convert from an `input` Utxo
+    iex> alias ExPlasma.Transaction.Utxo
+    iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
+    iex> Utxo.to_list(utxo)
+    <<119, 53, 187, 17>>
+
+    # Convert from an `output` Utxo
+    iex> alias ExPlasma.Transaction.Utxo
+    iex> utxo = %Utxo{amount: 2}
+    iex> Utxo.to_list(utxo)
+    [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      <<0, 0, 0, 0, 0, 0, 0, 2>>
+    ]
+  """
+  def to_list(
+        %__MODULE__{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} =
+          utxo
+      ),
+      do: to_output_list(utxo)
+
+  def to_list(
+        %__MODULE__{owner: @empty_address, currency: @empty_address, amount: @empty_integer} =
+          utxo
+      ),
+      do: to_input_list(utxo)
+
+  @doc """
   Convert a given utxo into an RLP-encodable input list.
 
   ## Examples
 
     iex> alias ExPlasma.Transaction.Utxo
     iex> %Utxo{} |> Utxo.to_input_list()
-    [
-      <<0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<0, 0, 0, 0, 0, 0, 0, 0>>
-    ]
+    <<0>>
   """
-  @spec to_input_list(__MODULE__.t()) :: list(binary)
-  def to_input_list(%__MODULE__{blknum: blknum, oindex: oindex, txindex: txindex})
+  @spec to_input_list(__MODULE__.t()) :: binary()
+  def to_input_list(%__MODULE__{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
-    [<<blknum::integer-size(64)>>, <<txindex::integer-size(64)>>, <<oindex::integer-size(64)>>]
+    utxo |> pos() |> :binary.encode_unsigned(:big)
   end
 
   @doc """
