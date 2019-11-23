@@ -222,6 +222,10 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Utxo do
   """
   def encode(utxo), do: utxo |> Utxo.to_list() |> do_encode()
 
+  def encode_input(utxo), do: utxo |> Utxo.to_input_list() |> do_encode()
+
+  def encode_output(utxo), do: utxo |> Utxo.to_output_list() |> do_encode()
+
   def hash(%{} = utxo), do: utxo |> encode() |> hash()
 
   def hash([signature | encoded_list]),

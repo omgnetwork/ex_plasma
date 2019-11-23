@@ -162,9 +162,9 @@ defimpl ExPlasma.TypedData, for: [
 
     @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)"
 
-    def encode(%module{inputs: inputs, outputs: outputs}) do
-      encoded_inputs = Enum.map(inputs, &ExPlasma.TypedData.encode/1)
-      encoded_outputs = Enum.map(outputs, &ExPlasma.TypedData.encode/1)
+    def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}) do
+      encoded_inputs = Enum.map(inputs, &ExPlasma.TypedData.encode_input/1)
+      encoded_outputs = Enum.map(outputs, &ExPlasma.TypedData.encode_output/1)
       transaction_type = :binary.decode_unsigned(module.transaction_type())
       encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
 
@@ -173,7 +173,7 @@ defimpl ExPlasma.TypedData, for: [
         encoded_transaction_type,
         encoded_inputs,
         encoded_outputs,
-        encoded_metadata
+        metadata
       ]
     end
 end
