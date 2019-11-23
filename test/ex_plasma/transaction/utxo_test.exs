@@ -4,22 +4,40 @@ defmodule ExPlasma.Transaction.UtxoTest do
 
   alias ExPlasma.Transaction.Utxo
 
-  test "encode/1 encodes the utxo into an eip712 encoded object" do
-    encoded = ExPlasma.TypedData.encode(%Utxo{})
+  describe "encode1/" do
+    test "encodes the output utxo into an eip712 encoded object" do
+      encoded = ExPlasma.TypedData.encode(%Utxo{})
 
-    assert encoded ==
-             [
-               "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)",
-               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 1>>,
-               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0>>,
-               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0>>,
-               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0>>
-             ]
+      assert encoded ==
+               [
+                 "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)",
+                 <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 0, 1>>,
+                 <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 0, 0>>,
+                 <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 0, 0>>,
+                 <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 0, 0>>
+               ]
+    end
+
+    test "encodes the input utxo into an eip712 encoded object" do
+      encoded = ExPlasma.TypedData.encode(%Utxo{blknum: 1000})
+
+      assert encoded ==
+               [
+                 "Input(uint256 blknum,uint256 txindex,uint256 oindex)",
+                 <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 3, 232>>,
+                 <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 0, 0>>,
+                 <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                   0, 0, 0, 0, 0>>,
+               ]
+    end
   end
+
 
   test "hash/1 encodes the utxo into an eip712 encoded hash" do
     hashed = ExPlasma.TypedData.hash(%Utxo{})
