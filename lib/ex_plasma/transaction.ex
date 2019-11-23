@@ -155,25 +155,39 @@ defmodule ExPlasma.Transaction do
   def decode(rlp_encoded_txn), do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
 end
 
-defimpl ExPlasma.TypedData, for: [
-  ExPlasma.Transaction,
-  ExPlasma.Transactions.Deposit,
-  ExPlasma.Transactions.Payment] do
+defimpl ExPlasma.TypedData,
+  for: [ExPlasma.Transaction, ExPlasma.Transactions.Deposit, ExPlasma.Transactions.Payment] do
+  alias ExPlasma.Transaction.Utxo
 
-    @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)"
+  @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)"
+  # NB: Currently we only support 1 type of transaction: Payment.
+  @max_utxo_count 4
+  @empty_metadata <<0::256>>
 
-    def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}) do
-      encoded_inputs = Enum.map(inputs, &ExPlasma.TypedData.encode_input/1)
-      encoded_outputs = Enum.map(outputs, &ExPlasma.TypedData.encode_output/1)
-      transaction_type = :binary.decode_unsigned(module.transaction_type())
-      encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
+  def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}) do
+    inputs = List.duplicate(%Utxo{}, @max_utxo_count - length(inputs))
+    outputs = List.duplicate(%Utxo{}, @max_utxo_count - length(outputs))
+    encoded_inputs = Enum.map(inputs, &ExPlasma.TypedData.encode_input/1)
+    encoded_outputs = Enum.map(outputs, &ExPlasma.TypedData.encode_output/1)
 
-      [
-        @signature,
-        encoded_transaction_type,
-        encoded_inputs,
-        encoded_outputs,
-        metadata
-      ]
-    end
+    transaction_type = module.transaction_type()
+    encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
+
+    [
+      @signature,
+      encoded_transaction_type,
+      encoded_inputs,
+      encoded_outputs,
+      metadata || @empty_metadata
+    ]
+  end
+
+  def hash(%_module{} = transaction), do: transaction |> encode() |> hash()
+
+  def hash(eip712_list) when is_list(eip712_list),
+    do:
+      eip712_list
+      |> List.flatten()
+      |> Enum.join()
+      |> ExPlasma.Encoding.keccak_hash()
 end
