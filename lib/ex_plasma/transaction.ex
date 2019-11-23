@@ -164,6 +164,10 @@ defimpl ExPlasma.TypedData,
   @max_utxo_count 4
   @empty_metadata <<0::256>>
 
+  # TODO Handle this required protocol function better.
+  def encode_input(data), do: encode(data)
+  def encode_output(data), do: encode(data)
+
   def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}) do
     inputs = List.duplicate(%Utxo{}, @max_utxo_count - length(inputs))
     outputs = List.duplicate(%Utxo{}, @max_utxo_count - length(outputs))
