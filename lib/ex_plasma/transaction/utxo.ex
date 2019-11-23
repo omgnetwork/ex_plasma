@@ -38,7 +38,6 @@ defmodule ExPlasma.Transaction.Utxo do
             currency: @empty_address,
             owner: @empty_address
 
-
   @doc """
   Builds a Utxo
 
@@ -226,9 +225,10 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Utxo do
   def hash(%{} = utxo), do: utxo |> encode() |> hash()
 
   def hash([signature | encoded_list]),
-    do: [Encoding.keccak_hash(signature)] ++ encoded_list
-    |> Enum.join()
-    |> Encoding.keccak_hash()
+    do:
+      ([Encoding.keccak_hash(signature)] ++ encoded_list)
+      |> Enum.join()
+      |> Encoding.keccak_hash()
 
   defp do_encode([output_type, owner, currency, amount]) do
     [
@@ -241,8 +241,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Utxo do
   end
 
   defp do_encode(encoded_utxo_pos) do
-    %Utxo{blknum: blknum, txindex: txindex, oindex: oindex} = 
-      encoded_utxo_pos |> Utxo.new()
+    %Utxo{blknum: blknum, txindex: txindex, oindex: oindex} = encoded_utxo_pos |> Utxo.new()
 
     [
       @input_signature,
