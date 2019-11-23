@@ -104,14 +104,6 @@ defmodule ExPlasma.Transaction do
     }
   end
 
-  def new([_transaction_type, inputs, outputs, metadata]) do
-    %__MODULE__{
-      inputs: Enum.map(inputs, &Utxo.new/1),
-      outputs: Enum.map(outputs, &Utxo.new/1),
-      metadata: metadata
-    }
-  end
-
   @doc """
   Generate an RLP-encodable list for the transaction.
 
