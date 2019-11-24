@@ -174,26 +174,25 @@ defmodule ExPlasma.Transaction do
   """
   def decode(rlp_encoded_txn), do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
 
-
   @doc """
 
-  ## Examples
- 
-    iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>} 
-    iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
-    iex> ExPlasma.Transaction.sign(txn, keys: [key])
-    %ExPlasma.Transaction{
-      inputs: [],
-      metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      outputs: [],
-      sigs: [
-         <<29, 237, 15, 143, 157, 81, 97, 113, 14, 14, 44, 198, 160, 90, 179, 48, 212,
-           105, 175, 3, 33, 220, 15, 153, 177, 64, 35, 17, 245, 195, 24, 110, 12, 102,
-           91, 86, 151, 11, 144, 254, 190, 149, 186, 145, 169, 130, 49, 54, 198, 225,
-           98, 245, 84, 199, 138, 78, 52, 66, 116, 51, 69, 153, 93, 166, 27>>
-      ]
-    }
-"""
+    ## Examples
+
+      iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>} 
+      iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
+      iex> ExPlasma.Transaction.sign(txn, keys: [key])
+      %ExPlasma.Transaction{
+        inputs: [],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: [
+           <<29, 237, 15, 143, 157, 81, 97, 113, 14, 14, 44, 198, 160, 90, 179, 48, 212,
+             105, 175, 3, 33, 220, 15, 153, 177, 64, 35, 17, 245, 195, 24, 110, 12, 102,
+             91, 86, 151, 11, 144, 254, 190, 149, 186, 145, 169, 130, 49, 54, 198, 225,
+             98, 245, 84, 199, 138, 78, 52, 66, 116, 51, 69, 153, 93, 166, 27>>
+        ]
+      }
+  """
   def sign(%__MODULE__{} = transaction, keys: keys) when is_list(keys) do
     eip712_hash = ExPlasma.TypedData.hash(transaction)
     sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
