@@ -215,7 +215,8 @@ defimpl ExPlasma.TypedData,
   @max_utxo_count 4
   @empty_metadata <<0::256>>
 
-  # TODO Handle this required protocol function better.
+  # NB: Hack around so that we can support Utxo being encoded specifically into
+  # a input, or output typed data format.
   def encode_input(data), do: encode(data)
   def encode_output(data), do: encode(data)
 

@@ -186,28 +186,19 @@ defmodule ExPlasma.Transaction.Utxo do
     ]
   """
   @spec to_output_list(struct()) :: list(binary)
-  def to_output_list(%__MODULE__{
-        output_type: output_type,
-        amount: amount,
-        currency: <<_::336>> = currency,
-        owner: <<_::336>> = owner
-      }) do
-    to_output_list(%__MODULE__{
-      output_type: output_type,
-      amount: amount,
-      currency: to_binary(currency),
-      owner: to_binary(owner)
-    })
-  end
+  def to_output_list(%{amount: amount} = utxo) when is_integer(amount) and amount >= 0,
+    do: %{utxo | amount: <<amount::integer-size(64)>>} |> to_output_list()
 
-  def to_output_list(%__MODULE__{
-        output_type: output_type,
-        amount: amount,
-        currency: <<_::160>> = currency,
-        owner: <<_::160>> = owner
-      })
-      when is_integer(amount) and amount >= 0 do
-    [<<output_type>>, owner, currency, <<amount::integer-size(64)>>]
+  def to_output_list(%{currency: <<_::336>> = currency, owner: <<_::336>> = owner} = utxo),
+    do: %{utxo | currency: to_binary(currency), owner: to_binary(owner)} |> to_output_list()
+
+  def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::64>>} = utxo) do
+    [
+      <<utxo.output_type>>,
+      utxo.owner,
+      utxo.currency,
+      utxo.amount
+    ]
   end
 end
 
