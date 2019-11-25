@@ -9,13 +9,13 @@ config :ex_plasma,
   exit_game_address: "0x902719f192aa5240632f704aa7a94bab61b86550",
   gas: 1_000_000,
   gas_price: 1_000_000,
-  standard_exit_bond_size: 14_000_000_000_000_000
-
-config :eip_712_domain,
-  name: "OMG Network",
-  salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
-  verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
-  version: "1"
+  standard_exit_bond_size: 14_000_000_000_000_000,
+  eip_712_domain: [
+    name: "OMG Network",
+    salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
+    verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
+    version: "1"
+  ]
 
 config :ethereumex,
   id_reset: true,

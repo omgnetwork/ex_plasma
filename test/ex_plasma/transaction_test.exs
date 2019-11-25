@@ -40,6 +40,16 @@ defmodule ExPlasma.TransactionTest do
       encoded = %Transaction{} |> ExPlasma.TypedData.encode()
 
       assert encoded == [
+               <<25, 1>>,
+               [
+                 "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)",
+                 "OMG Network",
+                 "1",
+                 <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 209, 126, 18, 51, 160, 58, 255, 185, 9, 45,
+                   81, 9, 23, 155, 67, 214, 168, 130, 134, 7>>,
+                 <<250, 213, 199, 246, 38, 216, 15, 146, 86, 239, 1, 146, 159, 59, 235, 150, 224,
+                   88, 184, 180, 176, 227, 254, 82, 216, 79, 5, 76, 14, 42, 122, 131>>
+               ],
                "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)",
                <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                  0, 0, 0, 0, 0>>,
@@ -136,8 +146,10 @@ defmodule ExPlasma.TransactionTest do
       encoded_hash = %Transaction{} |> ExPlasma.TypedData.hash()
 
       assert encoded_hash ==
-               <<240, 54, 143, 137, 252, 214, 251, 198, 100, 125, 157, 46, 241, 41, 26, 175, 23,
-                 172, 71, 249, 52, 22, 82, 202, 184, 197, 0, 211, 25, 46, 208, 65>>
+               <<25, 1, 83, 12, 160, 20, 201, 138, 227, 106, 80, 242, 8, 239, 193, 151, 114, 116,
+                 200, 207, 163, 167, 34, 135, 113, 192, 200, 240, 203, 131, 94, 93, 129, 1, 240,
+                 54, 143, 137, 252, 214, 251, 198, 100, 125, 157, 46, 241, 41, 26, 175, 23, 172,
+                 71, 249, 52, 22, 82, 202, 184, 197, 0, 211, 25, 46, 208, 65>>
     end
   end
 end
