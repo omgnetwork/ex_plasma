@@ -163,6 +163,9 @@ defmodule ExPlasma.Client do
   end
 
   @spec merge_default_options(map(), map()) :: map()
+  defp merge_default_options(details, options) when is_list(options),
+    do: merge_default_options(details, Enum.into(options, %{}))
+
   defp merge_default_options(details, %{} = options) do
     options = default_options() |> Map.merge(details) |> Map.merge(options)
 
