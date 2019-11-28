@@ -86,7 +86,7 @@ defmodule ExPlasma.Transaction do
         outputs: [%ExPlasma.Utxo{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, blknum: 0, currency: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, oindex: 0, owner: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, txindex: 0}],
         sigs: []}
   """
-  @spec new(struct()) :: struct()
+  @spec new(struct() | nonempty_maybe_improper_list()) :: struct()
   def new(%module{inputs: inputs, outputs: outputs} = transaction)
       when is_list(inputs) and is_list(outputs) do
     struct(module, Map.from_struct(transaction))
@@ -199,83 +199,4 @@ defmodule ExPlasma.Transaction do
     sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
     %{transaction | sigs: sigs}
   end
-end
-
-defimpl ExPlasma.TypedData,
-  for: [ExPlasma.Transaction, ExPlasma.Transactions.Deposit, ExPlasma.Transactions.Payment] do
-  alias ExPlasma.Utxo
-
-  # Prefix and version byte motivated by http://eips.ethereum.org/EIPS/eip-191
-  @eip_191_prefix <<0x19, 0x01>>
-
-  @domain_signature "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"
-  @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)"
-
-  # NB: Currently we only support 1 type of transaction: Payment.
-  @max_utxo_count 4
-  @empty_metadata <<0::256>>
-
-  # NB: Hack around so that we can support Utxo being encoded specifically into
-  # a input, or output typed data format.
-  def encode_input(data), do: encode(data)
-  def encode_output(data), do: encode(data)
-
-  def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}) do
-    inputs = List.duplicate(%Utxo{}, @max_utxo_count - length(inputs))
-    outputs = List.duplicate(%Utxo{}, @max_utxo_count - length(outputs))
-    encoded_inputs = Enum.map(inputs, &ExPlasma.TypedData.encode_input/1)
-    encoded_outputs = Enum.map(outputs, &ExPlasma.TypedData.encode_output/1)
-
-    transaction_type = module.transaction_type()
-    encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
-
-    [
-      @eip_191_prefix,
-      domain_separator(),
-      @signature,
-      encoded_transaction_type,
-      encoded_inputs,
-      encoded_outputs,
-      metadata || @empty_metadata
-    ]
-  end
-
-  def hash(%_module{} = transaction), do: transaction |> encode() |> hash()
-
-  def hash([prefix, domain_separator | encoded_transaction]) do
-    prefix <> hash_domain(domain_separator) <> hash_encoded(encoded_transaction)
-  end
-
-  defp domain_separator() do
-    domain = Application.get_env(:ex_plasma, :eip_712_domain)
-    verifying_contract = domain[:verifying_contract] |> ExPlasma.Encoding.to_binary()
-    salt = domain[:salt] |> ExPlasma.Encoding.to_binary()
-
-    [
-      @domain_signature,
-      domain[:name],
-      domain[:version],
-      ABI.TypeEncoder.encode_raw([verifying_contract], [:address]),
-      ABI.TypeEncoder.encode_raw([salt], [{:bytes, 32}])
-    ]
-  end
-
-  defp hash_domain([signature, name, version, verifying_contract, salt]) do
-    [
-      ExPlasma.Encoding.keccak_hash(signature),
-      ExPlasma.Encoding.keccak_hash(name),
-      ExPlasma.Encoding.keccak_hash(version),
-      verifying_contract,
-      salt
-    ]
-    |> Enum.join()
-    |> ExPlasma.Encoding.keccak_hash()
-  end
-
-  defp hash_encoded(eip712_list) when is_list(eip712_list),
-    do:
-      eip712_list
-      |> List.flatten()
-      |> Enum.join()
-      |> ExPlasma.Encoding.keccak_hash()
 end

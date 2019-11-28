@@ -40,8 +40,12 @@ defmodule ExPlasma.Client do
   """
   @spec deposit(Deposit.t() | binary(), map() | list()) :: tuple()
   def deposit(tx_bytes, options \\ %{})
-  def deposit(tx_bytes, options) when is_list(options), do: deposit(tx_bytes, Enum.into(options, %{}))
-  def deposit(tx_bytes, %{to: :eth} = options), do: deposit(tx_bytes, %{options | to: eth_vault_address()})
+
+  def deposit(tx_bytes, options) when is_list(options),
+    do: deposit(tx_bytes, Enum.into(options, %{}))
+
+  def deposit(tx_bytes, %{to: :eth} = options),
+    do: deposit(tx_bytes, %{options | to: eth_vault_address()})
 
   def deposit(%Deposit{outputs: [output]} = transaction, options) do
     options = Map.merge(options, %{from: output.owner, to: :eth, value: output.amount})
