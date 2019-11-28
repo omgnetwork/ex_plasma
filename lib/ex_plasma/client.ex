@@ -172,15 +172,23 @@ defmodule ExPlasma.Client do
   defp merge_default_options(details, %{} = options) do
     options = default_options() |> Map.merge(details) |> Map.merge(options)
 
-    %{
+    set_options_to_hex(%{
       data: options[:data],
       from: options[:from],
       gas: to_hex(options[:gas]),
       gasPrice: to_hex(options[:gasPrice] || options[:gas_price]),
       to: options[:to],
       value: to_hex(options[:value])
-    }
+    })
   end
+
+  defp set_options_to_hex(%{from: <<_::160>> = from} = options),
+    do: set_options_to_hex(%{options | from: to_hex(from)})
+
+  defp set_options_to_hex(%{to: <<_::160>> = to} = options),
+    do: set_options_to_hex(%{options | to: to_hex(to)})
+
+  defp set_options_to_hex(%{} = options), do: options
 
   @spec default_options() :: map()
   defp default_options() do
