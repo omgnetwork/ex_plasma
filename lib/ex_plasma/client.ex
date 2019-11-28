@@ -28,7 +28,7 @@ defmodule ExPlasma.Client do
   # Deposit 1 ETH to the contracts.
 
     alias ExPlasma.Client
-    alias ExPlasma.Transaction.Utxo
+    alias ExPlasma.Utxo
     alias ExPlasma.Transactions.Deposit
 
     owner_address = "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"

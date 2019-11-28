@@ -5,7 +5,7 @@ defmodule ExPlasma.Transactions.Deposit do
   """
 
   alias ExPlasma.Transaction
-  alias ExPlasma.Transaction.Utxo
+  alias ExPlasma.Utxo
 
   @behaviour Transaction
 
@@ -49,7 +49,7 @@ defmodule ExPlasma.Transactions.Deposit do
   ## Examples
 
   # Generate with a single output Utxo
-  iex> alias ExPlasma.Transaction.Utxo
+  iex> alias ExPlasma.Utxo
   iex> alias ExPlasma.Transactions.Deposit
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
@@ -58,7 +58,7 @@ defmodule ExPlasma.Transactions.Deposit do
     inputs: [],
     sigs: [],
     metadata: nil,
-    outputs: [%ExPlasma.Transaction.Utxo{
+    outputs: [%ExPlasma.Utxo{
       amount: 1,
       blknum: 0,
       currency: "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e",
@@ -68,7 +68,7 @@ defmodule ExPlasma.Transactions.Deposit do
   }
 
   # Generate the whole structure
-  iex> alias ExPlasma.Transaction.Utxo
+  iex> alias ExPlasma.Utxo
   iex> alias ExPlasma.Transactions.Deposit
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
@@ -78,7 +78,7 @@ defmodule ExPlasma.Transactions.Deposit do
     inputs: [],
     sigs: [],
     metadata: nil,
-    outputs: [%ExPlasma.Transaction.Utxo{
+    outputs: [%ExPlasma.Utxo{
       amount: 1,
       blknum: 0,
       currency: "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e",

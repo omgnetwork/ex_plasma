@@ -5,7 +5,7 @@ defmodule ExPlasma.ClientTest do
   alias ExPlasma.Block
   alias ExPlasma.Client
   alias ExPlasma.Transaction
-  alias ExPlasma.Transaction.Utxo
+  alias ExPlasma.Utxo
   alias ExPlasma.Transactions.Deposit
   alias ExPlasma.Transactions.Payment
 
@@ -18,30 +18,45 @@ defmodule ExPlasma.ClientTest do
     :ok
   end
 
-  test "deposit/1 sends deposit transaction with the struct" do
-    use_cassette "deposit", match_requests_on: [:request_body] do
-      currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+  describe "deposit/2" do
+    test "accepts a keyword list for the options" do
+      use_cassette "deposit", match_requests_on: [:request_body] do
+        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
 
-      assert {:ok, _receipt_hash} =
-               %Utxo{owner: authority_address(), currency: currency, amount: 1}
-               |> Deposit.new()
-               |> Client.deposit(%{to: :eth})
+        assert {:ok, _receipt_hash} =
+                 %Utxo{owner: authority_address(), currency: currency, amount: 1}
+                 |> Deposit.new()
+                 |> Client.deposit(to: :eth)
+      end
+    end
+
+    test "sends deposit transaction with a deposit struct" do
+      use_cassette "deposit", match_requests_on: [:request_body] do
+        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+
+        assert {:ok, _receipt_hash} =
+                 %Utxo{owner: authority_address(), currency: currency, amount: 1}
+                 |> Deposit.new()
+                 |> Client.deposit(%{to: :eth})
+      end
+    end
+
+    test "sends deposit tx_bytes into the contract" do
+      use_cassette "deposit", match_requests_on: [:request_body] do
+        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+
+        tx_bytes =
+          %Utxo{owner: authority_address(), currency: currency, amount: 1}
+          |> Deposit.new()
+          |> Transaction.encode()
+
+        assert {:ok, _receipt_hash} =
+                 Client.deposit(tx_bytes, %{from: authority_address(), to: :eth, value: 1})
+      end
     end
   end
 
-  test "deposit/4 sends deposit transaction into the contract" do
-    use_cassette "deposit", match_requests_on: [:request_body] do
-      currency = ExPlasma.Encoding.to_hex(<<0::160>>)
 
-      tx_bytes =
-        %Utxo{owner: authority_address(), currency: currency, amount: 1}
-        |> Deposit.new()
-        |> Transaction.encode()
-
-      assert {:ok, _receipt_hash} =
-               Client.deposit(tx_bytes, %{from: authority_address(), to: :eth, value: 1})
-    end
-  end
 
   describe "submit_block/3" do
     test "it submits a block of transactions" do

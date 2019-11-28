@@ -3,7 +3,7 @@ defmodule ExPlasma.Transactions.PaymentTest do
   doctest ExPlasma.Transactions.Payment
 
   alias ExPlasma.Transaction
-  alias ExPlasma.Transaction.Utxo
+  alias ExPlasma.Utxo
   alias ExPlasma.Transactions.Payment
 
   test "to_list/1 forms an RLP-encodable list for a payment transaction" do

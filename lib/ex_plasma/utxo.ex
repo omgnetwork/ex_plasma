@@ -1,11 +1,32 @@
-defmodule ExPlasma.Transaction.Utxo do
+defmodule ExPlasma.Utxo do
   @moduledoc """
-  Represents an unspent output. This struct exits in two forms:
+  A `Utxo` is an unspent transaction output. The come in two distinct forms:
 
-  * An `output` where the `owner`, `currency`, and `amount`
-    are specified in a transaction.
-  * An `input` where the `blknum`, `txindex`, and `oindex`
-    are specified in a transaction.
+  * An `output`: An output utxo is created whenever a transaction has value that is
+                 designated to someone(marked as the new `owner`). In order to 
+                 form a output utxo, you'll need 4 fields specifically:
+
+      - output_type: This is the integer value of the output_type. This is set on the contract
+                     but also currently hard-coded to `1`, as there is only one output type
+                     currently.
+      - owner:       this is the new owner of the output. You can think of this as who
+                     the value(or `amount`) is be re-attributed to.
+      - currency:    This is an address/address hash that resolves to the currency/token's
+                     address on the network. 
+                     For example, Ether is designated at <<0::160>>(0x0000000000000000000000000000000000000000)
+      - amount:      This is the amount that is contained in the utxo and who it's being
+                     given to.(see `owner`).
+
+  * An `input`: An input utxo is used/spent whenever you are making a transaction to
+                another party. Most transactions(except Deposit) expects you to have
+                an `input` in order to create an `output` on a transaction. Since these
+                were previously `outputs` but have been stored, you'll need these fields 
+                to specify an `input`:
+
+      - blknum:  The block number at which this `input` utxo was created.
+                 (See the transaction which this `input` was first created as an `output`).
+      - txindex: The transaction index for the given utxo.
+      - oindex:  The offset index for the given utxo. TODO
   """
 
   alias ExPlasma.Transaction
@@ -44,22 +65,23 @@ defmodule ExPlasma.Transaction.Utxo do
   ## Examples
 
       # Create a Utxo from an Output RLP list
-      iex> alias ExPlasma.Transaction.Utxo
+      iex> alias ExPlasma.Utxo
       iex> Utxo.new([<<1>>, <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>])
-      %ExPlasma.Transaction.Utxo{
+      %ExPlasma.Utxo{
         amount: <<13, 224, 182, 179, 167, 100, 0, 0>>,
         blknum: 0,
         currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         oindex: 0,
+        output_type: 1,
         owner: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125,
           202, 87, 133, 226, 40, 180>>,
         txindex: 0
       }
 
-      # Create a Utxo from an Input RLP Item
-      iex> alias ExPlasma.Transaction.Utxo
+      # Create a Utxo from an Input RLP Item (encoded utxo position)
+      iex> alias ExPlasma.Utxo
       iex> Utxo.new(<<233, 16, 63, 218, 0>>)
-      %ExPlasma.Transaction.Utxo{
+      %ExPlasma.Utxo{
         amount: 0,
         blknum: 1001,
         currency: "0x0000000000000000000000000000000000000000",
@@ -69,10 +91,10 @@ defmodule ExPlasma.Transaction.Utxo do
       }
 
       # Create a Utxo from a Utxo position.
-      iex> alias ExPlasma.Transaction.Utxo
+      iex> alias ExPlasma.Utxo
       iex> pos = 2000010001
       iex> Utxo.new(pos)
-      %ExPlasma.Transaction.Utxo{
+      %ExPlasma.Utxo{
         amount: 0,
         blknum: 2,
         currency: "0x0000000000000000000000000000000000000000",
@@ -81,13 +103,11 @@ defmodule ExPlasma.Transaction.Utxo do
         txindex: 1
       }
   """
-  def new([_output_type, owner, currency, amount]) do
-    %__MODULE__{
-      amount: amount,
-      currency: currency,
-      owner: owner
-    }
-  end
+  @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
+  def new([<<output_type>> | rest_of_output]), do: new([output_type] ++ rest_of_output)
+
+  def new([output_type, owner, currency, amount]),
+    do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
 
   def new(encoded_pos) when is_binary(encoded_pos),
     do: encoded_pos |> :binary.decode_unsigned(:big) |> new()
@@ -100,16 +120,16 @@ defmodule ExPlasma.Transaction.Utxo do
   end
 
   @doc """
-  Returns the UTxo position(pos) number.
+  Returns the Utxo position(pos) number.
 
   ## Examples
 
-    iex> alias ExPlasma.Transaction.Utxo
+    iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
     iex> Utxo.pos(utxo)
     2000010001
   """
-  def pos(%__MODULE__{blknum: blknum, oindex: oindex, txindex: txindex}),
+  def pos(%{blknum: blknum, oindex: oindex, txindex: txindex}),
     do: blknum * @block_offset + txindex * @transaction_offset + oindex
 
   @doc """
@@ -119,13 +139,13 @@ defmodule ExPlasma.Transaction.Utxo do
   ## Example
 
     # Convert from an `input` Utxo
-    iex> alias ExPlasma.Transaction.Utxo
+    iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
     iex> Utxo.to_list(utxo)
     <<119, 53, 187, 17>>
 
     # Convert from an `output` Utxo
-    iex> alias ExPlasma.Transaction.Utxo
+    iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{amount: 2}
     iex> Utxo.to_list(utxo)
     [<<1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -133,29 +153,20 @@ defmodule ExPlasma.Transaction.Utxo do
       <<0, 0, 0, 0, 0, 0, 0, 2>>
     ]
   """
-  def to_list(
-        %__MODULE__{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} =
-          utxo
-      ),
-      do: to_output_list(utxo)
-
-  def to_list(
-        %__MODULE__{owner: @empty_address, currency: @empty_address, amount: @empty_integer} =
-          utxo
-      ),
-      do: to_input_list(utxo)
+  def to_list(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo), do: to_output_list(utxo)
+  def to_list(%{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = utxo), do: to_input_list(utxo)
 
   @doc """
   Convert a given utxo into an RLP-encodable input list.
 
   ## Examples
 
-    iex> alias ExPlasma.Transaction.Utxo
+    iex> alias ExPlasma.Utxo
     iex> %Utxo{} |> Utxo.to_input_list()
     <<0>>
   """
   @spec to_input_list(__MODULE__.t()) :: binary()
-  def to_input_list(%__MODULE__{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
+  def to_input_list(%{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
     utxo |> pos() |> :binary.encode_unsigned(:big)
   end
@@ -165,7 +176,7 @@ defmodule ExPlasma.Transaction.Utxo do
 
   ## Examples
 
-    iex> alias ExPlasma.Transaction.Utxo
+    iex> alias ExPlasma.Utxo
     iex> %Utxo{} |> Utxo.to_output_list()
     [
       <<1>>,
@@ -175,7 +186,7 @@ defmodule ExPlasma.Transaction.Utxo do
     ]
 
     # Produces list with address hashes
-    iex> alias ExPlasma.Transaction.Utxo
+    iex> alias ExPlasma.Utxo
     iex> address = "0x0000000000000000000000000000000000000000"
     iex> %Utxo{owner: address, currency: address, amount: 1} |> Utxo.to_output_list()
     [
@@ -186,25 +197,22 @@ defmodule ExPlasma.Transaction.Utxo do
     ]
   """
   @spec to_output_list(struct()) :: list(binary)
-  def to_output_list(%{amount: amount} = utxo) when is_integer(amount) and amount >= 0,
+  def to_output_list(%{amount: amount} = utxo) when is_integer(amount),
     do: %{utxo | amount: <<amount::integer-size(64)>>} |> to_output_list()
 
-  def to_output_list(%{currency: <<_::336>> = currency, owner: <<_::336>> = owner} = utxo),
-    do: %{utxo | currency: to_binary(currency), owner: to_binary(owner)} |> to_output_list()
+  def to_output_list(%{currency: <<_::336>> = currency} = utxo),
+    do: %{utxo | currency: to_binary(currency)} |> to_output_list()
 
-  def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::64>>} = utxo) do
-    [
-      <<utxo.output_type>>,
-      utxo.owner,
-      utxo.currency,
-      utxo.amount
-    ]
-  end
+  def to_output_list(%{owner: <<_::336>> = owner} = utxo),
+    do: %{utxo | owner: to_binary(owner)} |> to_output_list()
+
+  def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::64>>} = utxo),
+    do: [<<utxo.output_type>>, utxo.owner, utxo.currency, utxo.amount]
 end
 
-defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Utxo do
+defimpl ExPlasma.TypedData, for: ExPlasma.Utxo do
   alias ExPlasma.Encoding
-  alias ExPlasma.Transaction.Utxo
+  alias ExPlasma.Utxo
 
   @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
   @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"

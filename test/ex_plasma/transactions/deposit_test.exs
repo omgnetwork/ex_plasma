@@ -3,7 +3,7 @@ defmodule ExPlasma.Transactions.DepositTest do
   doctest ExPlasma.Transactions.Deposit
 
   alias ExPlasma.Transaction
-  alias ExPlasma.Transaction.Utxo
+  alias ExPlasma.Utxo
   alias ExPlasma.Transactions.Deposit
 
   describe "new/1" do

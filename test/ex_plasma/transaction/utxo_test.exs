@@ -1,8 +1,8 @@
-defmodule ExPlasma.Transaction.UtxoTest do
+defmodule ExPlasma.UtxoTest do
   use ExUnit.Case, async: true
-  doctest ExPlasma.Transaction.Utxo
+  doctest ExPlasma.Utxo
 
-  alias ExPlasma.Transaction.Utxo
+  alias ExPlasma.Utxo
 
   describe "encode1/" do
     test "encodes the output utxo into an eip712 encoded object" do
