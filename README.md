@@ -17,43 +17,123 @@ def deps do
 end
 ```
 
-## WIP
+You will also need to specify some configurations in your [config/config.exs]():
 
-### Quick Start
+```elixir
+config :ex_plasma,
+  authority_address: "0x22d491bde2303f2f43325b2108d26f1eaba1e32b",
+  contract_address: "0xd17e1233a03affb9092d5109179b43d6a8828607",
+  eth_vault_address: "0x1967d06b1faba91eaadb1be33b277447ea24fa0e",
+  exit_game_address: "0x902719f192aa5240632f704aa7a94bab61b86550",
+  gas: 1_000_000,
+  gas_price: 1_000_000,
+  standard_exit_bond_size: 14_000_000_000_000_000,
+  eip_712_domain: [
+    name: "ExPlasma",
+    salt: "some-salt",
+    verifying_contract: "contract_address",
+    version: "1"
+  ]
+```
+
+## Testing
+
+You can run the tests by running;
+
+```sh
+mix test
+mix credo
+mix dialyzer
+```
 
 
-Most of the tests should have `exvcr` coverage, but for those that don't and need a live service, that's
-where docker comes in:
+### exvcr
+
+The test suite has network requests recorded by [exvcr](). To record new cassettes, spin up docker:
 
 ```sh
 docker-compose up
 ```
 
-
-Then run the tests. Optionally, with `iex` to pry into the code
-
-```sh
-iex -S mix test
-```
-
-### Demoing
-
-#### Start up the Service
-
-First, start up the ethereum client and load up the contracts. You can do this by using `docker-compose`:
-
-```sh
-docker-compose up
-```
-
-### Usage
+This will load up Ganche and the plasma contracts to deploy.
 
 
+## Usage
 
 ### Depositing to the Contract
+
 #### Creating an eth deposit transaction
+
+```elixir
+alias ExPlasma.Transactions.Deposit
+alias ExPlasma.Utxo
+
+%Utxo{owner: <<0::160>>, currency: <<0::160>>, amount: 100}
+|> Deposit.new()
+
+# or with keywords
+Deposit.new(owner: <<0::160>>, currency: <<0::160>>, amount: 100)
+#=>
+
+%ExPlasma.Transactions.Deposit{
+  inputs: [],
+  metadata: nil,
+  outputs: [
+    %ExPlasma.Utxo{
+      amount: 100,
+      blknum: 0,
+      currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      oindex: 0,
+      output_type: 1,
+      owner: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      txindex: 0
+    }
+  ],
+  sigs: []
+}
+```
+
 #### Sending the deposit transaction to the contract
-#### Decoding a deposit transaction
+
+```elixir
+alias ExPlasma.Client
+alias ExPlasma.Transactions.Deposit
+
+{:ok, receipt_hash} = 
+  Deposit.new(owner: <<0::160>>, currency: <<0::160>>, amount: 100)
+  |> Client.deposit()
+```
+
+
+#### Decoding a Transaction
+
+```elixir
+tx_bytes = 
+  <<248, 77, 1, 192, 245, 244, 1, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 136, 0, 0, 0, 0, 0, 0, 0, 100, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0>>
+
+ExPlasma.Transaction.decode(tx_bytes)
+
+#=>
+%ExPlasma.Transaction{
+  inputs: [],
+  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  outputs: [
+    %ExPlasma.Utxo{
+      amount: <<0, 0, 0, 0, 0, 0, 0, 100>>,
+      blknum: 0,
+      currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      oindex: 0,
+      output_type: 1,
+      owner: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      txindex: 0
+    }
+  ],
+  sigs: []
+}
+```
 
 ### Generating and Submitting Blocks
 #### Creating a block
@@ -71,26 +151,6 @@ docker-compose up
 
 
 
-##### Creating a Transaction
-
-To work with the contracts, we need to understand the different flows and transaction available.
-
-###### Creating a Deposit transaction
-
-##### Depositing Eth into the contract
-
-```elixir
-alias ExPlasma.Client
-alias ExPlasma.Transaction.Utxo
-alias ExPlasma.Transactions.Deposit
-
-owner_address = "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
-currency_address = "0x0000000000000000000000000000000000000000"
-
-%Utxo{owner: owner_address, currency_address: currency_address, amount: 1}
-|> Deposit.new()
-|> Client.deposit()
-```
 
 ##### Submitting a Block as an Authority
 

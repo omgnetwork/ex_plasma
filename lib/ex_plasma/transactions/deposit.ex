@@ -67,6 +67,24 @@ defmodule ExPlasma.Transactions.Deposit do
       txindex: 0}]
   }
 
+  # Generate with a keyword list
+  iex> alias ExPlasma.Transactions.Deposit
+  iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
+  iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
+  iex> Deposit.new(owner: address, currency: currency, amount: 1)
+  %ExPlasma.Transactions.Deposit{
+    inputs: [],
+    sigs: [],
+    metadata: nil,
+    outputs: [%ExPlasma.Utxo{
+      amount: 1,
+      blknum: 0,
+      currency: "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e",
+      oindex: 0,
+      owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
+      txindex: 0}]
+  }
+
   # Generate the whole structure
   iex> alias ExPlasma.Utxo
   iex> alias ExPlasma.Transactions.Deposit
@@ -87,12 +105,15 @@ defmodule ExPlasma.Transactions.Deposit do
       txindex: 0}]
   }
   """
-  @spec new(Utxo.t() | map()) :: __MODULE__.t()
-  def new(%Utxo{} = utxo), do: new(%{inputs: [], outputs: [utxo]})
-
+  @spec new(map()) :: __MODULE__.t()
   def new(%{inputs: inputs, outputs: outputs} = deposit)
       when is_list(inputs) and length(inputs) <= @max_input_count and
              is_list(outputs) and length(outputs) <= @max_output_count do
     Transaction.new(struct(__MODULE__, deposit))
   end
+
+  def new(%Utxo{amount: _, owner: _, currency: _} = utxo),
+    do: new(%{inputs: [], outputs: [utxo]})
+
+  def new(utxo) when is_list(utxo), do: new(struct(Utxo, utxo))
 end
