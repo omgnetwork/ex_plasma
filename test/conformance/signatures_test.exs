@@ -11,7 +11,7 @@ defmodule Conformance.SignaturesTest do
 
   import ExPlasma.Client.Config,
     only: [
-      contract_address: 0,
+      contract_address: 0
     ]
 
   @moduletag :conformance
@@ -33,7 +33,8 @@ defmodule Conformance.SignaturesTest do
     do: %Transaction{metadata: <<1::160>>}
 
   test "signs with a minimal transaction (1x1)",
-    do: assert_signs_conform(%Transaction{inputs: [%Utxo{blknum: 1}], outputs: [%Utxo{amount: 1}]})
+    do:
+      assert_signs_conform(%Transaction{inputs: [%Utxo{blknum: 1}], outputs: [%Utxo{amount: 1}]})
 
   test "signs with a filled transaction (4x4)" do
     utxos = List.duplicate(%Utxo{blknum: 1, amount: 1}, 4)
@@ -48,7 +49,8 @@ defmodule Conformance.SignaturesTest do
   end
 
   defp verify_hash(tx_bytes) do
-    verifying_address = contract_address() |> ExPlasma.Encoding.to_binary() 
+    verifying_address = contract_address() |> ExPlasma.Encoding.to_binary()
+
     eth_call("hashTx(address,bytes)", [verifying_address, tx_bytes], [to: @contract], fn resp ->
       resp |> decode_response([{:bytes, 32}]) |> hd()
     end)

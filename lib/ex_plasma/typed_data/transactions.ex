@@ -35,7 +35,10 @@ defimpl ExPlasma.TypedData,
   def hash(%{} = transaction), do: transaction |> encode([]) |> hash()
 
   def hash([prefix, domain_separator | encoded_transaction]),
-    do: Encoding.keccak_hash(prefix <> hash_domain(domain_separator) <> hash_encoded(encoded_transaction))
+    do:
+      Encoding.keccak_hash(
+        prefix <> hash_domain(domain_separator) <> hash_encoded(encoded_transaction)
+      )
 
   defp domain_separator() do
     domain = Application.get_env(:ex_plasma, :eip_712_domain)
