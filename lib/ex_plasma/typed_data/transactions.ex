@@ -9,6 +9,8 @@ defimpl ExPlasma.TypedData,
 
   @domain_signature "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"
   @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)"
+  @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
+  @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
 
   # NB: Currently we only support 1 type of transaction: Payment.
   @max_utxo_count 4
@@ -20,11 +22,12 @@ defimpl ExPlasma.TypedData,
 
     transaction_type = module.transaction_type()
     encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
+    encoded_signature = @signature <> @input_signature <> @output_signature
 
     [
       @eip_191_prefix,
       domain_separator(),
-      @signature,
+      encoded_signature,
       encoded_transaction_type,
       encoded_inputs,
       encoded_outputs,
@@ -42,15 +45,13 @@ defimpl ExPlasma.TypedData,
 
   defp domain_separator() do
     domain = Application.get_env(:ex_plasma, :eip_712_domain)
-    verifying_contract = domain[:verifying_contract] |> Encoding.to_binary()
-    salt = domain[:salt] |> Encoding.to_binary()
 
     [
       @domain_signature,
       domain[:name],
       domain[:version],
-      ABI.TypeEncoder.encode_raw([verifying_contract], [:address]),
-      ABI.TypeEncoder.encode_raw([salt], [{:bytes, 32}])
+      domain[:verifying_contract],
+      domain[:salt]
     ]
   end
 
@@ -59,11 +60,23 @@ defimpl ExPlasma.TypedData,
       Encoding.keccak_hash(signature),
       Encoding.keccak_hash(name),
       Encoding.keccak_hash(version),
-      verifying_contract,
-      salt
+      ABI.TypeEncoder.encode_raw([Encoding.to_binary(verifying_contract)], [:address]),
+      ABI.TypeEncoder.encode_raw([Encoding.to_binary(salt)], [{:bytes, 32}])
     ]
     |> Enum.join()
     |> Encoding.keccak_hash()
+  end
+
+  defp hash_encoded([prefix, domain_separator, signature, transaction_type, inputs, outputs, metadata]) do
+    [
+      prefix, 
+      domain_separator,
+      signature, 
+      transaction_type, 
+      Enum.map(inputs, &hash_encoded/1), 
+      Enum.map(outputs, &hash_encoded/1),
+      metadata
+    ] |> hash_encoded()
   end
 
   defp hash_encoded(eip712_list) when is_list(eip712_list),
@@ -76,5 +89,5 @@ defimpl ExPlasma.TypedData,
   defp encode_as_input(utxo), do: TypedData.encode(utxo, as: :input)
   defp encode_as_output(utxo), do: TypedData.encode(utxo, as: :output)
 
-  defp fill_list(list), do: List.duplicate(%Utxo{}, @max_utxo_count - length(list))
+  defp fill_list(list) when is_list(list), do: list ++ List.duplicate(%Utxo{}, @max_utxo_count - length(list))
 end
