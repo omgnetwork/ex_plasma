@@ -12,6 +12,8 @@ defmodule ExPlasma.ClientTest do
   import ExPlasma.Client.Config,
     only: [authority_address: 0]
 
+  @moduletag :skip
+
   setup do
     Application.ensure_all_started(:ethereumex)
     ExVCR.Config.cassette_library_dir("./test/fixtures/vcr_cassettes/client")

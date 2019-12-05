@@ -111,7 +111,7 @@ defmodule ExPlasma.Transaction do
 
   iex> txn = %ExPlasma.Transaction{}
   iex> ExPlasma.Transaction.to_list(txn)
-  [<<0>>, [], [], <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
+  [<<0>>, [], [], <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
   @spec to_list(struct()) :: list()
   def to_list(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
