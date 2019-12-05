@@ -141,7 +141,8 @@ defmodule ExPlasma.Utxo do
     iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
     iex> Utxo.to_list(utxo)
-    <<119, 53, 187, 17>>
+    <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 119, 53, 187, 17>>
 
     # Convert from an `output` Utxo
     iex> alias ExPlasma.Utxo
@@ -166,12 +167,13 @@ defmodule ExPlasma.Utxo do
     iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
     iex> Utxo.to_input_list(utxo)
-    <<119, 53, 187, 17>>
+    <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 119, 53, 187, 17>>
   """
   @spec to_input_list(__MODULE__.t()) :: binary()
   def to_input_list(%{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
-    utxo |> pos() |> :binary.encode_unsigned(:big)
+    utxo |> pos() |> :binary.encode_unsigned(:big) |> pad_binary()
   end
 
   @doc """
@@ -211,4 +213,9 @@ defmodule ExPlasma.Utxo do
 
   def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::64>>} = utxo),
     do: [<<utxo.output_type>>, utxo.owner, utxo.currency, utxo.amount]
+
+  defp pad_binary(unpadded) do
+    pad_size = (32 - byte_size(unpadded)) * 8
+    <<0::size(pad_size)>> <> unpadded
+  end
 end

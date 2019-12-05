@@ -15,7 +15,10 @@ defmodule ExPlasma.Transactions.PaymentTest do
 
     assert list == [
              <<1>>,
-             [<<0>>],
+             [
+               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0>>
+             ],
              [
                [
                  <<1>>,
