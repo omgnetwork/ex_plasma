@@ -108,7 +108,7 @@ defmodule ExPlasma.Utxo do
   def new([output_type, owner, currency, amount]),
     do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
 
-  def new(encoded_pos) when is_binary(encoded_pos),
+  def new(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
     do: encoded_pos |> :binary.decode_unsigned(:big) |> new()
 
   def new(utxo_pos) when is_integer(utxo_pos) do
