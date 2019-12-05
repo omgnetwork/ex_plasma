@@ -212,10 +212,13 @@ defmodule ExPlasma.Utxo do
     do: %{utxo | owner: to_binary(owner)} |> to_output_list()
 
   def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::64>>} = utxo),
-    do: [<<utxo.output_type>>, utxo.owner, utxo.currency, utxo.amount]
+    do: [<<utxo.output_type>>, utxo.owner, utxo.currency, truncate_leading_zero(utxo.amount)]
 
   defp pad_binary(unpadded) do
     pad_size = (32 - byte_size(unpadded)) * 8
     <<0::size(pad_size)>> <> unpadded
   end
+
+  defp truncate_leading_zero(<<0>> <> binary), do: truncate_leading_zero(binary)
+  defp truncate_leading_zero(binary), do: binary
 end
