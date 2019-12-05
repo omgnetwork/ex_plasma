@@ -11,7 +11,7 @@ defmodule ExPlasma.Transaction do
   # are 0 value for now so that we can test these functions.
   @transaction_type 0
   @output_type 0
-  @empty_metadata <<0::160>>
+  @empty_metadata <<0::256>>
 
   # The RLP encoded transaction as a binary
   @type tx_bytes :: <<_::632>>

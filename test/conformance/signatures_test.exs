@@ -6,6 +6,7 @@ defmodule Conformance.SignaturesTest do
   use ExUnit.Case, async: false
 
   alias ExPlasma.Transaction
+  alias ExPlasma.Transactions.Payment
   alias ExPlasma.TypedData
   alias ExPlasma.Utxo
 
@@ -21,23 +22,23 @@ defmodule Conformance.SignaturesTest do
   @contract "0xD3aA556287Afe63102e5797BFDDd2A1E8DbB3eA5"
 
   test "signs empty transactions",
-    do: assert_signs_conform(%Transaction{})
+    do: assert_signs_conform(%Payment{})
 
   test "signs without inputs",
-    do: assert_signs_conform(%Transaction{outputs: [%Utxo{amount: 1}]})
+    do: assert_signs_conform(%Payment{outputs: [%Utxo{amount: 1}]})
 
   test "signs without outputs",
-    do: assert_signs_conform(%Transaction{inputs: [%Utxo{blknum: 1}]})
+    do: assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1}]})
 
   test "signs with metadata",
     do: %Transaction{metadata: <<1::160>>}
 
   test "signs with a minimal transaction (1x1)",
     do:
-      assert_signs_conform(%Transaction{inputs: [%Utxo{blknum: 1}], outputs: [%Utxo{amount: 1}]})
+      assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1}], outputs: [%Utxo{amount: 1}]})
 
   test "signs with a filled transaction (4x4)" do
-    utxos = List.duplicate(%Utxo{blknum: 1, amount: 1}, 4)
+    utxos = List.duplicate(%Utxo{blknum: 1, amount: 1, output_type: <<1>>}, 4)
     assert_signs_conform(%Transaction{inputs: utxos, outputs: utxos})
   end
 
