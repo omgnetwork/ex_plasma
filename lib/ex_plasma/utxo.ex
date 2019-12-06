@@ -219,6 +219,7 @@ defmodule ExPlasma.Utxo do
     <<0::size(pad_size)>> <> unpadded
   end
 
+  defp truncate_leading_zero(<<0>>), do: <<0>>
   defp truncate_leading_zero(<<0>> <> binary), do: truncate_leading_zero(binary)
   defp truncate_leading_zero(binary), do: binary
 end
