@@ -56,9 +56,6 @@ defmodule Conformance.SignaturesTest do
     end)
   end
 
-  @spec eth_call(String.t(), list(), fun()) :: tuple()
-  defp eth_call(contract_signature, data_types, state \\ [to: nil], callback)
-
   defp eth_call(contract_signature, data_types, [to: to], callback) when is_list(data_types) do
     to = to || contract_address()
     options = %{data: encode_data(contract_signature, data_types), to: to}

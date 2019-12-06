@@ -73,15 +73,13 @@ defimpl ExPlasma.TypedData,
   end
 
   defp hash_encoded([signature, transaction_type, inputs, outputs, metadata]) do
-    list = [
+    [
       Encoding.keccak_hash(signature),
       ABI.TypeEncoder.encode_raw([:binary.decode_unsigned(transaction_type)], [{:uint, 256}]),
       hash_inputs(inputs),
       hash_outputs(outputs),
       metadata
     ]
-
-    list
     |> List.flatten()
     |> Enum.join()
     |> Encoding.keccak_hash()
@@ -104,9 +102,9 @@ defimpl ExPlasma.TypedData,
     |> Enum.take(@max_utxo_count)
   end
 
-  defp hash_utxo([signature | encoded_list]),
-    do:
-      ([Encoding.keccak_hash(signature)] ++ encoded_list)
-      |> Enum.join()
-      |> Encoding.keccak_hash()
+  defp hash_utxo([signature | encoded_list]) do
+    ([Encoding.keccak_hash(signature)] ++ encoded_list)
+    |> Enum.join()
+    |> Encoding.keccak_hash()
+  end
 end
