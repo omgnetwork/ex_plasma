@@ -29,6 +29,7 @@ defimpl ExPlasma.TypedData,
 
     transaction_type = module.transaction_type()
     encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
+
     [
       @eip_191_prefix,
       domain_separator(),

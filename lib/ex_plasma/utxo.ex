@@ -150,7 +150,7 @@ defmodule ExPlasma.Utxo do
     iex> Utxo.to_list(utxo)
     [<<1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<0, 0, 0, 0, 0, 0, 0, 2>>
+      <<2>>
     ]
   """
   def to_list(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo),
@@ -187,7 +187,7 @@ defmodule ExPlasma.Utxo do
       <<1>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<0, 0, 0, 0, 0, 0, 0, 0>>
+      <<0>>
     ]
 
     # Produces list with address hashes
@@ -198,7 +198,7 @@ defmodule ExPlasma.Utxo do
       <<1>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<0, 0, 0, 0, 0, 0, 0, 1>>
+      <<1>>
     ]
   """
   @spec to_output_list(struct()) :: list(binary)

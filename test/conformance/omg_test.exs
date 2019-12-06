@@ -15,15 +15,14 @@ defmodule Conformance.OMGTest do
   @moduletag :conformance
   @moduletag :omg
 
-
   # RLP list from omg 
-  #[
-    #<<1>>,
-    #[<<59, 154, 202, 0>>],
-    #[],
-    #<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      #0>>
-  #]
+  # [
+  # <<1>>,
+  # [<<59, 154, 202, 0>>],
+  # [],
+  # <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  # 0>>
+  # ]
 
   @omg_typed_data_single_input_payment_list [
     <<38, 48, 63, 231, 128, 240, 155, 213, 153, 100, 165, 127, 56, 40, 103, 117, 183, 196, 95,
@@ -75,8 +74,11 @@ defmodule Conformance.OMGTest do
 
   describe "single input payment transaction" do
     test "should have same signature encoding" do
-      [_prefix, _domain, signature, _transaction_type, _inputs, _outputs, _metadata] = @single_input_payment_struct |> TypedData.encode()
-      [omg_signature, _transaction_type, _inputs, _outputs, _metadata] = @omg_typed_data_single_input_payment_list
+      [_prefix, _domain, signature, _transaction_type, _inputs, _outputs, _metadata] =
+        @single_input_payment_struct |> TypedData.encode()
+
+      [omg_signature, _transaction_type, _inputs, _outputs, _metadata] =
+        @omg_typed_data_single_input_payment_list
 
       assert omg_signature == signature |> Encoding.keccak_hash()
     end
