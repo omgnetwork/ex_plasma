@@ -73,14 +73,12 @@ defimpl ExPlasma.TypedData,
 
   defp hash_encoded([signature, transaction_type, inputs, outputs, metadata]) do
     list = [
-      signature, 
-      transaction_type,
+      Encoding.keccak_hash(signature),
+      ABI.TypeEncoder.encode_raw([:binary.decode_unsigned(transaction_type)], [{:uint, 256}]),
       hash_inputs(inputs),
       hash_outputs(outputs),
       metadata
-    ] 
-
-    IO.inspect(list, limit: :infinity)
+    ]
 
     list
     |> List.flatten()
