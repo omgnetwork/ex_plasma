@@ -135,7 +135,6 @@ defmodule ExPlasma.Encoding do
   defp build(hashed_txs) do
     MerkleTree.build(hashed_txs,
       hash_function: &keccak_hash/1,
-      hash_leaves: false,
       height: @transaction_merkle_tree_height,
       default_data_block: default_leaf()
     )

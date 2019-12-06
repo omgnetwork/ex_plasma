@@ -70,14 +70,15 @@ defmodule ExPlasma.ClientTest do
     end
   end
 
+  @tag :focus
   describe "start_standard_exit/3" do
     test "it starts a standard exit for the owner" do
-      use_cassette "start_standard_exit", match_requests_on: [:request_body] do
+      #use_cassette "start_standard_exit", match_requests_on: [:request_body] do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
         utxo = %Utxo{owner: authority_address(), currency: currency, amount: 1}
         deposit = Deposit.new(utxo)
-        tx_bytes = deposit |> Transaction.encode() |> ExPlasma.Encoding.to_hex()
-        utxo_pos = 5_023_000_000_000
+        tx_bytes = deposit |> Transaction.encode()
+        utxo_pos = %Utxo{blknum: 1} |> Utxo.pos
         proof = ExPlasma.Encoding.merkle_proof([tx_bytes], 1)
 
         assert {:ok, _receipt_hash} =
@@ -86,7 +87,7 @@ defmodule ExPlasma.ClientTest do
                    utxo_pos: utxo_pos,
                    proof: proof
                  })
-      end
+      #end
     end
   end
 
