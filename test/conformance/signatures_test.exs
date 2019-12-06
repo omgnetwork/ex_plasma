@@ -38,8 +38,8 @@ defmodule Conformance.SignaturesTest do
       assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1}], outputs: [%Utxo{amount: 1}]})
 
   test "signs with a filled transaction (4x4)" do
-    utxos = List.duplicate(%Utxo{blknum: 1, amount: 1, output_type: <<1>>}, 4)
-    assert_signs_conform(%Transaction{inputs: utxos, outputs: utxos})
+    utxos = List.duplicate(%Utxo{blknum: 1, amount: 1}, 4)
+    assert_signs_conform(%Payment{inputs: utxos, outputs: utxos})
   end
 
   defp assert_signs_conform(%{} = transaction) do

@@ -108,8 +108,6 @@ defmodule Conformance.OMGTest do
     assert Conformance.OMGTest.hash(input) == (omg_inputs |> hd())
     # TODO test out empty input/output hashing
     #assert Conformance.OMGTest.hash(output) == (omg_inputs |> hd())
-
-    assert @omg_typed_data_single_input_payment_hash == (@single_input_payment_struct |> TypedData.hash)
   end
 
   def hash([signature | encoded_list]) do
