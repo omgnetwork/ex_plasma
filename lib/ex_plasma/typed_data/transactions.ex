@@ -16,9 +16,13 @@ defimpl ExPlasma.TypedData,
   @max_utxo_count 4
   @empty_metadata <<0::256>>
 
+  # Pre-computed hashes for hashing
+  @empty_input_hash %Utxo{} |> TypedData.hash(as: :input)
+  @empty_output_hash %Utxo{} |> TypedData.hash(as: :output)
+
   def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}, _options) do
-    encoded_inputs = inputs |> fill_list() |> Enum.map(&encode_as_input/1)
-    encoded_outputs = outputs |> fill_list() |> Enum.map(&encode_as_output/1)
+    encoded_inputs = Enum.map(inputs, &encode_as_input/1)
+    encoded_outputs = Enum.map(outputs, &encode_as_output/1)
 
     transaction_type = module.transaction_type()
     encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
@@ -35,9 +39,9 @@ defimpl ExPlasma.TypedData,
     ]
   end
 
-  def hash(%{} = transaction), do: transaction |> encode([]) |> hash()
+  def hash(%{} = transaction, options), do: transaction |> encode(options) |> hash(options)
 
-  def hash([prefix, domain_separator | encoded_transaction]),
+  def hash([prefix, domain_separator | encoded_transaction], _options),
     do:
       Encoding.keccak_hash(
         prefix <> hash_domain(domain_separator) <> hash_encoded(encoded_transaction)
@@ -67,27 +71,43 @@ defimpl ExPlasma.TypedData,
     |> Encoding.keccak_hash()
   end
 
-  defp hash_encoded([prefix, domain_separator, signature, transaction_type, inputs, outputs, metadata]) do
-    [
-      prefix, 
-      domain_separator,
+  defp hash_encoded([signature, transaction_type, inputs, outputs, metadata]) do
+    list = [
       signature, 
-      transaction_type, 
-      Enum.map(inputs, &hash_encoded/1), 
-      Enum.map(outputs, &hash_encoded/1),
+      transaction_type,
+      hash_inputs(inputs),
+      hash_outputs(outputs),
       metadata
-    ] |> hash_encoded()
-  end
+    ] 
 
-  defp hash_encoded(eip712_list) when is_list(eip712_list),
-    do:
-      eip712_list
-      |> List.flatten()
-      |> Enum.join()
-      |> Encoding.keccak_hash()
+    IO.inspect(list, limit: :infinity)
+
+    list
+    |> List.flatten()
+    |> Enum.join()
+    |> Encoding.keccak_hash()
+  end
 
   defp encode_as_input(utxo), do: TypedData.encode(utxo, as: :input)
   defp encode_as_output(utxo), do: TypedData.encode(utxo, as: :output)
 
-  defp fill_list(list) when is_list(list), do: list ++ List.duplicate(%Utxo{}, @max_utxo_count - length(list))
+  defp hash_inputs(inputs) do
+    inputs
+    |> Stream.map(&hash_utxo/1)
+    |> Stream.concat(Stream.cycle([@empty_input_hash]))
+    |> Enum.take(@max_utxo_count)
+  end
+
+  defp hash_outputs(outputs) do
+    outputs
+    |> Stream.map(&hash_utxo/1)
+    |> Stream.concat(Stream.cycle([@empty_output_hash]))
+    |> Enum.take(@max_utxo_count)
+  end
+
+  defp hash_utxo([signature | encoded_list]),
+    do:
+      ([Encoding.keccak_hash(signature)] ++ encoded_list)
+      |> Enum.join()
+      |> Encoding.keccak_hash()
 end
