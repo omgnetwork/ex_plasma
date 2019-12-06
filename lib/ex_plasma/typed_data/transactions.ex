@@ -12,6 +12,9 @@ defimpl ExPlasma.TypedData,
   @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
   @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
 
+  # The full encoded signature for the transaction
+  @encoded_signature @signature <> @input_signature <> @output_signature
+
   # NB: Currently we only support 1 type of transaction: Payment.
   @max_utxo_count 4
   @empty_metadata <<0::256>>
@@ -26,12 +29,10 @@ defimpl ExPlasma.TypedData,
 
     transaction_type = module.transaction_type()
     encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
-    encoded_signature = @signature <> @input_signature <> @output_signature
-
     [
       @eip_191_prefix,
       domain_separator(),
-      encoded_signature,
+      @encoded_signature,
       encoded_transaction_type,
       encoded_inputs,
       encoded_outputs,
