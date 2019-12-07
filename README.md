@@ -38,6 +38,7 @@ config :ex_plasma,
 
 ## Testing
 
+
 You can run the tests by running;
 
 ```sh
@@ -45,7 +46,6 @@ mix test
 mix credo
 mix dialyzer
 ```
-
 
 ### exvcr
 
@@ -55,7 +55,27 @@ The test suite has network requests recorded by [exvcr](). To record new cassett
 docker-compose up
 ```
 
+Or alternatively, you can use the make command to spin up a detached docker compose.
+
+```sh
+make up # docker-compose detached
+make logs # connects to logs from docker-compose
+```
+
 This will load up Ganche and the plasma contracts to deploy.
+
+
+### Conformance test
+
+To ensure we can encode/decode according to the contracts, we have a separate suite of conformance tests that
+loads up mock contracts to compare encoding results. You can run the test by:
+
+```sh
+make up-mocks
+mix test --only conformance
+```
+
+This will spin up ganache and deploy the mock contracts.
 
 
 ## Usage
