@@ -103,8 +103,7 @@ defmodule ExPlasma.Client do
   """
   @spec start_standard_exit(binary(), map()) :: tuple()
   def start_standard_exit(tx_bytes, %{utxo_pos: utxo_pos, proof: proof} = options) do
-    data =
-      encode_data("startStandardExit((uint256,bytes,bytes))", [{utxo_pos, tx_bytes, proof}])
+    data = encode_data("startStandardExit((uint256,bytes,bytes))", [{utxo_pos, tx_bytes, proof}])
 
     eth_send_transaction(
       %{
