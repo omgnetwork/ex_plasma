@@ -31,7 +31,8 @@ defmodule ExPlasma.MixProject do
       {:exvcr, "~> 0.10", only: :test},
       {:libsecp256k1,
        git: "https://github.com/omisego/libsecp256k1.git", branch: "elixir-only", override: true},
-      {:merkle_tree, "~> 1.6"}
+      {:merkle_tree, "~> 1.6"},
+      {:stream_data, "~>0.4.3", only: :test}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

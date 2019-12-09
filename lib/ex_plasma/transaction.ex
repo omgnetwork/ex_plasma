@@ -11,7 +11,7 @@ defmodule ExPlasma.Transaction do
   # are 0 value for now so that we can test these functions.
   @transaction_type 0
   @output_type 0
-  @empty_metadata <<0::160>>
+  @empty_metadata <<0::256>>
 
   # The RLP encoded transaction as a binary
   @type tx_bytes :: <<_::632>>
@@ -111,7 +111,7 @@ defmodule ExPlasma.Transaction do
 
   iex> txn = %ExPlasma.Transaction{}
   iex> ExPlasma.Transaction.to_list(txn)
-  [<<0>>, [], [], <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
+  [<<0>>, [], [], <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
   @spec to_list(struct()) :: list()
   def to_list(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
@@ -139,7 +139,7 @@ defmodule ExPlasma.Transaction do
 
   iex> txn = %ExPlasma.Transaction{}
   iex> ExPlasma.Transaction.encode(txn)
-  <<216, 0, 192, 192, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+  <<228, 0, 192, 192, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
   @spec encode(map()) :: __MODULE__.tx_bytes()
   def encode(%{} = transaction), do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
@@ -186,11 +186,11 @@ defmodule ExPlasma.Transaction do
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [],
         sigs: [
-          <<25, 65, 129, 190, 123, 99, 29, 73, 90, 53, 100, 253, 107, 155, 228, 112,
-            153, 186, 94, 244, 149, 124, 96, 200, 188, 201, 129, 100, 9, 254, 228, 78,
-            7, 251, 203, 235, 189, 92, 1, 197, 14, 111, 46, 153, 190, 243, 206, 161,
-            4, 41, 172, 85, 187, 121, 196, 228, 133, 8, 206, 162, 47, 180, 0, 116,
-            27>>
+          <<183, 180, 93, 111, 154, 78, 192, 155, 167, 148, 194, 222, 62, 159, 175,
+            21, 163, 234, 195, 178, 55, 219, 197, 177, 202, 130, 65, 14, 62, 138, 230,
+            180, 126, 66, 75, 96, 112, 91, 16, 54, 230, 143, 0, 188, 49, 241, 48, 6,
+            146, 30, 247, 81, 220, 146, 35, 143, 242, 46, 193, 30, 60, 245, 198, 18,
+            28>>
         ]
       }
   """

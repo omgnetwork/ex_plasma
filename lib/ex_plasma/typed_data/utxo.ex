@@ -11,9 +11,9 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Utxo do
   def encode(utxo, as: :output), do: utxo |> Utxo.to_output_list() |> do_encode()
   def encode(utxo, _options), do: utxo |> Utxo.to_list() |> do_encode()
 
-  def hash(%{} = utxo), do: utxo |> encode([]) |> hash()
+  def hash(%{} = utxo, options), do: utxo |> encode(options) |> hash(options)
 
-  def hash([signature | encoded_list]),
+  def hash([signature | encoded_list], _options),
     do:
       ([Encoding.keccak_hash(signature)] ++ encoded_list)
       |> Enum.join()

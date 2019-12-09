@@ -9,14 +9,23 @@ defimpl ExPlasma.TypedData,
 
   @domain_signature "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"
   @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)"
+  @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
+  @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
+
+  # The full encoded signature for the transaction
+  @encoded_signature @signature <> @input_signature <> @output_signature
 
   # NB: Currently we only support 1 type of transaction: Payment.
   @max_utxo_count 4
   @empty_metadata <<0::256>>
 
+  # Pre-computed hashes for hashing
+  @empty_input_hash %Utxo{} |> TypedData.hash(as: :input)
+  @empty_output_hash %Utxo{output_type: 0} |> TypedData.hash(as: :output)
+
   def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}, _options) do
-    encoded_inputs = inputs |> fill_list() |> Enum.map(&encode_as_input/1)
-    encoded_outputs = outputs |> fill_list() |> Enum.map(&encode_as_output/1)
+    encoded_inputs = Enum.map(inputs, &encode_as_input/1)
+    encoded_outputs = Enum.map(outputs, &encode_as_output/1)
 
     transaction_type = module.transaction_type()
     encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
@@ -24,7 +33,7 @@ defimpl ExPlasma.TypedData,
     [
       @eip_191_prefix,
       domain_separator(),
-      @signature,
+      @encoded_signature,
       encoded_transaction_type,
       encoded_inputs,
       encoded_outputs,
@@ -32,22 +41,23 @@ defimpl ExPlasma.TypedData,
     ]
   end
 
-  def hash(%{} = transaction), do: transaction |> encode([]) |> hash()
+  def hash(%{} = transaction, options), do: transaction |> encode(options) |> hash(options)
 
-  def hash([prefix, domain_separator | encoded_transaction]),
-    do: prefix <> hash_domain(domain_separator) <> hash_encoded(encoded_transaction)
+  def hash([prefix, domain_separator | encoded_transaction], _options),
+    do:
+      Encoding.keccak_hash(
+        prefix <> hash_domain(domain_separator) <> hash_encoded(encoded_transaction)
+      )
 
   defp domain_separator() do
     domain = Application.get_env(:ex_plasma, :eip_712_domain)
-    verifying_contract = domain[:verifying_contract] |> Encoding.to_binary()
-    salt = domain[:salt] |> Encoding.to_binary()
 
     [
       @domain_signature,
       domain[:name],
       domain[:version],
-      ABI.TypeEncoder.encode_raw([verifying_contract], [:address]),
-      ABI.TypeEncoder.encode_raw([salt], [{:bytes, 32}])
+      domain[:verifying_contract],
+      domain[:salt]
     ]
   end
 
@@ -56,22 +66,46 @@ defimpl ExPlasma.TypedData,
       Encoding.keccak_hash(signature),
       Encoding.keccak_hash(name),
       Encoding.keccak_hash(version),
-      verifying_contract,
-      salt
+      ABI.TypeEncoder.encode_raw([Encoding.to_binary(verifying_contract)], [:address]),
+      ABI.TypeEncoder.encode_raw([Encoding.to_binary(salt)], [{:bytes, 32}])
     ]
     |> Enum.join()
     |> Encoding.keccak_hash()
   end
 
-  defp hash_encoded(eip712_list) when is_list(eip712_list),
-    do:
-      eip712_list
-      |> List.flatten()
-      |> Enum.join()
-      |> Encoding.keccak_hash()
+  defp hash_encoded([signature, transaction_type, inputs, outputs, metadata]) do
+    [
+      Encoding.keccak_hash(signature),
+      ABI.TypeEncoder.encode_raw([:binary.decode_unsigned(transaction_type)], [{:uint, 256}]),
+      hash_inputs(inputs),
+      hash_outputs(outputs),
+      metadata
+    ]
+    |> List.flatten()
+    |> Enum.join()
+    |> Encoding.keccak_hash()
+  end
 
   defp encode_as_input(utxo), do: TypedData.encode(utxo, as: :input)
   defp encode_as_output(utxo), do: TypedData.encode(utxo, as: :output)
 
-  defp fill_list(list), do: List.duplicate(%Utxo{}, @max_utxo_count - length(list))
+  defp hash_inputs(inputs) do
+    inputs
+    |> Stream.map(&hash_utxo/1)
+    |> Stream.concat(Stream.cycle([@empty_input_hash]))
+    |> Enum.take(@max_utxo_count)
+  end
+
+  defp hash_outputs(outputs) do
+    outputs
+    |> Stream.map(&hash_utxo/1)
+    |> Stream.concat(Stream.cycle([@empty_output_hash]))
+    |> Enum.take(@max_utxo_count)
+  end
+
+  defp hash_utxo([signature | encoded_list]) do
+    ([Encoding.keccak_hash(signature)] ++ encoded_list)
+    |> Enum.join()
+    |> Encoding.keccak_hash()
+  end
 end

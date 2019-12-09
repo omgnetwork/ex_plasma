@@ -13,5 +13,5 @@ defprotocol ExPlasma.TypedData do
   The keccak hash of the encoded data type.
   """
   @spec encode(any()) :: binary()
-  def hash(data)
+  def hash(data, options \\ [])
 end
