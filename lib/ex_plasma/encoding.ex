@@ -129,8 +129,6 @@ defmodule ExPlasma.Encoding do
     <<r::integer-size(256), s::integer-size(256), recovery_id::integer-size(8)>>
   end
 
-  #defp default_leaf(), do: <<0>> |> List.duplicate(32) |> Enum.join() |> keccak_hash()
-
   defp build(encoded_transactions) do
     MerkleTree.build(encoded_transactions,
       hash_function: &keccak_hash/1,
