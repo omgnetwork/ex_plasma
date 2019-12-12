@@ -26,7 +26,7 @@ defmodule Integration.StandardExitTest do
     utxo = deposit(from: authority_address(), amount: 1)
 
     # Send a transaction and create the exit data we need from it.
-    %{tx_bytes: tx_bytes, utxo_pos: utxo_pos, proof: proof} = 
+    %{tx_bytes: tx_bytes, utxo_pos: utxo_pos, proof: proof} =
       transact(to: authority_address(), utxo: utxo)
 
     assert {:ok, _receipt_hash} =
@@ -44,7 +44,8 @@ defmodule Integration.StandardExitTest do
   #
   # Returns the input utxo for the deposit.
   defp deposit(from: owner, amount: amount) do
-    {:ok, _deposit_receipt_hash} = Deposit.new(owner: owner, amount: amount) |> Client.deposit(to: :eth)
+    {:ok, _deposit_receipt_hash} =
+      Deposit.new(owner: owner, amount: amount) |> Client.deposit(to: :eth)
 
     blknum = get_deposits_blknum()
 
@@ -86,5 +87,5 @@ defmodule Integration.StandardExitTest do
   # Deposit blocks increment by 1 over the current child_block blknum
   # So we can subtract one to get the previous deposit blknum.
   # The 1 is a hard-coded interval not retrievable by the contract.
-  defp get_deposits_blknum(), do: ExPlasma.Client.State.next_deposit_block - 1
+  defp get_deposits_blknum(), do: ExPlasma.Client.State.next_deposit_block() - 1
 end
