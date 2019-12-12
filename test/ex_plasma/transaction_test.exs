@@ -5,11 +5,11 @@ defmodule ExPlasma.TransactionTest do
   alias ExPlasma.Transaction
 
   test "to_list/1 includes the sigs for a transaction" do
-    list =
-      %Transaction{
-        sigs: ["0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"]
-      }
-      |> Transaction.to_list()
+    transaction = %Transaction{
+      sigs: ["0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"]
+    }
+
+    list = Transaction.to_list(transaction)
 
     assert list == [
              ["0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"],
@@ -22,11 +22,11 @@ defmodule ExPlasma.TransactionTest do
   end
 
   test "encode/1 will encode a transaction with sigs" do
-    encoded =
-      %Transaction{
-        sigs: ["0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"]
-      }
-      |> Transaction.encode()
+    transaction = %Transaction{
+      sigs: ["0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"]
+    }
+
+    encoded = Transaction.encode(transaction)
 
     assert encoded ==
              <<248, 106, 248, 68, 184, 66, 48, 120, 54, 99, 98, 101, 100, 49, 53, 99, 55, 57, 51,
@@ -39,7 +39,7 @@ defmodule ExPlasma.TransactionTest do
 
   describe "TypedData" do
     test "encode/1 encodes a transaction eip 712 object" do
-      encoded = %Transaction{} |> ExPlasma.TypedData.encode()
+      encoded = ExPlasma.TypedData.encode(%Transaction{})
 
       assert encoded == [
                <<25, 1>>,
@@ -61,7 +61,7 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "hash/1 encodes the transaction into an eip712 encoded hash" do
-      encoded_hash = %Transaction{} |> ExPlasma.TypedData.hash()
+      encoded_hash = ExPlasma.TypedData.hash(%Transaction{})
 
       assert encoded_hash ==
                <<163, 157, 19, 201, 30, 88, 90, 3, 9, 129, 13, 140, 156, 125, 238, 27, 51, 237,

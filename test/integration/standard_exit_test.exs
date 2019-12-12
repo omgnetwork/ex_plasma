@@ -51,8 +51,8 @@ defmodule Integration.StandardExitTest do
   #
   # Returns the input utxo for the deposit.
   defp deposit(from: owner, amount: amount) do
-    {:ok, _deposit_receipt_hash} =
-      Deposit.new(owner: owner, amount: amount) |> Client.deposit(to: :eth)
+    deposit = Deposit.new(owner: owner, amount: amount)
+    {:ok, _deposit_receipt_hash} = Client.deposit(deposit, to: :eth)
 
     blknum = get_deposits_blknum()
 
@@ -76,8 +76,8 @@ defmodule Integration.StandardExitTest do
     blknum = get_blocks_submitted_blknum()
     output = %{output | blknum: blknum}
 
-    tx_bytes = payment |> Transaction.encode()
-    utxo_pos = output |> Utxo.pos()
+    tx_bytes = Transaction.encode(payment)
+    utxo_pos = Utxo.pos(output)
     proof = ExPlasma.Encoding.merkle_proof([tx_bytes], 0)
 
     %{tx_bytes: tx_bytes, utxo_pos: utxo_pos, proof: proof}

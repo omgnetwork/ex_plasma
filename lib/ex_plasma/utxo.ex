@@ -182,7 +182,7 @@ defmodule ExPlasma.Utxo do
   ## Examples
 
     iex> alias ExPlasma.Utxo
-    iex> %Utxo{} |> Utxo.to_output_list()
+    iex> Utxo.to_output_list(%Utxo{})
     [
       <<1>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -193,7 +193,7 @@ defmodule ExPlasma.Utxo do
     # Produces list with address hashes
     iex> alias ExPlasma.Utxo
     iex> address = "0x0000000000000000000000000000000000000000"
-    iex> %Utxo{owner: address, currency: address, amount: 1} |> Utxo.to_output_list()
+    iex> Utxo.to_output_list(%Utxo{owner: address, currency: address, amount: 1})
     [
       <<1>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -203,13 +203,13 @@ defmodule ExPlasma.Utxo do
   """
   @spec to_output_list(struct()) :: list(binary)
   def to_output_list(%{amount: amount} = utxo) when is_integer(amount),
-    do: %{utxo | amount: <<amount::integer-size(64)>>} |> to_output_list()
+    do: to_output_list(%{utxo | amount: <<amount::integer-size(64)>>})
 
   def to_output_list(%{currency: <<_::336>> = currency} = utxo),
-    do: %{utxo | currency: to_binary(currency)} |> to_output_list()
+    do: to_output_list(%{utxo | currency: to_binary(currency)})
 
   def to_output_list(%{owner: <<_::336>> = owner} = utxo),
-    do: %{utxo | owner: to_binary(owner)} |> to_output_list()
+    do: to_output_list(%{utxo | owner: to_binary(owner)})
 
   def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::64>>} = utxo),
     do: [<<utxo.output_type>>, utxo.owner, utxo.currency, truncate_leading_zero(utxo.amount)]
