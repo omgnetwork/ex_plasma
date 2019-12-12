@@ -19,7 +19,7 @@ defmodule Conformance.SignaturesTest do
 
   # The address where eip 712 lib mock is deployed. Ganache keeps this
   # deterministic
-  @contract "0xD3aA556287Afe63102e5797BFDDd2A1E8DbB3eA5"
+  @contract "0xd3aa556287afe63102e5797bfddd2a1e8dbb3ea5"
 
   test "signs empty transactions",
     do: assert_signs_conform(%Payment{})
