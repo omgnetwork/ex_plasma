@@ -1,4 +1,4 @@
-defmodule Integration.StandardExittest do
+defmodule Integration.StandardExitTest do
   @moduledoc """
   Integration tests for the full standard exit flows.
 
