@@ -65,7 +65,7 @@ defmodule ExPlasma.Utxo do
 
       # Create a Utxo from an Output RLP list
       iex> alias ExPlasma.Utxo
-      iex> Utxo.new([<<1>>, <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>])
+      iex> Utxo.new([<<1>>, [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]])
       %ExPlasma.Utxo{
         amount: <<13, 224, 182, 179, 167, 100, 0, 0>>,
         blknum: 0,
@@ -105,7 +105,7 @@ defmodule ExPlasma.Utxo do
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
   def new([<<output_type>> | rest_of_output]), do: new([output_type] ++ rest_of_output)
 
-  def new([output_type, owner, currency, amount]),
+  def new([output_type, [owner, currency, amount]]),
     do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
 
   def new(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
@@ -148,9 +148,9 @@ defmodule ExPlasma.Utxo do
     iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{amount: 2}
     iex> Utxo.to_list(utxo)
-    [<<1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+    [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<2>>
+      <<2>>]
     ]
   """
   def to_list(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo),
@@ -185,9 +185,11 @@ defmodule ExPlasma.Utxo do
     iex> Utxo.to_output_list(%Utxo{})
     [
       <<1>>,
-      <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<0>>
+      [
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        <<0>>
+      ]
     ]
 
     # Produces list with address hashes
@@ -196,9 +198,11 @@ defmodule ExPlasma.Utxo do
     iex> Utxo.to_output_list(%Utxo{owner: address, currency: address, amount: 1})
     [
       <<1>>,
-      <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      <<1>>
+      [
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        <<1>>
+      ]
     ]
   """
   @spec to_output_list(struct()) :: list(binary)
@@ -212,7 +216,7 @@ defmodule ExPlasma.Utxo do
     do: to_output_list(%{utxo | owner: to_binary(owner)})
 
   def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::64>>} = utxo),
-    do: [<<utxo.output_type>>, utxo.owner, utxo.currency, truncate_leading_zero(utxo.amount)]
+    do: [<<utxo.output_type>>, [utxo.owner, utxo.currency, truncate_leading_zero(utxo.amount)]]
 
   defp pad_binary(unpadded) do
     pad_size = (32 - byte_size(unpadded)) * 8
