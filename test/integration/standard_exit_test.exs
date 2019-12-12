@@ -21,6 +21,13 @@ defmodule Integration.StandardExitTest do
 
   @moduletag :integration
 
+  setup do
+    # On a fresh contract deploy, we need to invoke the contract to add
+    # the exit queue you want explicitly.
+    Client.add_exit_queue(1, <<0::160>>)
+    :ok
+  end
+
   test "should be able to standard exit on a valid transaction" do
     # Generate a deposit and return the usuable utxo
     utxo = deposit(from: authority_address(), amount: 1)
