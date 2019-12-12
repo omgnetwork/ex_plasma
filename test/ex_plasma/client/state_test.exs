@@ -4,6 +4,8 @@ defmodule ExPlasma.Client.StateTest do
 
   alias ExPlasma.Client.State
 
+  @moduletag :vcr
+
   setup do
     Application.ensure_all_started(:ethereumex)
     ExVCR.Config.cassette_library_dir("./test/fixtures/vcr_cassettes/state")
