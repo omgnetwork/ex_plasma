@@ -11,6 +11,7 @@ defmodule ExPlasma.Transaction do
   # are 0 value for now so that we can test these functions.
   @transaction_type 0
   @output_type 0
+  @empty_transaction_data 0
   @empty_metadata <<0::256>>
 
   # The RLP encoded transaction as a binary
@@ -111,7 +112,7 @@ defmodule ExPlasma.Transaction do
 
   iex> txn = %ExPlasma.Transaction{}
   iex> ExPlasma.Transaction.to_list(txn)
-  [<<0>>, [], [], <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
+  [0, [], [], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
   @spec to_list(struct()) :: list()
   def to_list(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
@@ -122,9 +123,10 @@ defmodule ExPlasma.Transaction do
     metadata = metadata || @empty_metadata
 
     [
-      <<module.transaction_type()>>,
+      module.transaction_type(),
       computed_inputs,
       computed_outputs,
+      @empty_transaction_data,
       metadata
     ]
   end

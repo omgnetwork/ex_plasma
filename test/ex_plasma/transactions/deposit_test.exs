@@ -30,7 +30,7 @@ defmodule ExPlasma.Transactions.DepositTest do
       |> Transaction.to_list()
 
     assert list == [
-             <<1>>,
+             1,
              [],
              [
                [
@@ -42,6 +42,7 @@ defmodule ExPlasma.Transactions.DepositTest do
                  <<1>>
                ]
              ],
+             0,
              <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 0, 0>>
            ]

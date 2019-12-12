@@ -14,7 +14,7 @@ defmodule ExPlasma.Transactions.PaymentTest do
     list = Transaction.to_list(txn)
 
     assert list == [
-             <<1>>,
+             1,
              [
                <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                  0, 0, 0, 0, 0>>
@@ -29,6 +29,7 @@ defmodule ExPlasma.Transactions.PaymentTest do
                  <<1>>
                ]
              ],
+             0,
              <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 0, 0>>
            ]
