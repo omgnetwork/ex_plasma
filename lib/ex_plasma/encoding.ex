@@ -7,6 +7,7 @@ defmodule ExPlasma.Encoding do
   @type hash_t() :: <<_::256>>
 
   @transaction_merkle_tree_height 16
+  @default_leaf <<0::256>>
 
   @doc """
   Produces a KECCAK digest for the message.
@@ -24,11 +25,10 @@ defmodule ExPlasma.Encoding do
 
   # Creates a Merkle proof that transaction under a given transaction index
   # is included in block consisting of hashed transactions
-  @spec merkle_proof(list(String.t()), non_neg_integer()) :: binary()
-  def merkle_proof(hashed_txs, txindex) do
-    build(hashed_txs)
+  @spec merkle_proof(list(binary()), non_neg_integer()) :: binary()
+  def merkle_proof(encoded_transactions, txindex) do
+    build(encoded_transactions)
     |> prove(txindex)
-    |> (& &1.hashes).()
     |> Enum.reverse()
     |> Enum.join()
   end
@@ -48,9 +48,8 @@ defmodule ExPlasma.Encoding do
   def merkle_root_hash(encoded_transactions) do
     MerkleTree.fast_root(encoded_transactions,
       hash_function: &keccak_hash/1,
-      hash_leaves: false,
       height: @transaction_merkle_tree_height,
-      default_data_block: default_leaf()
+      default_data_block: @default_leaf
     )
   end
 
@@ -130,13 +129,13 @@ defmodule ExPlasma.Encoding do
     <<r::integer-size(256), s::integer-size(256), recovery_id::integer-size(8)>>
   end
 
-  defp default_leaf(), do: <<0>> |> List.duplicate(32) |> Enum.join() |> keccak_hash()
+  #defp default_leaf(), do: <<0>> |> List.duplicate(32) |> Enum.join() |> keccak_hash()
 
-  defp build(hashed_txs) do
-    MerkleTree.build(hashed_txs,
+  defp build(encoded_transactions) do
+    MerkleTree.build(encoded_transactions,
       hash_function: &keccak_hash/1,
       height: @transaction_merkle_tree_height,
-      default_data_block: default_leaf()
+      default_data_block: @default_leaf
     )
   end
 

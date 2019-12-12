@@ -40,6 +40,9 @@ defmodule ExPlasma.Block do
     do: %__MODULE__{transactions: transactions, hash: merkle_root_hash(transactions)}
 
   # Encode the transactions and merkle root hash them.
-  defp merkle_root_hash(transactions) when is_list(transactions),
-    do: Encoding.merkle_root_hash(Enum.map(transactions, &Transaction.encode/1))
+  defp merkle_root_hash(transactions) when is_list(transactions) do
+    transactions
+    |> Enum.map(&Transaction.encode/1)
+    |> Encoding.merkle_root_hash()
+  end
 end
