@@ -12,6 +12,7 @@ defmodule Conformance.SignaturesTest do
 
   import ExPlasma.Client.Config,
     only: [
+      authority_address: 0,
       contract_address: 0
     ]
 
@@ -25,7 +26,7 @@ defmodule Conformance.SignaturesTest do
     do: assert_signs_conform(%Payment{})
 
   test "signs without inputs",
-    do: assert_signs_conform(%Payment{outputs: [%Utxo{amount: 1}]})
+    do: assert_signs_conform(%Payment{outputs: [%Utxo{owner: authority_address(), amount: 1}]})
 
   test "signs without outputs",
     do: assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1}]})
@@ -34,10 +35,14 @@ defmodule Conformance.SignaturesTest do
     do: %Transaction{metadata: <<1::160>>}
 
   test "signs with a minimal transaction (1x1)",
-    do: assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1}], outputs: [%Utxo{amount: 1}]})
+    do:
+      assert_signs_conform(%Payment{
+        inputs: [%Utxo{blknum: 1}],
+        outputs: [%Utxo{owner: authority_address(), amount: 1}]
+      })
 
   test "signs with a filled transaction (4x4)" do
-    utxos = List.duplicate(%Utxo{blknum: 1, amount: 1}, 4)
+    utxos = List.duplicate(%Utxo{blknum: 1, owner: authority_address(), amount: 1}, 4)
     assert_signs_conform(%Payment{inputs: utxos, outputs: utxos})
   end
 

@@ -8,7 +8,7 @@ defimpl ExPlasma.TypedData,
   @eip_191_prefix <<0x19, 0x01>>
 
   @domain_signature "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"
-  @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,bytes32 metadata)"
+  @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,uint256 txData,bytes32 metadata)"
   @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
   @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
 
@@ -17,6 +17,7 @@ defimpl ExPlasma.TypedData,
 
   # NB: Currently we only support 1 type of transaction: Payment.
   @max_utxo_count 4
+  @empty_transaction_data 0
   @empty_metadata <<0::256>>
 
   # Pre-computed hashes for hashing
@@ -30,6 +31,9 @@ defimpl ExPlasma.TypedData,
     transaction_type = module.transaction_type()
     encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
 
+    encoded_transaction_data =
+      ABI.TypeEncoder.encode_raw([@empty_transaction_data], [{:uint, 256}])
+
     [
       @eip_191_prefix,
       domain_separator(),
@@ -37,6 +41,7 @@ defimpl ExPlasma.TypedData,
       encoded_transaction_type,
       encoded_inputs,
       encoded_outputs,
+      encoded_transaction_data,
       metadata || @empty_metadata
     ]
   end
@@ -73,12 +78,13 @@ defimpl ExPlasma.TypedData,
     |> Encoding.keccak_hash()
   end
 
-  defp hash_encoded([signature, transaction_type, inputs, outputs, metadata]) do
+  defp hash_encoded([signature, transaction_type, inputs, outputs, transaction_data, metadata]) do
     [
       Encoding.keccak_hash(signature),
-      ABI.TypeEncoder.encode_raw([:binary.decode_unsigned(transaction_type)], [{:uint, 256}]),
+      transaction_type,
       hash_inputs(inputs),
       hash_outputs(outputs),
+      transaction_data,
       metadata
     ]
     |> List.flatten()
