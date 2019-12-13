@@ -1,6 +1,7 @@
 defimpl ExPlasma.TypedData,
   for: [ExPlasma.Transaction, ExPlasma.Transactions.Deposit, ExPlasma.Transactions.Payment] do
   alias ExPlasma.Encoding
+  alias ExPlasma.Transaction
   alias ExPlasma.TypedData
   alias ExPlasma.Utxo
 
@@ -17,22 +18,20 @@ defimpl ExPlasma.TypedData,
 
   # NB: Currently we only support 1 type of transaction: Payment.
   @max_utxo_count 4
-  @empty_transaction_data 0
-  @empty_metadata <<0::256>>
 
   # Pre-computed hashes for hashing
   @empty_input_hash TypedData.hash(%Utxo{}, as: :input)
   @empty_output_hash TypedData.hash(%Utxo{output_type: 0}, as: :output)
 
-  def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}, _options) do
+  def encode(%{inputs: inputs, outputs: outputs} = transaction, _options) do
+    [transaction_type, _inputs, _outputs, transaction_data, metadata] =
+      Transaction.to_list(transaction)
+
     encoded_inputs = Enum.map(inputs, &encode_as_input/1)
     encoded_outputs = Enum.map(outputs, &encode_as_output/1)
-
-    transaction_type = module.transaction_type()
     encoded_transaction_type = ABI.TypeEncoder.encode_raw([transaction_type], [{:uint, 256}])
-
-    encoded_transaction_data =
-      ABI.TypeEncoder.encode_raw([@empty_transaction_data], [{:uint, 256}])
+    encoded_transaction_data = ABI.TypeEncoder.encode_raw([transaction_data], [{:uint, 256}])
+    encoded_metadata = ABI.TypeEncoder.encode_raw([metadata], [{:bytes, 32}])
 
     [
       @eip_191_prefix,
@@ -42,7 +41,7 @@ defimpl ExPlasma.TypedData,
       encoded_inputs,
       encoded_outputs,
       encoded_transaction_data,
-      metadata || @empty_metadata
+      encoded_metadata
     ]
   end
 
