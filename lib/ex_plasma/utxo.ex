@@ -103,7 +103,7 @@ defmodule ExPlasma.Utxo do
       }
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
-  def new([<<output_type>> | rest_of_output]), do: new([output_type] ++ rest_of_output)
+  def new([<<output_type>>, rest_of_output]), do: new([output_type, rest_of_output])
 
   def new([output_type, [owner, currency, amount]]),
     do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
@@ -207,7 +207,7 @@ defmodule ExPlasma.Utxo do
   """
   @spec to_output_list(struct()) :: list(binary)
   def to_output_list(%{amount: amount} = utxo) when is_integer(amount),
-    do: to_output_list(%{utxo | amount: <<amount::integer-size(64)>>})
+    do: to_output_list(%{utxo | amount: <<amount::integer-size(256)>>})
 
   def to_output_list(%{currency: <<_::336>> = currency} = utxo),
     do: to_output_list(%{utxo | currency: to_binary(currency)})
@@ -215,7 +215,7 @@ defmodule ExPlasma.Utxo do
   def to_output_list(%{owner: <<_::336>> = owner} = utxo),
     do: to_output_list(%{utxo | owner: to_binary(owner)})
 
-  def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::64>>} = utxo),
+  def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::256>>} = utxo),
     do: [<<utxo.output_type>>, [utxo.owner, utxo.currency, truncate_leading_zero(utxo.amount)]]
 
   defp pad_binary(unpadded) do

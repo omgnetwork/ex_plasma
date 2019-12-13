@@ -19,7 +19,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Utxo do
       |> Enum.join()
       |> Encoding.keccak_hash()
 
-  defp do_encode([output_type, owner, currency, amount]) do
+  defp do_encode([output_type, [owner, currency, amount]]) do
     [
       @output_signature,
       ABI.TypeEncoder.encode_raw([:binary.decode_unsigned(output_type)], [{:uint, 256}]),
