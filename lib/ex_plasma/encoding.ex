@@ -27,7 +27,8 @@ defmodule ExPlasma.Encoding do
   # is included in block consisting of hashed transactions
   @spec merkle_proof(list(binary()), non_neg_integer()) :: binary()
   def merkle_proof(encoded_transactions, txindex) do
-    build(encoded_transactions)
+    encoded_transactions
+    |> build()
     |> prove(txindex)
     |> Enum.reverse()
     |> Enum.join()

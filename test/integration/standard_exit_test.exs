@@ -24,7 +24,9 @@ defmodule Integration.StandardExitTest do
   setup do
     # On a fresh contract deploy, we need to invoke the contract to add
     # the exit queue you want explicitly.
-    Client.add_exit_queue(1, <<0::160>>)
+    vault_id = 1
+    token_address = <<0::160>>
+    Client.add_exit_queue(vault_id, token_address)
     :ok
   end
 
