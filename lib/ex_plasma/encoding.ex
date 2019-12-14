@@ -7,6 +7,7 @@ defmodule ExPlasma.Encoding do
   @type hash_t() :: <<_::256>>
 
   @transaction_merkle_tree_height 16
+  @default_leaf <<0::256>>
 
   @doc """
   Produces a KECCAK digest for the message.
@@ -24,11 +25,11 @@ defmodule ExPlasma.Encoding do
 
   # Creates a Merkle proof that transaction under a given transaction index
   # is included in block consisting of hashed transactions
-  @spec merkle_proof(list(String.t()), non_neg_integer()) :: binary()
-  def merkle_proof(hashed_txs, txindex) do
-    build(hashed_txs)
+  @spec merkle_proof(list(binary()), non_neg_integer()) :: binary()
+  def merkle_proof(encoded_transactions, txindex) do
+    encoded_transactions
+    |> build()
     |> prove(txindex)
-    |> (& &1.hashes).()
     |> Enum.reverse()
     |> Enum.join()
   end
@@ -40,17 +41,15 @@ defmodule ExPlasma.Encoding do
 
     iex> encoded_txns = [%ExPlasma.Transaction{} |> ExPlasma.Transaction.encode()]
     iex> ExPlasma.Encoding.merkle_root_hash(encoded_txns)
-    <<7, 125, 211, 138, 245, 129, 180, 55, 107, 36, 130, 187, 75, 69,
-      154, 115, 240, 9, 134, 6, 51, 31, 54, 52, 138, 115, 33, 50, 166,
-      121, 170, 131>>
+    <<149, 220, 232, 195, 129, 97, 40, 191, 35, 233, 11, 119, 125, 93, 233, 214, 60,
+      13, 243, 24, 176, 181, 34, 87, 196, 98, 131, 152, 57, 231, 240, 184>>
   """
   @spec merkle_root_hash(list(binary())) :: binary()
   def merkle_root_hash(encoded_transactions) do
     MerkleTree.fast_root(encoded_transactions,
       hash_function: &keccak_hash/1,
-      hash_leaves: false,
       height: @transaction_merkle_tree_height,
-      default_data_block: default_leaf()
+      default_data_block: @default_leaf
     )
   end
 
@@ -130,13 +129,11 @@ defmodule ExPlasma.Encoding do
     <<r::integer-size(256), s::integer-size(256), recovery_id::integer-size(8)>>
   end
 
-  defp default_leaf(), do: <<0>> |> List.duplicate(32) |> Enum.join() |> keccak_hash()
-
-  defp build(hashed_txs) do
-    MerkleTree.build(hashed_txs,
+  defp build(encoded_transactions) do
+    MerkleTree.build(encoded_transactions,
       hash_function: &keccak_hash/1,
       height: @transaction_merkle_tree_height,
-      default_data_block: default_leaf()
+      default_data_block: @default_leaf
     )
   end
 

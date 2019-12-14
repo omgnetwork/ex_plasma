@@ -51,7 +51,7 @@ defmodule ExPlasma.Client.State do
   Returns a `ExPlasma.Block` for the given block number.
   """
   @spec get_block(pos_integer()) :: Block.t() | tuple()
-  def get_block(blknum) when is_integer(blknum) do
+  def get_block(blknum) do
     eth_call("blocks(uint256)", [blknum], fn resp ->
       [merkle_root_hash, timestamp] = decode_response(resp, [{:bytes, 32}, {:uint, 256}])
       %Block{hash: merkle_root_hash, timestamp: timestamp}

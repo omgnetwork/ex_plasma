@@ -194,7 +194,7 @@ defmodule ExPlasma.Transaction do
         ]
       }
   """
-  def sign(%__MODULE__{} = transaction, keys: keys) when is_list(keys) do
+  def sign(%{} = transaction, keys: keys) when is_list(keys) do
     eip712_hash = ExPlasma.TypedData.hash(transaction)
     sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
     %{transaction | sigs: sigs}

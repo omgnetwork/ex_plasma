@@ -20,8 +20,8 @@ defimpl ExPlasma.TypedData,
   @empty_metadata <<0::256>>
 
   # Pre-computed hashes for hashing
-  @empty_input_hash %Utxo{} |> TypedData.hash(as: :input)
-  @empty_output_hash %Utxo{output_type: 0} |> TypedData.hash(as: :output)
+  @empty_input_hash TypedData.hash(%Utxo{}, as: :input)
+  @empty_output_hash TypedData.hash(%Utxo{output_type: 0}, as: :output)
 
   def encode(%module{inputs: inputs, outputs: outputs, metadata: metadata}, _options) do
     encoded_inputs = Enum.map(inputs, &encode_as_input/1)

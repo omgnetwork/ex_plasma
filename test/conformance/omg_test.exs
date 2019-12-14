@@ -75,12 +75,12 @@ defmodule Conformance.OMGTest do
   describe "single input payment transaction" do
     test "should have same signature encoding" do
       [_prefix, _domain, signature, _transaction_type, _inputs, _outputs, _metadata] =
-        @single_input_payment_struct |> TypedData.encode()
+        TypedData.encode(@single_input_payment_struct)
 
       [omg_signature, _transaction_type, _inputs, _outputs, _metadata] =
         @omg_typed_data_single_input_payment_list
 
-      assert omg_signature == signature |> Encoding.keccak_hash()
+      assert omg_signature == Encoding.keccak_hash(signature)
     end
   end
 
@@ -93,7 +93,7 @@ defmodule Conformance.OMGTest do
       inputs,
       _outputs,
       metadata
-    ] = @single_input_payment_struct |> TypedData.encode()
+    ] = TypedData.encode(@single_input_payment_struct)
 
     [
       omg_signature,
@@ -103,14 +103,13 @@ defmodule Conformance.OMGTest do
       omg_metadata
     ] = @omg_typed_data_single_input_payment_list
 
-    assert omg_signature == signature |> Encoding.keccak_hash()
+    assert omg_signature == Encoding.keccak_hash(signature)
     assert transaction_type == omg_transaction_type
     assert metadata == omg_metadata
 
-    input = inputs |> hd()
-    # output = outputs |> hd()
+    input = hd(inputs)
 
-    assert Conformance.OMGTest.hash(input) == omg_inputs |> hd()
+    assert Conformance.OMGTest.hash(input) == hd(omg_inputs)
   end
 
   def hash([signature | encoded_list]) do

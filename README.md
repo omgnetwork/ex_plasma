@@ -77,6 +77,17 @@ mix test --only conformance
 
 This will spin up ganache and deploy the mock contracts.
 
+### Integration test
+
+We also have more integrated flows we need to test, such as the exit game. These use live interactions with
+the plasma framework contracts. To run those, you can execute:
+
+```sh
+make up
+mix test --only integration
+```
+
+This will spin up ganache and deploy the plasma framework and run the integration suite.
 
 ## Usage
 
@@ -157,10 +168,76 @@ ExPlasma.Transaction.decode(tx_bytes)
 
 ### Generating and Submitting Blocks
 #### Creating a block
+
+```elixir
+utxo = %Utxo{blknum: 1}
+output = %Utxo{owner: <<0::160>>, amount: 1}
+Payment.new(%{inputs: [utxo], outputs: [output]})
+|> List.wrap()
+|> Block.new()
+#=> 
+%ExPlasma.Block{
+  hash: <<1, 16, 81, 170, 227, 107, 163, 227, 126, 169, 45, 179, 200, 94, 182,
+    192, 241, 138, 24, 219, 149, 122, 252, 243, 115, 35, 14, 69, 152, 11, 98,
+    200>>,
+  timestamp: nil,
+  transactions: [
+    %ExPlasma.Transactions.Payment{
+      inputs: [
+        %ExPlasma.Utxo{
+          amount: 0,
+          blknum: 1,
+          currency: "0x0000000000000000000000000000000000000000",
+          oindex: 0,
+          output_type: 1,
+          owner: "0x0000000000000000000000000000000000000000",
+          txindex: 0
+        }
+      ],
+      metadata: nil,
+      outputs: [
+        %ExPlasma.Utxo{
+          amount: 1,
+          blknum: 0,
+          currency: "0x0000000000000000000000000000000000000000",
+          oindex: 0,
+          output_type: 1,
+          owner: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+          txindex: 0
+        }
+      ],
+      sigs: []
+    }
+  ]
+}
+```
+
 #### Submitting a block to the contract
+
+```elixir
+utxo = %Utxo{blknum: 1}
+output = %Utxo{owner: <<0::160>>, amount: 1}
+{:ok, _receipt_hash} =
+Payment.new(%{inputs: [utxo], outputs: [output]})
+|> List.wrap() 
+|> Block.new()
+|> Client.submit_block()
+```
 
 ### Standard Exits
 #### Starting a standard exit
+
+These are more complicated flows that require you to have a valid transaction
+already existing on the network. You can see the [integration tests](test/integration/standard_exit_test.exs) for an example how to achieve the full
+flow. If you were to however have the data on hand, you can pass it to the contract as such:
+
+```elixir
+Client.start_standard_exit(tx_bytes, %{
+ from: authority_address(),
+ utxo_pos: utxo_pos,
+ proof: proof
+})
+```
 #### Processing a standard exit
 #### Challenge a standard exit
 
@@ -168,26 +245,6 @@ ExPlasma.Transaction.decode(tx_bytes)
 #### Starting an in-flight exit
 #### Processing an in-flight exit
 #### Challenge an in-flight exit
-
-
-
-
-##### Submitting a Block as an Authority
-
-```elixir
-alias ExPlasma.Transaction.Output
-alias ExPlasma.Transaction.Input0
-
-authority = "0x22d491bde2303f2f43325b2108d26f1eaba1e32b"
-currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
-metadata = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
-output = %Output{owner: authority, currency: currency, amount: 1}
-input = %Input{}
-transaction = Payment.new(inputs: [input], outputs: [output], metadata: metadata)
-
- Block.new([transaction])
- |> Client.submit_block()
-```
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can

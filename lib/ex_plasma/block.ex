@@ -27,8 +27,9 @@ defmodule ExPlasma.Block do
 
     iex> %ExPlasma.Transaction{} |> List.wrap() |> ExPlasma.Block.new
     %ExPlasma.Block{
-      hash: <<7, 125, 211, 138, 245, 129, 180, 55, 107, 36, 130, 187, 75, 69, 154,
-      115, 240, 9, 134, 6, 51, 31, 54, 52, 138, 115, 33, 50, 166, 121, 170, 131>>,
+      hash: <<149, 220, 232, 195, 129, 97, 40, 191, 35, 233, 11, 119, 125, 93, 233,
+        214, 60, 13, 243, 24, 176, 181, 34, 87, 196, 98, 131, 152, 57, 231, 240,
+        184>>,
       timestamp: nil,
       transactions: [
         %ExPlasma.Transaction{inputs: [], metadata: nil, outputs: [], sigs: []}
@@ -40,6 +41,9 @@ defmodule ExPlasma.Block do
     do: %__MODULE__{transactions: transactions, hash: merkle_root_hash(transactions)}
 
   # Encode the transactions and merkle root hash them.
-  defp merkle_root_hash(transactions) when is_list(transactions),
-    do: Encoding.merkle_root_hash(Enum.map(transactions, &Transaction.encode/1))
+  defp merkle_root_hash(transactions) when is_list(transactions) do
+    transactions
+    |> Enum.map(&Transaction.encode/1)
+    |> Encoding.merkle_root_hash()
+  end
 end

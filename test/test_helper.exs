@@ -1,1 +1,1 @@
-ExUnit.start(exclude: [:skip, :conformance])
+ExUnit.start(exclude: [:skip, :conformance, :integration])
