@@ -11,6 +11,7 @@ defmodule ExPlasma.Transaction do
   # are 0 value for now so that we can test these functions.
   @transaction_type 0
   @output_type 0
+  @empty_transaction_data 0
   @empty_metadata <<0::256>>
 
   # The RLP encoded transaction as a binary
@@ -71,13 +72,16 @@ defmodule ExPlasma.Transaction do
     ...>  [
     ...>    [
     ...>      <<1>>,
-    ...>      <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
-    ...>        226, 241, 55, 0, 110>>,
-    ...>      <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
-    ...>        241, 55, 0, 110>>,
-    ...>      <<0, 0, 0, 0, 0, 0, 0, 1>>
+    ...>      [
+    ...>        <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
+    ...>          226, 241, 55, 0, 110>>,
+    ...>        <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
+    ...>          241, 55, 0, 110>>,
+    ...>        <<0, 0, 0, 0, 0, 0, 0, 1>>
+    ...>      ]
     ...>    ]
     ...>  ],
+    ...>  0,
     ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
     ...>]
     iex> ExPlasma.Transaction.new(rlp)
@@ -92,10 +96,10 @@ defmodule ExPlasma.Transaction do
     struct(module, Map.from_struct(transaction))
   end
 
-  def new([transaction_type, inputs, outputs, metadata]),
-    do: new([[], transaction_type, inputs, outputs, metadata])
+  def new([transaction_type, inputs, outputs, transaction_data, metadata]),
+    do: new([[], transaction_type, inputs, outputs, transaction_data, metadata])
 
-  def new([sigs, _transaction_type, inputs, outputs, metadata]) do
+  def new([sigs, _transaction_type, inputs, outputs, _transaction_data, metadata]) do
     %__MODULE__{
       sigs: sigs,
       inputs: Enum.map(inputs, &Utxo.new/1),
@@ -111,7 +115,7 @@ defmodule ExPlasma.Transaction do
 
   iex> txn = %ExPlasma.Transaction{}
   iex> ExPlasma.Transaction.to_list(txn)
-  [<<0>>, [], [], <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
+  [0, [], [], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
   @spec to_list(struct()) :: list()
   def to_list(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
@@ -122,9 +126,10 @@ defmodule ExPlasma.Transaction do
     metadata = metadata || @empty_metadata
 
     [
-      <<module.transaction_type()>>,
+      module.transaction_type(),
       computed_inputs,
       computed_outputs,
+      @empty_transaction_data,
       metadata
     ]
   end
@@ -139,7 +144,7 @@ defmodule ExPlasma.Transaction do
 
   iex> txn = %ExPlasma.Transaction{}
   iex> ExPlasma.Transaction.encode(txn)
-  <<228, 0, 192, 192, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+  <<229, 128, 192, 192, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
   @spec encode(map()) :: __MODULE__.tx_bytes()
   def encode(%{} = transaction), do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
@@ -149,28 +154,49 @@ defmodule ExPlasma.Transaction do
 
   ## Examples
 
-    iex> rlp_encoded = <<248, 78, 1, 193, 0, 245, 244, 1, 148, 29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 136, 0, 0, 0, 0, 0, 0, 0, 1, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+    iex> rlp_encoded = <<248, 116, 128, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
     iex> ExPlasma.Transaction.decode(rlp_encoded)
-    %ExPlasma.Transaction{inputs: [%ExPlasma.Utxo{amount: 0, blknum: 0, currency: "0x0000000000000000000000000000000000000000", oindex: 0, owner: "0x0000000000000000000000000000000000000000", txindex: 0 }],
-     metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-     outputs: [%ExPlasma.Utxo{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, blknum: 0, currency: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, oindex: 0, owner: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, txindex: 0}],
-     sigs: []}
+    %ExPlasma.Transaction{
+      inputs: [
+        %ExPlasma.Utxo{
+          amount: 0,
+          blknum: 0,
+          currency: "0x0000000000000000000000000000000000000000",
+          oindex: 0,
+          output_type: 1,
+          owner: "0x0000000000000000000000000000000000000000",
+          txindex: 0
+        }
+      ],
+      metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      outputs: [
+        %ExPlasma.Utxo{
+          amount: <<0>>,
+          blknum: 0,
+          currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+          oindex: 0,
+          output_type: 1,
+          owner: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+          txindex: 0
+        }
+      ],
+      sigs: []
+    }
 
     # Create a transaction from a signed encoded hash of a transaction
-    iex> signed_encoded_hash = "0xf85df843b841c4841bfe271a5971dbebbf827f70bb16d84bcef67bcb83433a4d8d7d309091b8059ce54955434b3d449e1571d2122cab65a0bc69d324e692275862ff4e0e51761c00c0c0940000000000000000000000000000000000000000"
+    iex> signed_encoded_hash = "0xf85ef843b841aa061b1df64f0b5c3bd350d9444b8fd2d02d4523abb23fbe8d270d6bc2e782c037d45e0c0afaf615cfc0701f4cde6af04f60ddb756e52f8459f459f1e65dcd511b80c0c080940000000000000000000000000000000000000000"
     iex> signed_encoded_hash |> ExPlasma.Encoding.to_binary() |> ExPlasma.Transaction.decode()
     %ExPlasma.Transaction{
       inputs: [],
       metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       outputs: [],
       sigs: [
-        <<196, 132, 27, 254, 39, 26, 89, 113, 219, 235, 191, 130, 127, 112, 187, 22,
-          216, 75, 206, 246, 123, 203, 131, 67, 58, 77, 141, 125, 48, 144, 145, 184,
-          5, 156, 229, 73, 85, 67, 75, 61, 68, 158, 21, 113, 210, 18, 44, 171, 101,
-          160, 188, 105, 211, 36, 230, 146, 39, 88, 98, 255, 78, 14, 81, 118, 28>>
+        <<170, 6, 27, 29, 246, 79, 11, 92, 59, 211, 80, 217, 68, 75, 143, 210, 208,
+          45, 69, 35, 171, 178, 63, 190, 141, 39, 13, 107, 194, 231, 130, 192, 55,
+          212, 94, 12, 10, 250, 246, 21, 207, 192, 112, 31, 76, 222, 106, 240, 79,
+          96, 221, 183, 86, 229, 47, 132, 89, 244, 89, 241, 230, 93, 205, 81, 27>>
       ]
     }
-
   """
   def decode(rlp_encoded_txn), do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
 
@@ -186,11 +212,11 @@ defmodule ExPlasma.Transaction do
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [],
         sigs: [
-          <<183, 180, 93, 111, 154, 78, 192, 155, 167, 148, 194, 222, 62, 159, 175,
-            21, 163, 234, 195, 178, 55, 219, 197, 177, 202, 130, 65, 14, 62, 138, 230,
-            180, 126, 66, 75, 96, 112, 91, 16, 54, 230, 143, 0, 188, 49, 241, 48, 6,
-            146, 30, 247, 81, 220, 146, 35, 143, 242, 46, 193, 30, 60, 245, 198, 18,
-            28>>
+          <<105, 151, 242, 23, 175, 7, 237, 244, 242, 110, 41, 1, 242, 106, 61, 65,
+            85, 117, 213, 245, 188, 155, 84, 3, 131, 195, 107, 76, 179, 55, 195, 148,
+            84, 167, 162, 147, 33, 147, 74, 24, 136, 15, 26, 202, 78, 80, 182, 183,
+            206, 139, 75, 29, 91, 90, 136, 158, 223, 112, 82, 222, 37, 55, 104, 202,
+            27>>
         ]
       }
   """

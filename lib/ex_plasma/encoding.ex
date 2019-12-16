@@ -41,8 +41,9 @@ defmodule ExPlasma.Encoding do
 
     iex> encoded_txns = [%ExPlasma.Transaction{} |> ExPlasma.Transaction.encode()]
     iex> ExPlasma.Encoding.merkle_root_hash(encoded_txns)
-    <<149, 220, 232, 195, 129, 97, 40, 191, 35, 233, 11, 119, 125, 93, 233, 214, 60,
-      13, 243, 24, 176, 181, 34, 87, 196, 98, 131, 152, 57, 231, 240, 184>>
+    <<162, 30, 56, 202, 121, 64, 48, 158, 182, 172, 255, 172, 103, 46,
+      193, 151, 236, 162, 92, 242, 78, 195, 132, 176, 200, 239, 249, 20,
+      160, 176, 63, 29>>
   """
   @spec merkle_root_hash(list(binary())) :: binary()
   def merkle_root_hash(encoded_transactions) do
