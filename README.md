@@ -36,7 +36,7 @@ config :ex_plasma,
   ]
 ```
 
-## Setup (Mac OS
+## Setup (Mac OS)
 
 1. Clone the repo to your desktop `git@github.com:omisego/ex_plasma.git`
 2. Run `mix compile` in your terminal.
