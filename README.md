@@ -41,7 +41,7 @@ config :ex_plasma,
 1. Clone the repo to your desktop `git@github.com:omisego/ex_plasma.git`
 2. Run `mix compile` in your terminal.
 3. If there are any unavailable dependencies, run `mix deps.get`.
-*If you run into any issues with* ***libsecp256k1_source****, run* `brew install automake pkg-config libtool libffi gmp` *in your terminal.* 
+*If you run into any issues with* ***libsecp256k1_source***, *run* `brew install automake pkg-config libtool libffi gmp` *in your terminal.* 
 
 ## Testing
 
