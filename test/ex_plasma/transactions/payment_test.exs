@@ -6,12 +6,12 @@ defmodule ExPlasma.Transactions.PaymentTest do
   alias ExPlasma.Utxo
   alias ExPlasma.Transactions.Payment
 
-  test "to_list/1 forms an RLP-encodable list for a payment transaction" do
+  test "to_rlp/1 forms an RLP-encodable list for a payment transaction" do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
     utxo = %Utxo{owner: owner, currency: currency, amount: 1}
     txn = Payment.new(%{inputs: [utxo], outputs: [utxo]})
-    list = Transaction.to_list(txn)
+    list = Transaction.to_rlp(txn)
 
     assert list == [
              1,

@@ -7,9 +7,9 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Utxo do
 
   @doc """
   """
-  def encode(utxo, as: :input), do: utxo |> Utxo.to_input_list() |> do_encode()
-  def encode(utxo, as: :output), do: utxo |> Utxo.to_output_list() |> do_encode()
-  def encode(utxo, _options), do: utxo |> Utxo.to_list() |> do_encode()
+  def encode(utxo, as: :input), do: utxo |> Utxo.to_input_rlp() |> do_encode()
+  def encode(utxo, as: :output), do: utxo |> Utxo.to_output_rlp() |> do_encode()
+  def encode(utxo, _options), do: utxo |> Utxo.to_rlp() |> do_encode()
 
   def hash(%{} = utxo, options), do: utxo |> encode(options) |> hash(options)
 

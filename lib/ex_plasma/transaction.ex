@@ -114,14 +114,14 @@ defmodule ExPlasma.Transaction do
   ## Examples
 
   iex> txn = %ExPlasma.Transaction{}
-  iex> ExPlasma.Transaction.to_list(txn)
+  iex> ExPlasma.Transaction.to_rlp(txn)
   [0, [], [], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
-  @spec to_list(struct()) :: list()
-  def to_list(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
+  @spec to_rlp(struct()) :: list()
+  def to_rlp(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
       when is_list(inputs) and is_list(outputs) do
-    computed_inputs = Enum.map(inputs, &Utxo.to_input_list/1)
-    computed_outputs = Enum.map(outputs, &Utxo.to_output_list/1)
+    computed_inputs = Enum.map(inputs, &Utxo.to_input_rlp/1)
+    computed_outputs = Enum.map(outputs, &Utxo.to_output_rlp/1)
 
     metadata = metadata || @empty_metadata
 
@@ -134,8 +134,8 @@ defmodule ExPlasma.Transaction do
     ]
   end
 
-  def to_list(%_module{sigs: sigs} = transaction) when is_list(sigs),
-    do: [sigs | to_list(%{transaction | sigs: []})]
+  def to_rlp(%_module{sigs: sigs} = transaction) when is_list(sigs),
+    do: [sigs | to_rlp(%{transaction | sigs: []})]
 
   @doc """
   Encodes a transaction into an RLP encodable list.
@@ -147,7 +147,7 @@ defmodule ExPlasma.Transaction do
   <<229, 128, 192, 192, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
   @spec encode(map()) :: __MODULE__.tx_bytes()
-  def encode(%{} = transaction), do: transaction |> Transaction.to_list() |> ExRLP.Encode.encode()
+  def encode(%{} = transaction), do: transaction |> Transaction.to_rlp() |> ExRLP.Encode.encode()
 
   @doc """
   Encodes a transaction into an RLP encodable list.
