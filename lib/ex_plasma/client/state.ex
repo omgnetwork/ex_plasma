@@ -29,7 +29,7 @@ defmodule ExPlasma.Client.State do
   @doc """
   Returns the next child block to be mined.
   """
-  @spec next_child_block() :: non_neg_integer() | tuple()
+  @spec next_child_block() :: tuple()
   def next_child_block() do
     eth_call("nextChildBlock()", [], fn resp ->
       resp |> decode_response([{:uint, 256}]) |> hd()
@@ -40,7 +40,7 @@ defmodule ExPlasma.Client.State do
   Returns the child block interval, which controls the incrementing
   block number for each child block.
   """
-  @spec child_block_interval() :: non_neg_integer() | tuple()
+  @spec child_block_interval() :: tuple()
   def child_block_interval() do
     eth_call("childBlockInterval()", [], fn resp ->
       resp |> decode_response([{:uint, 256}]) |> hd()
@@ -107,7 +107,7 @@ defmodule ExPlasma.Client.State do
     iex> ExPlasma.Client.next_deposit_block()
     1
   """
-  @spec next_deposit_block() :: tuple() | non_neg_integer()
+  @spec next_deposit_block() :: tuple()
   def next_deposit_block() do
     eth_call("nextDepositBlock()", [], fn resp ->
       resp |> decode_response([{:uint, 256}]) |> hd()
@@ -117,7 +117,7 @@ defmodule ExPlasma.Client.State do
   @doc """
   Returns whether the exit queue has been added for a given vault_id and token.
   """
-  @spec has_exit_queue(non_neg_integer(), String.t()) :: boolean() | tuple()
+  @spec has_exit_queue(non_neg_integer(), String.t()) :: tuple()
   def has_exit_queue(vault_id, token_address) do
     eth_call("hasExitQueue(uint256,address)", [vault_id, token_address], fn resp ->
       [result] = decode_response(resp, [:bool])
@@ -125,7 +125,7 @@ defmodule ExPlasma.Client.State do
     end)
   end
 
-  @spec eth_call(String.t(), list(), fun()) :: tuple()
+  @spec eth_call(String.t(), nonempty_maybe_improper_list(), fun()) :: tuple()
   defp eth_call(contract_signature, data_types, state \\ [to: nil], callback)
 
   defp eth_call(contract_signature, data_types, [to: to], callback) when is_list(data_types) do
@@ -138,7 +138,7 @@ defmodule ExPlasma.Client.State do
     end
   end
 
-  @spec encode_data(String.t(), list()) :: binary
+  @spec encode_data(String.t(), nonempty_maybe_improper_list()) :: String.t()
   defp encode_data(function_signature, data) do
     data = ABI.encode(function_signature, data)
     "0x" <> Base.encode16(data, case: :lower)

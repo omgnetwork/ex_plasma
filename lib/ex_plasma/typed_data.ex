@@ -6,12 +6,12 @@ defprotocol ExPlasma.TypedData do
   @doc """
   The EIP712 encoded type data structure.
   """
-  @spec encode(any(), maybe_improper_list()) :: any()
+  @spec encode(any(), maybe_improper_list()) :: maybe_improper_list()
   def encode(data, options \\ [])
 
   @doc """
   The keccak hash of the encoded data type.
   """
-  @spec encode(any()) :: binary()
+  @spec hash(any(), maybe_improper_list()) :: binary()
   def hash(data, options \\ [])
 end

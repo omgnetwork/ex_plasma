@@ -43,14 +43,14 @@ defmodule ExPlasma.Transaction do
   The associated value for the output type.  This is the base representation
   and is 0 because it does not exist.
   """
-  @spec output_type() :: non_neg_integer()
+  @spec output_type() :: 0
   def output_type(), do: @output_type
 
   @doc """
   The transaction type value as defined by the contract. This is the base representation
   and is 0 because it does not exist.
   """
-  @spec transaction_type() :: non_neg_integer()
+  @spec transaction_type() :: 0
   def transaction_type(), do: @transaction_type
 
   @doc """
