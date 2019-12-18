@@ -4,12 +4,12 @@ defmodule ExPlasma.TransactionTest do
 
   alias ExPlasma.Transaction
 
-  test "to_list/1 includes the sigs for a transaction" do
+  test "to_rlp/1 includes the sigs for a transaction" do
     transaction = %Transaction{
       sigs: ["0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"]
     }
 
-    list = Transaction.to_list(transaction)
+    list = Transaction.to_rlp(transaction)
 
     assert list == [
              ["0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"],
