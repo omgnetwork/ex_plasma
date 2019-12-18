@@ -11,6 +11,7 @@ defmodule ExPlasma.Transaction do
   # are 0 value for now so that we can test these functions.
   @transaction_type 0
   @output_type 0
+
   @empty_transaction_data 0
   @empty_metadata <<0::256>>
 
@@ -36,7 +37,7 @@ defmodule ExPlasma.Transaction do
 
   # @callback decode(binary) :: struct()
 
-  defstruct(sigs: [], inputs: [], outputs: [], metadata: nil)
+  defstruct(tx_type: nil, sigs: [], inputs: [], outputs: [], tx_data: nil, metadata: nil)
 
   @doc """
   The associated value for the output type.  This is the base representation
@@ -62,6 +63,8 @@ defmodule ExPlasma.Transaction do
     %ExPlasma.Transaction{
       inputs: [],
       outputs: [],
+      tx_data: nil,
+      tx_type: nil,
       metadata: nil
     }
 
@@ -81,13 +84,15 @@ defmodule ExPlasma.Transaction do
     ...>      ]
     ...>    ]
     ...>  ],
-    ...>  0,
+    ...>  <<0>>,
     ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
     ...>]
     iex> ExPlasma.Transaction.new(rlp)
   	 %ExPlasma.Transaction{inputs: [%ExPlasma.Utxo{amount: 0, blknum: 0, currency: "0x0000000000000000000000000000000000000000", oindex: 0, owner: "0x0000000000000000000000000000000000000000", txindex: 0 }],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [%ExPlasma.Utxo{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, blknum: 0, currency: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, oindex: 0, owner: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, txindex: 0}],
+        tx_data: 0,
+        tx_type: 1,
         sigs: []}
   """
   @spec new(struct() | nonempty_maybe_improper_list()) :: struct()
@@ -96,14 +101,22 @@ defmodule ExPlasma.Transaction do
     struct(module, Map.from_struct(transaction))
   end
 
-  def new([transaction_type, inputs, outputs, transaction_data, metadata]),
-    do: new([[], transaction_type, inputs, outputs, transaction_data, metadata])
+  def new([tx_type, inputs, outputs, <<tx_data>>, metadata]),
+    do: new([tx_type, inputs, outputs, tx_data, metadata])
 
-  def new([sigs, _transaction_type, inputs, outputs, _transaction_data, metadata]) do
+  def new([<<tx_type>>, inputs, outputs, tx_data, metadata]),
+    do: new([tx_type, inputs, outputs, tx_data, metadata])
+
+  def new([tx_type, inputs, outputs, tx_data, metadata]),
+    do: new([[], tx_type, inputs, outputs, tx_data, metadata])
+
+  def new([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
     %__MODULE__{
+      tx_type: tx_type,
       sigs: sigs,
       inputs: Enum.map(inputs, &Utxo.new/1),
       outputs: Enum.map(outputs, &Utxo.new/1),
+      tx_data: tx_data,
       metadata: metadata
     }
   end
@@ -180,6 +193,8 @@ defmodule ExPlasma.Transaction do
           txindex: 0
         }
       ],
+      tx_type: "",
+      tx_data: "",
       sigs: []
     }
 
@@ -187,6 +202,8 @@ defmodule ExPlasma.Transaction do
     iex> signed_encoded_hash = "0xf85ef843b841aa061b1df64f0b5c3bd350d9444b8fd2d02d4523abb23fbe8d270d6bc2e782c037d45e0c0afaf615cfc0701f4cde6af04f60ddb756e52f8459f459f1e65dcd511b80c0c080940000000000000000000000000000000000000000"
     iex> signed_encoded_hash |> ExPlasma.Encoding.to_binary() |> ExPlasma.Transaction.decode()
     %ExPlasma.Transaction{
+      tx_type: "",
+      tx_data: "",
       inputs: [],
       metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       outputs: [],

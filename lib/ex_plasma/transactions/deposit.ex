@@ -25,7 +25,7 @@ defmodule ExPlasma.Transactions.Deposit do
           metadata: binary()
         }
 
-  defstruct(sigs: [], inputs: [], outputs: [], metadata: nil)
+  defstruct(tx_type: nil, sigs: [], inputs: [], outputs: [], tx_data: nil, metadata: nil)
 
   @doc """
   The associated value for the output type. It's a hard coded
