@@ -12,6 +12,7 @@
   "ex_abi": {:hex, :ex_abi, "0.2.2", "805c19edccb98ecd02a2eee1851d49f625ae036953ae45b3349468333b19870e", [:mix], [{:exth_crypto, "~> 0.1.6", [hex: :exth_crypto, repo: "hexpm", optional: false]}], "hexpm"},
   "ex_rlp": {:hex, :ex_rlp, "0.5.2", "7f4ce7bd55e543c054ce6d49629b01e9833c3462e3d547952be89865f39f2c58", [:mix], [], "hexpm"},
   "exactor": {:hex, :exactor, "2.2.4", "5efb4ddeb2c48d9a1d7c9b465a6fffdd82300eb9618ece5d34c3334d5d7245b1", [:mix], [], "hexpm"},
+  "excoveralls": {:hex, :excoveralls, "0.12.1", "a553c59f6850d0aff3770e4729515762ba7c8e41eedde03208182a8dc9d0ce07", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm"},
   "exjsx": {:hex, :exjsx, "4.0.0", "60548841e0212df401e38e63c0078ec57b33e7ea49b032c796ccad8cde794b5c", [:mix], [{:jsx, "~> 2.8.0", [hex: :jsx, repo: "hexpm", optional: false]}], "hexpm"},
   "exleveldb": {:hex, :exleveldb, "0.14.0", "8e9353bbce38482d6971d254c6b98ceb50f3f179c94732b5d17db1be426fca18", [:mix], [{:eleveldb, "~> 2.2.20", [hex: :eleveldb, repo: "hexpm", optional: false]}], "hexpm"},
   "exth_crypto": {:hex, :exth_crypto, "0.1.6", "8e636a9bcb75d8e32451be96e547a495121ed2178d078db294edb0f81f7cf2e8", [:mix], [{:binary, "~> 0.0.4", [hex: :binary, repo: "hexpm", optional: false]}, {:keccakf1600, "~> 2.0.0", [hex: :keccakf1600_orig, repo: "hexpm", optional: false]}, {:libsecp256k1, "~> 0.1.9", [hex: :libsecp256k1, repo: "hexpm", optional: false]}], "hexpm"},
