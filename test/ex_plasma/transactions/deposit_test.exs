@@ -20,14 +20,14 @@ defmodule ExPlasma.Transactions.DepositTest do
     end
   end
 
-  test "to_list/1 forms an RLP-encodable list for a deposit transaction" do
+  test "to_rlp/1 forms an RLP-encodable list for a deposit transaction" do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
 
     list =
       %Utxo{owner: owner, currency: currency, amount: 1}
       |> Deposit.new()
-      |> Transaction.to_list()
+      |> Transaction.to_rlp()
 
     assert list == [
              1,

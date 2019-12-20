@@ -25,7 +25,7 @@ defimpl ExPlasma.TypedData,
 
   def encode(%{inputs: inputs, outputs: outputs} = transaction, _options) do
     [transaction_type, _inputs, _outputs, transaction_data, metadata] =
-      Transaction.to_list(transaction)
+      Transaction.to_rlp(transaction)
 
     encoded_inputs = Enum.map(inputs, &encode_as_input/1)
     encoded_outputs = Enum.map(outputs, &encode_as_output/1)
