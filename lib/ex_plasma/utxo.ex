@@ -133,31 +133,31 @@ defmodule ExPlasma.Utxo do
 
   @doc """
   Converts a Utxo into an RLP-encodable list. If your Utxo contains both sets of input/output data,
-  use the `to_input_list` or `to_output_list` methods instead.
+  use the `to_input_rlp` or `to_output_rlp` methods instead.
 
   ## Example
 
     # Convert from an `input` Utxo
     iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
-    iex> Utxo.to_list(utxo)
+    iex> Utxo.to_rlp(utxo)
     <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 119, 53, 187, 17>>
 
     # Convert from an `output` Utxo
     iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{amount: 2}
-    iex> Utxo.to_list(utxo)
+    iex> Utxo.to_rlp(utxo)
     [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<2>>]
     ]
   """
-  def to_list(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo),
-    do: to_output_list(utxo)
+  def to_rlp(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo),
+    do: to_output_rlp(utxo)
 
-  def to_list(%{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = utxo),
-    do: to_input_list(utxo)
+  def to_rlp(%{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = utxo),
+    do: to_input_rlp(utxo)
 
   @doc """
   Convert a given utxo into an RLP-encodable input list.
@@ -166,12 +166,12 @@ defmodule ExPlasma.Utxo do
 
     iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{blknum: 2, oindex: 1, txindex: 1}
-    iex> Utxo.to_input_list(utxo)
+    iex> Utxo.to_input_rlp(utxo)
     <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 119, 53, 187, 17>>
   """
-  @spec to_input_list(__MODULE__.t()) :: binary()
-  def to_input_list(%{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
+  @spec to_input_rlp(__MODULE__.t()) :: binary()
+  def to_input_rlp(%{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
     utxo |> pos() |> :binary.encode_unsigned(:big) |> pad_binary()
   end
@@ -182,7 +182,7 @@ defmodule ExPlasma.Utxo do
   ## Examples
 
     iex> alias ExPlasma.Utxo
-    iex> Utxo.to_output_list(%Utxo{})
+    iex> Utxo.to_output_rlp(%Utxo{})
     [
       <<1>>,
       [
@@ -195,7 +195,7 @@ defmodule ExPlasma.Utxo do
     # Produces list with address hashes
     iex> alias ExPlasma.Utxo
     iex> address = "0x0000000000000000000000000000000000000000"
-    iex> Utxo.to_output_list(%Utxo{owner: address, currency: address, amount: 1})
+    iex> Utxo.to_output_rlp(%Utxo{owner: address, currency: address, amount: 1})
     [
       <<1>>,
       [
@@ -205,17 +205,17 @@ defmodule ExPlasma.Utxo do
       ]
     ]
   """
-  @spec to_output_list(struct()) :: list(binary)
-  def to_output_list(%{amount: amount} = utxo) when is_integer(amount),
-    do: to_output_list(%{utxo | amount: <<amount::integer-size(256)>>})
+  @spec to_output_rlp(struct()) :: list(binary)
+  def to_output_rlp(%{amount: amount} = utxo) when is_integer(amount),
+    do: to_output_rlp(%{utxo | amount: <<amount::integer-size(256)>>})
 
-  def to_output_list(%{currency: <<_::336>> = currency} = utxo),
-    do: to_output_list(%{utxo | currency: to_binary(currency)})
+  def to_output_rlp(%{currency: <<_::336>> = currency} = utxo),
+    do: to_output_rlp(%{utxo | currency: to_binary(currency)})
 
-  def to_output_list(%{owner: <<_::336>> = owner} = utxo),
-    do: to_output_list(%{utxo | owner: to_binary(owner)})
+  def to_output_rlp(%{owner: <<_::336>> = owner} = utxo),
+    do: to_output_rlp(%{utxo | owner: to_binary(owner)})
 
-  def to_output_list(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::256>>} = utxo),
+  def to_output_rlp(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::256>>} = utxo),
     do: [<<utxo.output_type>>, [utxo.owner, utxo.currency, truncate_leading_zero(utxo.amount)]]
 
   defp pad_binary(unpadded) do

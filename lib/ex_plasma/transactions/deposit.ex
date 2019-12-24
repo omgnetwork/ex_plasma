@@ -25,20 +25,20 @@ defmodule ExPlasma.Transactions.Deposit do
           metadata: binary()
         }
 
-  defstruct(sigs: [], inputs: [], outputs: [], metadata: nil)
+  defstruct(tx_type: nil, sigs: [], inputs: [], outputs: [], tx_data: nil, metadata: nil)
 
   @doc """
   The associated value for the output type. It's a hard coded
   value you can find on the contracts
   """
-  @spec output_type() :: non_neg_integer()
+  @spec output_type() :: 1
   def output_type(), do: @output_type
 
   @doc """
   The associated value for the transaction type. It's a hard coded
   value you can find on the contracts
   """
-  @spec transaction_type() :: non_neg_integer()
+  @spec transaction_type() :: 1
   def transaction_type(), do: @transaction_type
 
   @doc """
