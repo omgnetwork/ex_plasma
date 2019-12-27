@@ -29,7 +29,7 @@ defmodule ExPlasma.Utxo do
   """
 
   alias ExPlasma.Transaction
-  import ExPlasma.Encoding, only: [to_binary: 1, to_hex: 1]
+  import ExPlasma.Encoding, only: [to_binary: 1, to_hex: 1, to_int: 1]
 
   @type t :: %__MODULE__{
           blknum: non_neg_integer(),
@@ -67,7 +67,7 @@ defmodule ExPlasma.Utxo do
       iex> alias ExPlasma.Utxo
       iex> Utxo.new([<<1>>, [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]])
       %ExPlasma.Utxo{
-        amount: <<13, 224, 182, 179, 167, 100, 0, 0>>,
+        amount: 1000000000000000000,
         blknum: 0,
         currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         oindex: 0,
@@ -105,8 +105,11 @@ defmodule ExPlasma.Utxo do
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
   def new([<<output_type>>, rest_of_output]), do: new([output_type, rest_of_output])
 
-  def new([output_type, [owner, currency, amount]]),
+  def new([output_type, [owner, currency, amount]]) when is_integer(amount),
     do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
+
+  def new([output_type, [owner, currency, amount]]),
+    do: new([output_type, [owner, currency, to_int(amount)]])
 
   def new(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
     do: encoded_pos |> :binary.decode_unsigned(:big) |> new()

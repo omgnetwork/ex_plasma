@@ -79,14 +79,21 @@ defmodule ExPlasma.Encoding do
 
   ## Examples
 
-  iex> ExPlasma.Encoding.to_int("0xb")
-  11
+    # Convert a hex string into an integer
+    iex> ExPlasma.Encoding.to_int("0xb")
+    11
+
+    # Convert a binary into an integer
+    iex> ExPlasma.Encoding.to_int(<<11>>)
+    11
   """
   @spec to_int(String.t()) :: non_neg_integer
   def to_int("0x" <> encoded) do
     {return, ""} = Integer.parse(encoded, 16)
     return
   end
+
+  def to_int(encoded) when is_binary(encoded), do: :binary.decode_unsigned(encoded, :big)
 
   @doc """
   Converts a hex string into a binary.
