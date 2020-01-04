@@ -4,7 +4,17 @@ defmodule ExPlasma.UtxoTest do
 
   alias ExPlasma.Utxo
 
-  describe "encode1/" do
+  describe "to_rlp/1" do
+    test "encodes a zero position input utxo" do
+      utxo = %Utxo{blknum: 0, oindex: 0, txindex: 0}
+      rlp = Utxo.to_rlp(utxo)
+
+      assert rlp == <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+    end
+  end
+
+  describe "encode/1" do
     test "encodes the output utxo into an eip712 encoded object" do
       encoded = ExPlasma.TypedData.encode(%Utxo{})
 

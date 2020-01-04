@@ -156,11 +156,12 @@ defmodule ExPlasma.Utxo do
       <<2>>]
     ]
   """
+  def to_rlp(%{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = utxo),
+    do: to_input_rlp(utxo)
+
   def to_rlp(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo),
     do: to_output_rlp(utxo)
 
-  def to_rlp(%{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = utxo),
-    do: to_input_rlp(utxo)
 
   @doc """
   Convert a given utxo into an RLP-encodable input list.
