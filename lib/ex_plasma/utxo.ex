@@ -162,7 +162,6 @@ defmodule ExPlasma.Utxo do
   def to_rlp(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo),
     do: to_output_rlp(utxo)
 
-
   @doc """
   Convert a given utxo into an RLP-encodable input list.
 

@@ -9,14 +9,15 @@ defmodule ExPlasma.UtxoTest do
       utxo = %Utxo{blknum: 0, oindex: 0, txindex: 0}
       rlp = Utxo.to_rlp(utxo)
 
-      assert rlp == <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-               0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+      assert rlp ==
+               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0>>
     end
   end
 
   describe "encode/1" do
     test "encodes the output utxo into an eip712 encoded object" do
-      encoded = ExPlasma.TypedData.encode(%Utxo{})
+      encoded = ExPlasma.TypedData.encode(%Utxo{amount: 10})
 
       assert encoded ==
                [
@@ -28,7 +29,7 @@ defmodule ExPlasma.UtxoTest do
                  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                    0, 0, 0, 0, 0, 0>>,
                  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                   0, 0, 0, 0, 0, 0>>
+                   0, 0, 0, 0, 0, 10>>
                ]
     end
 
@@ -48,11 +49,21 @@ defmodule ExPlasma.UtxoTest do
     end
   end
 
-  test "hash/1 encodes the utxo into an eip712 encoded hash" do
-    hashed = ExPlasma.TypedData.hash(%Utxo{})
+  describe "hash/1" do
+    test "encodes the input utxo into an eip712 encoded hash" do
+      hashed = ExPlasma.TypedData.hash(%Utxo{})
 
-    assert hashed ==
-             <<22, 128, 49, 205, 142, 208, 94, 252, 229, 149, 39, 106, 89, 4, 92, 171, 247, 163,
-               61, 20, 164, 220, 173, 30, 161, 111, 221, 12, 152, 173, 117, 152>>
+      assert hashed ==
+               <<26, 89, 51, 235, 11, 50, 35, 176, 80, 15, 187, 231, 3, 156, 171, 155, 173, 192,
+                 6, 173, 218, 108, 243, 211, 55, 117, 20, 18, 253, 122, 75, 97>>
+    end
+
+    test "encodes the output utxo into an eip712 encoded hash" do
+      hashed = ExPlasma.TypedData.hash(%Utxo{amount: 10})
+
+      assert hashed ==
+               <<215, 8, 60, 19, 55, 10, 155, 112, 243, 199, 49, 150, 131, 140, 14, 12, 157, 118,
+                 195, 214, 198, 94, 223, 77, 159, 186, 45, 211, 125, 37, 234, 32>>
+    end
   end
 end
