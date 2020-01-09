@@ -4,6 +4,16 @@ defmodule ExPlasma.UtxoTest do
 
   alias ExPlasma.Utxo
 
+  describe "new/1" do
+    test "does not allow amount to be zero" do
+      assert {:error, {:amount, :cannot_be_zero}} == Utxo.new(%{amount: 0})
+    end
+
+    test "does not allow output guard / owner to be zero" do
+      assert {:error, {:output_guard, :cannot_be_zero}} == Utxo.new(%{output_guard: <<0::160>>})
+    end
+  end
+
   describe "to_rlp/1" do
     test "encodes a zero position input utxo" do
       utxo = %Utxo{blknum: 0, oindex: 0, txindex: 0}

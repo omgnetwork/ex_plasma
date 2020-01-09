@@ -103,6 +103,8 @@ defmodule ExPlasma.Utxo do
       }
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
+  def new(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
+  def new(%{output_guard: <<0::160>>}), do: {:error, {:output_guard, :cannot_be_zero}}
   def new([<<output_type>>, rest_of_output]), do: new([output_type, rest_of_output])
 
   def new([output_type, [owner, currency, amount]]) when is_integer(amount),
