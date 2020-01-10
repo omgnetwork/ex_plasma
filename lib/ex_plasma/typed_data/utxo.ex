@@ -30,7 +30,8 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Utxo do
   end
 
   defp do_encode(encoded_utxo_pos) when is_binary(encoded_utxo_pos) do
-    %Utxo{blknum: blknum, txindex: txindex, oindex: oindex} = encoded_utxo_pos |> Utxo.new()
+    {:ok, %Utxo{blknum: blknum, txindex: txindex, oindex: oindex}} =
+      encoded_utxo_pos |> Utxo.new()
 
     [
       @input_signature,

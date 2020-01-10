@@ -111,14 +111,17 @@ defmodule ExPlasma.Transaction do
     do: new([[], tx_type, inputs, outputs, tx_data, metadata])
 
   def new([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
-    %__MODULE__{
-      tx_type: tx_type,
-      sigs: sigs,
-      inputs: Enum.map(inputs, &Utxo.new/1),
-      outputs: Enum.map(outputs, &Utxo.new/1),
-      tx_data: tx_data,
-      metadata: metadata
-    }
+    with {:ok, inputs} <- build_utxos(inputs),
+         {:ok, outputs} <- build_utxos(outputs) do
+      %__MODULE__{
+        tx_type: tx_type,
+        sigs: sigs,
+        inputs: inputs,
+        outputs: outputs,
+        tx_data: tx_data,
+        metadata: metadata
+      }
+    end
   end
 
   @doc """
@@ -167,7 +170,7 @@ defmodule ExPlasma.Transaction do
 
   ## Examples
 
-    iex> rlp_encoded = <<248, 116, 128, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+    iex> rlp_encoded = <<248, 116, 128, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
     iex> ExPlasma.Transaction.decode(rlp_encoded)
     %ExPlasma.Transaction{
       inputs: [
@@ -184,12 +187,12 @@ defmodule ExPlasma.Transaction do
       metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       outputs: [
         %ExPlasma.Utxo{
-          amount: 0,
+          amount: 1,
           blknum: 0,
           currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
           oindex: 0,
           output_type: 1,
-          owner: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+          owner: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
           txindex: 0
         }
       ],
@@ -241,5 +244,17 @@ defmodule ExPlasma.Transaction do
     eip712_hash = ExPlasma.TypedData.hash(transaction)
     sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
     %{transaction | sigs: sigs}
+  end
+
+  # Builds list of utxos and propogates error tuples up the stack.
+  defp build_utxos([]), do: {:ok, []}
+
+  defp build_utxos(utxos) do
+    Enum.reduce_while(utxos, [], fn utxo, acc ->
+      case Utxo.new(utxo) do
+        {:ok, utxo} -> {:cont, {:ok, acc ++ [utxo]}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
   end
 end

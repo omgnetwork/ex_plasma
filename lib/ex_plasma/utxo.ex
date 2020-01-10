@@ -66,7 +66,7 @@ defmodule ExPlasma.Utxo do
       # Create a Utxo from an Output RLP list
       iex> alias ExPlasma.Utxo
       iex> Utxo.new([<<1>>, [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]])
-      %ExPlasma.Utxo{
+      {:ok, %ExPlasma.Utxo{
         amount: 1000000000000000000,
         blknum: 0,
         currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -75,40 +75,47 @@ defmodule ExPlasma.Utxo do
         owner: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125,
           202, 87, 133, 226, 40, 180>>,
         txindex: 0
-      }
+      }}
 
       # Create a Utxo from an Input RLP Item (encoded utxo position)
       iex> alias ExPlasma.Utxo
       iex> Utxo.new(<<233, 16, 63, 218, 0>>)
-      %ExPlasma.Utxo{
+      {:ok, %ExPlasma.Utxo{
         amount: 0,
         blknum: 1001,
         currency: "0x0000000000000000000000000000000000000000",
         oindex: 0,
         owner: "0x0000000000000000000000000000000000000000",
         txindex: 0
-      }
+      }}
 
       # Create a Utxo from a Utxo position.
       iex> alias ExPlasma.Utxo
       iex> pos = 2000010001
       iex> Utxo.new(pos)
-      %ExPlasma.Utxo{
+      {:ok, %ExPlasma.Utxo{
         amount: 0,
         blknum: 2,
         currency: "0x0000000000000000000000000000000000000000",
         oindex: 1,
         owner: "0x0000000000000000000000000000000000000000",
         txindex: 1
-      }
+      }}
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
   def new(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
   def new(%{output_guard: <<0::160>>}), do: {:error, {:output_guard, :cannot_be_zero}}
+
+  def new([_output_type, [<<0::160>>, _currency, _amount]]),
+    do: {:error, {:output_guard, :cannot_be_zero}}
+
+  def new([_output_type, [_owner, _currency, 0]]), do: {:error, {:amount, :cannot_be_zero}}
   def new([<<output_type>>, rest_of_output]), do: new([output_type, rest_of_output])
 
   def new([output_type, [owner, currency, amount]]) when is_integer(amount),
-    do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
+    do:
+      {:ok,
+       %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}}
 
   def new([output_type, [owner, currency, amount]]),
     do: new([output_type, [owner, currency, to_int(amount)]])
@@ -120,7 +127,7 @@ defmodule ExPlasma.Utxo do
     blknum = div(utxo_pos, @block_offset)
     txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
     oindex = rem(utxo_pos, @transaction_offset)
-    %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}
+    {:ok, %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}}
   end
 
   @doc """

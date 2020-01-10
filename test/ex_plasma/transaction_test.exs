@@ -4,6 +4,53 @@ defmodule ExPlasma.TransactionTest do
 
   alias ExPlasma.Transaction
 
+  describe "new/1" do
+    test "does not allow amount to be zero" do
+      rlp = [
+        <<1>>,
+        [<<0>>],
+        [
+          [
+            <<1>>,
+            [
+              <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
+                0, 110>>,
+              <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
+                0, 110>>,
+              <<0, 0, 0, 0, 0, 0, 0, 0>>
+            ]
+          ]
+        ],
+        <<0>>,
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+      ]
+
+      assert {:error, {:amount, :cannot_be_zero}} == Transaction.new(rlp)
+    end
+
+    test "does not allow output guard / owner to be zero" do
+      rlp = [
+        <<1>>,
+        [<<0>>],
+        [
+          [
+            <<1>>,
+            [
+              <<0::160>>,
+              <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
+                0, 110>>,
+              <<0, 0, 0, 0, 0, 0, 0, 0>>
+            ]
+          ]
+        ],
+        <<0>>,
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+      ]
+
+      assert {:error, {:output_guard, :cannot_be_zero}} == Transaction.new(rlp)
+    end
+  end
+
   test "to_rlp/1 includes the sigs for a transaction" do
     transaction = %Transaction{
       sigs: ["0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"]
