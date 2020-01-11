@@ -14,7 +14,7 @@ defmodule ExPlasma.UtxoTest do
     end
 
     test "does not allow blknum to exceed maximum" do
-      assert {:error, {:blknum, :exceeds_maximium}} == Utxo.new(%Utxo{blknum: 1_000_000_000_000_000})
+      assert {:error, {:blknum, :exceeds_maximium}} == Utxo.new(%Utxo{blknum: 1_000_000_000_000})
     end
   end
 
@@ -31,7 +31,8 @@ defmodule ExPlasma.UtxoTest do
 
   describe "encode/1" do
     test "encodes the output utxo into an eip712 encoded object" do
-      encoded = ExPlasma.TypedData.encode(%Utxo{amount: 10})
+      utxo = %Utxo{amount: 10, currency: <<0::160>>, owner: <<0::160>>}
+      encoded = ExPlasma.TypedData.encode(utxo)
 
       assert encoded ==
                [
@@ -48,7 +49,8 @@ defmodule ExPlasma.UtxoTest do
     end
 
     test "encodes the input utxo into an eip712 encoded object" do
-      encoded = ExPlasma.TypedData.encode(%Utxo{blknum: 1000})
+      utxo = %Utxo{blknum: 1000, txindex: 0, oindex: 0}
+      encoded = ExPlasma.TypedData.encode(utxo)
 
       assert encoded ==
                [
@@ -65,7 +67,8 @@ defmodule ExPlasma.UtxoTest do
 
   describe "hash/1" do
     test "encodes the input utxo into an eip712 encoded hash" do
-      hashed = ExPlasma.TypedData.hash(%Utxo{})
+      utxo = %Utxo{blknum: 0, txindex: 0, oindex: 0}
+      hashed = ExPlasma.TypedData.hash(utxo)
 
       assert hashed ==
                <<26, 89, 51, 235, 11, 50, 35, 176, 80, 15, 187, 231, 3, 156, 171, 155, 173, 192,
@@ -73,7 +76,8 @@ defmodule ExPlasma.UtxoTest do
     end
 
     test "encodes the output utxo into an eip712 encoded hash" do
-      hashed = ExPlasma.TypedData.hash(%Utxo{amount: 10})
+      utxo = %Utxo{amount: 10, currency: <<0::160>>, owner: <<0::160>>}
+      hashed = ExPlasma.TypedData.hash(utxo)
 
       assert hashed ==
                <<215, 8, 60, 19, 55, 10, 155, 112, 243, 199, 49, 150, 131, 140, 14, 12, 157, 118,

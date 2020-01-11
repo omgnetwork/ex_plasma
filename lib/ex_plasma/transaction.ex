@@ -88,9 +88,9 @@ defmodule ExPlasma.Transaction do
     ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
     ...>]
     iex> ExPlasma.Transaction.new(rlp)
-  	 %ExPlasma.Transaction{inputs: [%ExPlasma.Utxo{amount: 0, blknum: 0, currency: "0x0000000000000000000000000000000000000000", oindex: 0, owner: "0x0000000000000000000000000000000000000000", txindex: 0 }],
+  	 %ExPlasma.Transaction{inputs: [%ExPlasma.Utxo{amount: nil, blknum: 0, currency: nil, oindex: 0, owner: nil, txindex: 0 }],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-        outputs: [%ExPlasma.Utxo{amount: 1, blknum: 0, currency: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, oindex: 0, owner: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, txindex: 0}],
+        outputs: [%ExPlasma.Utxo{amount: 1, blknum: nil, currency: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, oindex: nil, owner: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, txindex: nil}],
         tx_data: 0,
         tx_type: 1,
         sigs: []}
@@ -175,12 +175,12 @@ defmodule ExPlasma.Transaction do
     %ExPlasma.Transaction{
       inputs: [
         %ExPlasma.Utxo{
-          amount: 0,
+          amount: nil,
           blknum: 0,
-          currency: "0x0000000000000000000000000000000000000000",
+          currency: nil,
           oindex: 0,
           output_type: 1,
-          owner: "0x0000000000000000000000000000000000000000",
+          owner: nil,
           txindex: 0
         }
       ],
@@ -188,12 +188,12 @@ defmodule ExPlasma.Transaction do
       outputs: [
         %ExPlasma.Utxo{
           amount: 1,
-          blknum: 0,
+          blknum: nil,
           currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-          oindex: 0,
+          oindex: nil,
           output_type: 1,
           owner: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
-          txindex: 0
+          txindex: nil
         }
       ],
       tx_type: "",

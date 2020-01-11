@@ -9,8 +9,9 @@ defmodule ExPlasma.Transactions.PaymentTest do
   test "to_rlp/1 forms an RLP-encodable list for a payment transaction" do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
-    utxo = %Utxo{owner: owner, currency: currency, amount: 1}
-    txn = Payment.new(%{inputs: [utxo], outputs: [utxo]})
+    input = %Utxo{blknum: 0, txindex: 0, oindex: 0}
+    output = %Utxo{owner: owner, currency: currency, amount: 1}
+    txn = Payment.new(%{inputs: [input], outputs: [output]})
     list = Transaction.to_rlp(txn)
 
     assert list == [
@@ -40,8 +41,9 @@ defmodule ExPlasma.Transactions.PaymentTest do
   test "encode/1 RLP encodes a payment transaction" do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
-    utxo = %Utxo{owner: owner, currency: currency, amount: 1}
-    txn = Payment.new(%{inputs: [utxo], outputs: [utxo]})
+    input = %Utxo{blknum: 0, txindex: 0, oindex: 0}
+    output = %Utxo{owner: owner, currency: currency, amount: 1}
+    txn = Payment.new(%{inputs: [input], outputs: [output]})
     encoded = Transaction.encode(txn)
 
     assert encoded ==

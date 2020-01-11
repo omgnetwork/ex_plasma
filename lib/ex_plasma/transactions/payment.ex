@@ -56,11 +56,11 @@ defmodule ExPlasma.Transactions.Payment do
     metadata: nil,
     outputs: [%ExPlasma.Utxo{
       amount: 1,
-      blknum: 0,
+      blknum: nil,
       currency: "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e",
-      oindex: 0,
+      oindex: nil,
       owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
-      txindex: 0}]
+      txindex: nil}]
   }
   """
   @spec new(map()) :: __MODULE__.t()

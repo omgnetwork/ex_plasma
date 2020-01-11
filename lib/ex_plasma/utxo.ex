@@ -49,16 +49,16 @@ defmodule ExPlasma.Utxo do
   # Contract settings
   @block_offset 1_000_000_000
   @transaction_offset 10_000
-  @max_txindex :math.pow(2,16) - 1
+  @max_txindex :math.pow(2, 16) - 1
   @max_blknum ((:math.pow(2, 54) - 1) - @max_txindex) / (@block_offset / @transaction_offset)
 
-  defstruct blknum: @empty_integer,
-            oindex: @empty_integer,
-            txindex: @empty_integer,
+  defstruct blknum: nil,
+            oindex: nil,
+            txindex: nil,
             output_type: @payment_output_type,
-            amount: @empty_integer,
-            currency: @empty_address,
-            owner: @empty_address
+            amount: nil,
+            currency: nil,
+            owner: nil
 
   @doc """
   Builds a new Utxo.
@@ -70,24 +70,24 @@ defmodule ExPlasma.Utxo do
       iex> Utxo.new([<<1>>, [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]])
       {:ok, %ExPlasma.Utxo{
         amount: 1000000000000000000,
-        blknum: 0,
+        blknum: nil,
         currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-        oindex: 0,
+        oindex: nil,
         output_type: 1,
         owner: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125,
           202, 87, 133, 226, 40, 180>>,
-        txindex: 0
+        txindex: nil
       }}
 
       # Create a Utxo from an Input RLP Item (encoded utxo position)
       iex> alias ExPlasma.Utxo
       iex> Utxo.new(<<233, 16, 63, 218, 0>>)
       {:ok, %ExPlasma.Utxo{
-        amount: 0,
+        amount: nil,
         blknum: 1001,
-        currency: "0x0000000000000000000000000000000000000000",
+        currency: nil,
         oindex: 0,
-        owner: "0x0000000000000000000000000000000000000000",
+        owner: nil,
         txindex: 0
       }}
 
@@ -96,17 +96,17 @@ defmodule ExPlasma.Utxo do
       iex> pos = 2000010001
       iex> Utxo.new(pos)
       {:ok, %ExPlasma.Utxo{
-        amount: 0,
+        amount: nil,
         blknum: 2,
-        currency: "0x0000000000000000000000000000000000000000",
+        currency: nil,
         oindex: 1,
-        owner: "0x0000000000000000000000000000000000000000",
+        owner: nil,
         txindex: 1
       }}
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: {:ok, __MODULE__.t()}
   def new(data) when is_list(data), do: data |> new!() |> validate_output()
-  def new(%__MODULE__{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = data), do: validate_input(data)
+  def new(%__MODULE__{owner: nil, currency: nil, amount: nil} = data), do: validate_input(data)
   def new(%__MODULE__{} = data), do: validate_output(data)
   def new(data), do: {:ok, new!(data)}
 
@@ -157,17 +157,17 @@ defmodule ExPlasma.Utxo do
 
     # Convert from an `output` Utxo
     iex> alias ExPlasma.Utxo
-    iex> utxo = %Utxo{amount: 2}
+    iex> utxo = %Utxo{amount: 2, currency: <<0::160>>, owner: <<0::160>>}
     iex> Utxo.to_rlp(utxo)
     [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<2>>]
     ]
   """
-  def to_rlp(%{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = utxo),
+  def to_rlp(%{owner: nil, currency: nil, amount: nil} = utxo),
     do: to_input_rlp(utxo)
 
-  def to_rlp(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo),
+  def to_rlp(%{blknum: nil, oindex: nil, txindex: nil} = utxo),
     do: to_output_rlp(utxo)
 
   @doc """
@@ -193,7 +193,7 @@ defmodule ExPlasma.Utxo do
   ## Examples
 
     iex> alias ExPlasma.Utxo
-    iex> Utxo.to_output_rlp(%Utxo{})
+    iex> Utxo.to_output_rlp(%Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>})
     [
       <<1>>,
       [
