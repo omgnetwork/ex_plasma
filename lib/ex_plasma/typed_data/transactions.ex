@@ -24,8 +24,23 @@ defimpl ExPlasma.TypedData,
   # Pre-computed hashes for hashing
   @empty_integer 0
   @empty_address to_hex(<<0::160>>)
-  @empty_input_hash TypedData.hash(%Utxo{blknum: @empty_integer, txindex: @empty_integer, oindex: @empty_integer}, as: :input)
-  @empty_output_hash TypedData.hash(%Utxo{output_type: @empty_integer, owner: @empty_address, currency: @empty_address, amount: @empty_integer}, as: :output)
+  @empty_input_hash TypedData.hash(
+                      %Utxo{
+                        blknum: @empty_integer,
+                        txindex: @empty_integer,
+                        oindex: @empty_integer
+                      },
+                      as: :input
+                    )
+  @empty_output_hash TypedData.hash(
+                       %Utxo{
+                         output_type: @empty_integer,
+                         owner: @empty_address,
+                         currency: @empty_address,
+                         amount: @empty_integer
+                       },
+                       as: :output
+                     )
 
   def encode(%{inputs: inputs, outputs: outputs} = transaction, _options) do
     [transaction_type, _inputs, _outputs, transaction_data, metadata] =

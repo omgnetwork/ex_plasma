@@ -29,7 +29,7 @@ defmodule ExPlasma.Utxo do
   """
 
   alias ExPlasma.Transaction
-  import ExPlasma.Encoding, only: [to_binary: 1, to_hex: 1, to_int: 1]
+  import ExPlasma.Encoding, only: [to_binary: 1, to_int: 1]
 
   @type t :: %__MODULE__{
           blknum: non_neg_integer(),
@@ -40,9 +40,6 @@ defmodule ExPlasma.Utxo do
           owner: Transaction.address() | Transaction.address_hash()
         }
 
-  @empty_integer 0
-  @empty_address to_hex(<<0::160>>)
-
   # Currently this is the only output type available.
   @payment_output_type 1
 
@@ -50,7 +47,7 @@ defmodule ExPlasma.Utxo do
   @block_offset 1_000_000_000
   @transaction_offset 10_000
   @max_txindex :math.pow(2, 16) - 1
-  @max_blknum ((:math.pow(2, 54) - 1) - @max_txindex) / (@block_offset / @transaction_offset)
+  @max_blknum (:math.pow(2, 54) - 1 - @max_txindex) / (@block_offset / @transaction_offset)
 
   defstruct blknum: nil,
             oindex: nil,
@@ -104,7 +101,8 @@ defmodule ExPlasma.Utxo do
         txindex: 1
       }}
   """
-  @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: {:ok, __MODULE__.t()}
+  @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) ::
+          {:ok, __MODULE__.t()}
   def new(data) when is_list(data), do: data |> new!() |> validate_output()
   def new(%__MODULE__{owner: nil, currency: nil, amount: nil} = data), do: validate_input(data)
   def new(%__MODULE__{} = data), do: validate_output(data)
@@ -243,7 +241,11 @@ defmodule ExPlasma.Utxo do
   defp validate_output(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
   defp validate_output(%{} = utxo), do: {:ok, utxo}
 
-  defp validate_input(%{blknum: blknum}) when is_integer(blknum) and blknum > @max_blknum, do: {:error, {:blknum, :exceeds_maximium}}
-  defp validate_input(%{txindex: txindex}) when is_integer(txindex) and txindex > @max_txindex, do: {:error, {:txindex, :exceeds_maximium}}
+  defp validate_input(%{blknum: blknum}) when is_integer(blknum) and blknum > @max_blknum,
+    do: {:error, {:blknum, :exceeds_maximium}}
+
+  defp validate_input(%{txindex: txindex}) when is_integer(txindex) and txindex > @max_txindex,
+    do: {:error, {:txindex, :exceeds_maximium}}
+
   defp validate_input(%{} = utxo), do: {:ok, utxo}
 end
