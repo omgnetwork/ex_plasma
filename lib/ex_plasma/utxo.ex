@@ -243,7 +243,7 @@ defmodule ExPlasma.Utxo do
   defp validate_output(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
   defp validate_output(%{} = utxo), do: {:ok, utxo}
 
-  defp validate_input(%{blknum: blknum}) when blknum > @max_blknum, do: {:error, {:blknum, :exceeds_maximium}}
-  defp validate_input(%{txindex: txindex}) when txindex > @max_txindex, do: {:error, {:txindex, :exceeds_maximium}}
+  defp validate_input(%{blknum: blknum}) when is_integer(blknum) and blknum > @max_blknum, do: {:error, {:blknum, :exceeds_maximium}}
+  defp validate_input(%{txindex: txindex}) when is_integer(txindex) and txindex > @max_txindex, do: {:error, {:txindex, :exceeds_maximium}}
   defp validate_input(%{} = utxo), do: {:ok, utxo}
 end
