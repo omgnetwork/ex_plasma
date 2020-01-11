@@ -12,6 +12,10 @@ defmodule ExPlasma.UtxoTest do
     test "does not allow output guard / owner to be zero" do
       assert {:error, {:output_guard, :cannot_be_zero}} == Utxo.new(%Utxo{owner: <<0::160>>})
     end
+
+    test "does not allow blknum to exceed maximum" do
+      assert {:error, {:blknum, :exceeds_maximium}} == Utxo.new(%Utxo{blknum: 1_000_000_000_000_000})
+    end
   end
 
   describe "to_rlp/1" do

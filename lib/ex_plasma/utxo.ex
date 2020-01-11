@@ -49,6 +49,8 @@ defmodule ExPlasma.Utxo do
   # Contract settings
   @block_offset 1_000_000_000
   @transaction_offset 10_000
+  @max_txindex :math.pow(2,16) - 1
+  @max_blknum ((:math.pow(2, 54) - 1) - @max_txindex) / (@block_offset / @transaction_offset)
 
   defstruct blknum: @empty_integer,
             oindex: @empty_integer,
@@ -104,7 +106,8 @@ defmodule ExPlasma.Utxo do
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: {:ok, __MODULE__.t()}
   def new(data) when is_list(data), do: data |> new!() |> validate_output()
-  def new(%__MODULE__{} = data), do: data |> validate_output()
+  def new(%__MODULE__{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = data), do: validate_input(data)
+  def new(%__MODULE__{} = data), do: validate_output(data)
   def new(data), do: {:ok, new!(data)}
 
   @spec new!(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
@@ -239,4 +242,8 @@ defmodule ExPlasma.Utxo do
   defp validate_output(%{owner: <<0::160>>}), do: {:error, {:output_guard, :cannot_be_zero}}
   defp validate_output(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
   defp validate_output(%{} = utxo), do: {:ok, utxo}
+
+  defp validate_input(%{blknum: blknum}) when blknum > @max_blknum, do: {:error, {:blknum, :exceeds_maximium}}
+  defp validate_input(%{txindex: txindex}) when txindex > @max_txindex, do: {:error, {:txindex, :exceeds_maximium}}
+  defp validate_input(%{} = utxo), do: {:ok, utxo}
 end
