@@ -102,32 +102,28 @@ defmodule ExPlasma.Utxo do
         txindex: 1
       }}
   """
-  @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
-  def new(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
-  def new(%{output_guard: <<0::160>>}), do: {:error, {:output_guard, :cannot_be_zero}}
+  @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: {:ok, __MODULE__.t()}
+  def new(data) when is_list(data), do: data |> new!() |> validate_output()
+  def new(%__MODULE__{} = data), do: data |> validate_output()
+  def new(data), do: {:ok, new!(data)}
 
-  def new([_output_type, [<<0::160>>, _currency, _amount]]),
-    do: {:error, {:output_guard, :cannot_be_zero}}
+  @spec new!(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
+  def new!([<<output_type>>, rest_of_output]), do: new!([output_type, rest_of_output])
 
-  def new([_output_type, [_owner, _currency, 0]]), do: {:error, {:amount, :cannot_be_zero}}
-  def new([<<output_type>>, rest_of_output]), do: new([output_type, rest_of_output])
+  def new!([output_type, [owner, currency, amount]]) when is_integer(amount),
+    do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
 
-  def new([output_type, [owner, currency, amount]]) when is_integer(amount),
-    do:
-      {:ok,
-       %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}}
+  def new!([output_type, [owner, currency, amount]]),
+    do: new!([output_type, [owner, currency, to_int(amount)]])
 
-  def new([output_type, [owner, currency, amount]]),
-    do: new([output_type, [owner, currency, to_int(amount)]])
+  def new!(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
+    do: encoded_pos |> :binary.decode_unsigned(:big) |> new!()
 
-  def new(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
-    do: encoded_pos |> :binary.decode_unsigned(:big) |> new()
-
-  def new(utxo_pos) when is_integer(utxo_pos) do
+  def new!(utxo_pos) when is_integer(utxo_pos) do
     blknum = div(utxo_pos, @block_offset)
     txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
     oindex = rem(utxo_pos, @transaction_offset)
-    {:ok, %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}}
+    %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}
   end
 
   @doc """
@@ -238,4 +234,9 @@ defmodule ExPlasma.Utxo do
   defp truncate_leading_zero(<<0>>), do: <<0>>
   defp truncate_leading_zero(<<0>> <> binary), do: truncate_leading_zero(binary)
   defp truncate_leading_zero(binary), do: binary
+
+  # Validates that the Utxo is in the expected formats. Returns an error tuple
+  defp validate_output(%{owner: <<0::160>>}), do: {:error, {:output_guard, :cannot_be_zero}}
+  defp validate_output(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
+  defp validate_output(%{} = utxo), do: {:ok, utxo}
 end

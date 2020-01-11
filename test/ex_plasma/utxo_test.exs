@@ -6,11 +6,11 @@ defmodule ExPlasma.UtxoTest do
 
   describe "new/1" do
     test "does not allow amount to be zero" do
-      assert {:error, {:amount, :cannot_be_zero}} == Utxo.new(%{amount: 0})
+      assert {:error, {:amount, :cannot_be_zero}} == Utxo.new(%Utxo{amount: 0})
     end
 
     test "does not allow output guard / owner to be zero" do
-      assert {:error, {:output_guard, :cannot_be_zero}} == Utxo.new(%{output_guard: <<0::160>>})
+      assert {:error, {:output_guard, :cannot_be_zero}} == Utxo.new(%Utxo{owner: <<0::160>>})
     end
   end
 
