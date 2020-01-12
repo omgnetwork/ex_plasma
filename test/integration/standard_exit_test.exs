@@ -58,7 +58,14 @@ defmodule Integration.StandardExitTest do
 
     blknum = get_deposits_blknum()
 
-    %Utxo{blknum: blknum, txindex: 0, oindex: 0, amount: amount, currency: <<0::160>>, owner: owner}
+    %Utxo{
+      blknum: blknum,
+      txindex: 0,
+      oindex: 0,
+      amount: amount,
+      currency: <<0::160>>,
+      owner: owner
+    }
   end
 
   # Helper to send an entire utxo to another party.
