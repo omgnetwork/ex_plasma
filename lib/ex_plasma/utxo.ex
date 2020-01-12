@@ -237,7 +237,7 @@ defmodule ExPlasma.Utxo do
   defp truncate_leading_zero(binary), do: binary
 
   # Validates that the Utxo is in the expected formats. Returns an error tuple
-  defp validate_output(%{owner: <<0::160>>}), do: {:error, {:output_guard, :cannot_be_zero}}
+  defp validate_output(%{owner: <<0::160>>}), do: {:error, {:owner, :cannot_be_zero}}
   defp validate_output(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
   defp validate_output(%{} = utxo), do: {:ok, utxo}
 

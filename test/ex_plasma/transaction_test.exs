@@ -47,7 +47,7 @@ defmodule ExPlasma.TransactionTest do
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
       ]
 
-      assert {:error, {:output_guard, :cannot_be_zero}} == Transaction.new(rlp)
+      assert {:error, {:owner, :cannot_be_zero}} == Transaction.new(rlp)
     end
   end
 
