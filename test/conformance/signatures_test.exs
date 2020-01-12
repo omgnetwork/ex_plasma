@@ -26,10 +26,10 @@ defmodule Conformance.SignaturesTest do
     do: assert_signs_conform(%Payment{})
 
   test "signs without inputs",
-    do: assert_signs_conform(%Payment{outputs: [%Utxo{owner: authority_address(), amount: 1}]})
+    do: assert_signs_conform(%Payment{outputs: [%Utxo{owner: authority_address(), currency: <<0::160>>, amount: 1}]})
 
   test "signs without outputs",
-    do: assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1}]})
+    do: assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1, txindex: 0, oindex: 0}]})
 
   test "signs with metadata",
     do: %Transaction{metadata: <<1::160>>}
@@ -37,13 +37,14 @@ defmodule Conformance.SignaturesTest do
   test "signs with a minimal transaction (1x1)",
     do:
       assert_signs_conform(%Payment{
-        inputs: [%Utxo{blknum: 1}],
-        outputs: [%Utxo{owner: authority_address(), amount: 1}]
+        inputs: [%Utxo{blknum: 1, txindex: 0, oindex: 0}],
+        outputs: [%Utxo{owner: authority_address(), currency: <<0::160>>, amount: 1}]
       })
 
   test "signs with a filled transaction (4x4)" do
-    utxos = List.duplicate(%Utxo{blknum: 1, owner: authority_address(), amount: 1}, 4)
-    assert_signs_conform(%Payment{inputs: utxos, outputs: utxos})
+    inputs = List.duplicate(%Utxo{blknum: 1, txindex: 0, oindex: 0}, 4)
+    outputs = List.duplicate(%Utxo{amount: 1, currency: <<0::160>>, owner: authority_address()}, 4)
+    assert_signs_conform(%Payment{inputs: inputs, outputs: outputs})
   end
 
   defp assert_signs_conform(%{} = transaction) do

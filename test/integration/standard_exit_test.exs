@@ -53,12 +53,12 @@ defmodule Integration.StandardExitTest do
   #
   # Returns the input utxo for the deposit.
   defp deposit(from: owner, amount: amount) do
-    deposit = Deposit.new(owner: owner, amount: amount)
+    deposit = Deposit.new(owner: owner, currency: <<0::160>>, amount: amount)
     {:ok, _deposit_receipt_hash} = Client.deposit(deposit, to: :eth)
 
     blknum = get_deposits_blknum()
 
-    %Utxo{blknum: blknum, txindex: 0, oindex: 0, amount: amount, owner: owner}
+    %Utxo{blknum: blknum, txindex: 0, oindex: 0, amount: amount, currency: <<0::160>>, owner: owner}
   end
 
   # Helper to send an entire utxo to another party.
