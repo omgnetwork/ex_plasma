@@ -241,7 +241,14 @@ defmodule ExPlasma.Utxo do
   # Validates that the Utxo is in the expected formats. Returns an error tuple
   defp validate_output(%{owner: <<0::160>>}), do: {:error, {:owner, :cannot_be_zero}}
   defp validate_output(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
+  defp validate_output(%{amount: nil, currency: _, owner: _}), do: {:error, {:amount, :cannot_be_nil}}
+  defp validate_output(%{amount: _, currency: nil, owner: _}), do: {:error, {:currency, :cannot_be_nil}}
+  defp validate_output(%{amount: _, currency: _, owner: nil}), do: {:error, {:owner, :cannot_be_nil}}
   defp validate_output(%{} = utxo), do: {:ok, utxo}
+
+  defp validate_input(%{blknum: nil, txindex: _, oindex: _}), do: {:error, {:blknum, :cannot_be_nil}}
+  defp validate_input(%{blknum: _, txindex: nil, oindex: _}), do: {:error, {:txindex, :cannot_be_nil}}
+  defp validate_input(%{blknum: _, txindex: _, oindex: nil}), do: {:error, {:oindex, :cannot_be_nil}}
 
   defp validate_input(%{blknum: blknum}) when is_integer(blknum) and blknum > @max_blknum,
     do: {:error, {:blknum, :exceeds_maximum}}
