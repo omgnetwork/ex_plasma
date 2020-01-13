@@ -3,6 +3,7 @@ defmodule ExPlasma.TransactionTest do
   doctest ExPlasma.Transaction
 
   alias ExPlasma.Transaction
+  alias ExPlasma.Utxo
 
   describe "new/1" do
     test "does not allow amount to be zero" do
@@ -48,6 +49,30 @@ defmodule ExPlasma.TransactionTest do
       ]
 
       assert Transaction.new(rlp) == {:error, {:owner, :cannot_be_zero}}
+    end
+
+    test "build transaction with multiple inputs" do
+      inputs = [
+        %Utxo{blknum: 0, txindex: 0, oindex: 0},
+        %Utxo{blknum: 1, txindex: 0, oindex: 0},
+        %Utxo{blknum: 3, txindex: 0, oindex: 0}
+      ]
+
+      transaction = Transaction.new(%Transaction{inputs: inputs, outputs: []})
+
+      assert Enum.map(transaction.inputs, & &1.blknum/0) == [0, 1, 3]
+    end
+
+    test "build transaction with multiple outputs" do
+      outputs = [
+        %Utxo{amount: 1, currency: <<0::160>>, owner: <<0::160>>},
+        %Utxo{amount: 2, currency: <<0::160>>, owner: <<0::160>>},
+        %Utxo{amount: 3, currency: <<0::160>>, owner: <<0::160>>}
+      ]
+
+      transaction = Transaction.new(%Transaction{inputs: [], outputs: outputs})
+
+      assert Enum.map(transaction.outputs, & &1.amount/0) == [1, 2, 3]
     end
   end
 
