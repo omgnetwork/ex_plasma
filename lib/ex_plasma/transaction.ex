@@ -116,8 +116,8 @@ defmodule ExPlasma.Transaction do
       %__MODULE__{
         tx_type: tx_type,
         sigs: sigs,
-        inputs: inputs,
-        outputs: outputs,
+        inputs: inputs |> Enum.reverse() |> List.flatten(),
+        outputs: outputs |> Enum.reverse() |> List.flatten(),
         tx_data: tx_data,
         metadata: metadata
       }
@@ -252,7 +252,7 @@ defmodule ExPlasma.Transaction do
   defp build_utxos(utxos) do
     Enum.reduce_while(utxos, [], fn utxo, acc ->
       case Utxo.new(utxo) do
-        {:ok, utxo} -> {:cont, {:ok, acc ++ [utxo]}}
+        {:ok, utxo} -> {:cont, {:ok, [utxo | acc]}}
         {:error, reason} -> {:halt, {:error, reason}}
       end
     end)
