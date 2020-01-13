@@ -18,7 +18,7 @@ defmodule ExPlasma.UtxoTest do
     end
 
     test "does not allow txindex to exceed maximum" do
-      assert {:error, {:txindex, :exceeds_maximium}} == Utxo.new(%Utxo{txindex: 1_000_000_000})
+      assert {:error, {:txindex, :exceeds_maximum}} == Utxo.new(%Utxo{txindex: 1_000_000_000})
     end
   end
 
