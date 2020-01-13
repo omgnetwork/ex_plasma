@@ -6,19 +6,19 @@ defmodule ExPlasma.UtxoTest do
 
   describe "new/1" do
     test "does not allow amount to be zero" do
-      assert {:error, {:amount, :cannot_be_zero}} == Utxo.new(%Utxo{amount: 0})
+      assert Utxo.new(%Utxo{amount: 0}) == {:error, {:amount, :cannot_be_zero}}
     end
 
     test "does not allow output guard / owner to be zero" do
-      assert {:error, {:owner, :cannot_be_zero}} == Utxo.new(%Utxo{owner: <<0::160>>})
+      assert Utxo.new(%Utxo{owner: <<0::160>>}) == {:error, {:owner, :cannot_be_zero}}
     end
 
     test "does not allow blknum to exceed maximum" do
-      assert {:error, {:blknum, :exceeds_maximum}} == Utxo.new(%Utxo{blknum: 1_000_000_000_000})
+      assert Utxo.new(%Utxo{blknum: 1_000_000_000_000}) == {:error, {:blknum, :exceeds_maximum}}
     end
 
     test "does not allow txindex to exceed maximum" do
-      assert {:error, {:txindex, :exceeds_maximum}} == Utxo.new(%Utxo{txindex: 1_000_000_000})
+      assert Utxo.new(%Utxo{txindex: 1_000_000_000}) == {:error, {:txindex, :exceeds_maximum}}
     end
   end
 

@@ -34,7 +34,7 @@ defmodule ExPlasma.Utxo do
   @type t :: %__MODULE__{
           blknum: non_neg_integer() | nil,
           oindex: non_neg_integer() | nil,
-          txindex: non_neg_integer()| nil,
+          txindex: non_neg_integer() | nil,
           amount: non_neg_integer() | nil,
           currency: Transaction.address() | Transaction.address_hash() | nil,
           owner: Transaction.address() | Transaction.address_hash() | nil
@@ -244,10 +244,10 @@ defmodule ExPlasma.Utxo do
   defp validate_output(%{} = utxo), do: {:ok, utxo}
 
   defp validate_input(%{blknum: blknum}) when is_integer(blknum) and blknum > @max_blknum,
-    do: {:error, {:blknum, :exceeds_maximium}}
+    do: {:error, {:blknum, :exceeds_maximum}}
 
   defp validate_input(%{txindex: txindex}) when is_integer(txindex) and txindex > @max_txindex,
-    do: {:error, {:txindex, :exceeds_maximium}}
+    do: {:error, {:txindex, :exceeds_maximum}}
 
   defp validate_input(%{} = utxo), do: {:ok, utxo}
 end

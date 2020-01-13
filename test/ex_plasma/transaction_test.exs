@@ -25,7 +25,7 @@ defmodule ExPlasma.TransactionTest do
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
       ]
 
-      assert {:error, {:amount, :cannot_be_zero}} == Transaction.new(rlp)
+      assert Transaction.new(rlp) == {:error, {:amount, :cannot_be_zero}}
     end
 
     test "does not allow output guard / owner to be zero" do
@@ -47,7 +47,7 @@ defmodule ExPlasma.TransactionTest do
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
       ]
 
-      assert {:error, {:owner, :cannot_be_zero}} == Transaction.new(rlp)
+      assert Transaction.new(rlp) == {:error, {:owner, :cannot_be_zero}}
     end
   end
 
