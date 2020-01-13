@@ -6,31 +6,45 @@ defmodule ExPlasma.UtxoTest do
 
   describe "new/1" do
     test "validates all output utxo fields are present" do
-      assert Utxo.new(%Utxo{amount: nil, currency: <<0::160>>, owner: <<1::160>>}) == {:error, {:amount, :cannot_be_nil}}
-      assert Utxo.new(%Utxo{amount: 1, currency: nil, owner: <<1::160>>}) == {:error, {:currency, :cannot_be_nil}}
-      assert Utxo.new(%Utxo{amount: 1, currency: <<0::160>>, owner: nil}) == {:error, {:owner, :cannot_be_nil}}
+      assert Utxo.new(%Utxo{amount: nil, currency: <<0::160>>, owner: <<1::160>>}) ==
+               {:error, {:amount, :cannot_be_nil}}
+
+      assert Utxo.new(%Utxo{amount: 1, currency: nil, owner: <<1::160>>}) ==
+               {:error, {:currency, :cannot_be_nil}}
+
+      assert Utxo.new(%Utxo{amount: 1, currency: <<0::160>>, owner: nil}) ==
+               {:error, {:owner, :cannot_be_nil}}
     end
 
     test "validates all input utxo fields are present" do
-      assert Utxo.new(%Utxo{blknum: nil, txindex: 0, oindex: 0}) == {:error, {:blknum, :cannot_be_nil}}
-      assert Utxo.new(%Utxo{blknum: 0, txindex: nil, oindex: 0}) == {:error, {:txindex, :cannot_be_nil}}
-      assert Utxo.new(%Utxo{blknum: 0, txindex: 0, oindex: nil}) == {:error, {:oindex, :cannot_be_nil}}
+      assert Utxo.new(%Utxo{blknum: nil, txindex: 0, oindex: 0}) ==
+               {:error, {:blknum, :cannot_be_nil}}
+
+      assert Utxo.new(%Utxo{blknum: 0, txindex: nil, oindex: 0}) ==
+               {:error, {:txindex, :cannot_be_nil}}
+
+      assert Utxo.new(%Utxo{blknum: 0, txindex: 0, oindex: nil}) ==
+               {:error, {:oindex, :cannot_be_nil}}
     end
 
     test "does not allow amount to be zero" do
-      assert Utxo.new(%Utxo{amount: 0, currency: <<0::160>>, owner: <<1::160>>}) == {:error, {:amount, :cannot_be_zero}}
+      assert Utxo.new(%Utxo{amount: 0, currency: <<0::160>>, owner: <<1::160>>}) ==
+               {:error, {:amount, :cannot_be_zero}}
     end
 
     test "does not allow output guard / owner to be zero" do
-      assert Utxo.new(%Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>}) == {:error, {:owner, :cannot_be_zero}}
+      assert Utxo.new(%Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>}) ==
+               {:error, {:owner, :cannot_be_zero}}
     end
 
     test "does not allow blknum to exceed maximum" do
-      assert Utxo.new(%Utxo{blknum: 1_000_000_000_000, txindex: 0, oindex: 0}) == {:error, {:blknum, :exceeds_maximum}}
+      assert Utxo.new(%Utxo{blknum: 1_000_000_000_000, txindex: 0, oindex: 0}) ==
+               {:error, {:blknum, :exceeds_maximum}}
     end
 
     test "does not allow txindex to exceed maximum" do
-      assert Utxo.new(%Utxo{blknum: 1, txindex: 1_000_000_000, oindex: 0}) == {:error, {:txindex, :exceeds_maximum}}
+      assert Utxo.new(%Utxo{blknum: 1, txindex: 1_000_000_000, oindex: 0}) ==
+               {:error, {:txindex, :exceeds_maximum}}
     end
   end
 
