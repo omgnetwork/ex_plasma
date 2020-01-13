@@ -109,7 +109,9 @@ defimpl ExPlasma.TypedData,
   end
 
   defp hash_utxo([signature | encoded_list]) do
-    ([Encoding.keccak_hash(signature)] ++ encoded_list)
+    data = [Encoding.keccak_hash(signature) | encoded_list]
+
+    data
     |> Enum.join()
     |> Encoding.keccak_hash()
   end
