@@ -105,29 +105,10 @@ defmodule ExPlasma.Utxo do
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) ::
           {:ok, __MODULE__.t()} | {:error, {atom(), atom()}}
-  def new(data) when is_list(data), do: data |> new!() |> validate_output()
+  def new(data) when is_list(data), do: data |> do_new() |> validate_output()
   def new(%__MODULE__{owner: nil, currency: nil, amount: nil} = data), do: validate_input(data)
   def new(%__MODULE__{} = data), do: validate_output(data)
-  def new(data), do: {:ok, new!(data)}
-
-  @spec new!(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
-  def new!([<<output_type>>, rest_of_output]), do: new!([output_type, rest_of_output])
-
-  def new!([output_type, [owner, currency, amount]]) when is_integer(amount),
-    do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
-
-  def new!([output_type, [owner, currency, amount]]),
-    do: new!([output_type, [owner, currency, to_int(amount)]])
-
-  def new!(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
-    do: encoded_pos |> :binary.decode_unsigned(:big) |> new!()
-
-  def new!(utxo_pos) when is_integer(utxo_pos) do
-    blknum = div(utxo_pos, @block_offset)
-    txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
-    oindex = rem(utxo_pos, @transaction_offset)
-    %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}
-  end
+  def new(data), do: {:ok, do_new(data)}
 
   @doc """
   Returns the Utxo position(pos) number.
@@ -228,6 +209,24 @@ defmodule ExPlasma.Utxo do
 
   def to_output_rlp(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::256>>} = utxo),
     do: [<<utxo.output_type>>, [utxo.owner, utxo.currency, truncate_leading_zero(utxo.amount)]]
+
+  defp do_new([<<output_type>>, rest_of_output]), do: do_new([output_type, rest_of_output])
+
+  defp do_new([output_type, [owner, currency, amount]]) when is_integer(amount),
+    do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
+
+  defp do_new([output_type, [owner, currency, amount]]),
+    do: do_new([output_type, [owner, currency, to_int(amount)]])
+
+  defp do_new(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
+    do: encoded_pos |> :binary.decode_unsigned(:big) |> do_new()
+
+  defp do_new(utxo_pos) when is_integer(utxo_pos) do
+    blknum = div(utxo_pos, @block_offset)
+    txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
+    oindex = rem(utxo_pos, @transaction_offset)
+    %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}
+  end
 
   defp pad_binary(unpadded) do
     pad_size = (32 - byte_size(unpadded)) * 8
