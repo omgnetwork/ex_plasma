@@ -32,12 +32,12 @@ defmodule ExPlasma.Utxo do
   import ExPlasma.Encoding, only: [to_binary: 1, to_int: 1]
 
   @type t :: %__MODULE__{
-          blknum: non_neg_integer(),
-          oindex: non_neg_integer(),
-          txindex: non_neg_integer(),
-          amount: non_neg_integer(),
-          currency: Transaction.address() | Transaction.address_hash(),
-          owner: Transaction.address() | Transaction.address_hash()
+          blknum: non_neg_integer() | nil,
+          oindex: non_neg_integer() | nil,
+          txindex: non_neg_integer()| nil,
+          amount: non_neg_integer() | nil,
+          currency: Transaction.address() | Transaction.address_hash() | nil,
+          owner: Transaction.address() | Transaction.address_hash() | nil
         }
 
   # Currently this is the only output type available.
@@ -102,7 +102,7 @@ defmodule ExPlasma.Utxo do
       }}
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) ::
-          {:ok, __MODULE__.t()}
+          {:ok, __MODULE__.t()} | {:error, {atom(), atom()}}
   def new(data) when is_list(data), do: data |> new!() |> validate_output()
   def new(%__MODULE__{owner: nil, currency: nil, amount: nil} = data), do: validate_input(data)
   def new(%__MODULE__{} = data), do: validate_output(data)
@@ -214,7 +214,7 @@ defmodule ExPlasma.Utxo do
       ]
     ]
   """
-  @spec to_output_rlp(struct()) :: list(binary)
+  @spec to_output_rlp(struct()) :: list()
   def to_output_rlp(%{amount: amount} = utxo) when is_integer(amount),
     do: to_output_rlp(%{utxo | amount: <<amount::integer-size(256)>>})
 

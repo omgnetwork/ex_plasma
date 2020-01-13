@@ -7,6 +7,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Utxo do
 
   @doc """
   """
+  @spec encode(ExPlasma.Utxo.t(), any()) :: list()
   def encode(utxo, as: :input), do: utxo |> Utxo.to_input_rlp() |> do_encode()
   def encode(utxo, as: :output), do: utxo |> Utxo.to_output_rlp() |> do_encode()
   def encode(utxo, _options), do: utxo |> Utxo.to_rlp() |> do_encode()

@@ -20,8 +20,8 @@ defmodule ExPlasma.Transactions.Deposit do
 
   @type t :: %__MODULE__{
           sigs: list(String.t()),
-          inputs: list(Utxo.t()),
-          outputs: list(Utxo.t()),
+          inputs: list(ExPlasma.Utxo.t()),
+          outputs: list(ExPlasma.Utxo.t()),
           metadata: binary()
         }
 

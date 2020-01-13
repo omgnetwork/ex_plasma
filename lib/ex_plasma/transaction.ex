@@ -26,8 +26,8 @@ defmodule ExPlasma.Transaction do
 
   @type t :: %__MODULE__{
           sigs: [binary()] | [],
-          inputs: [Utxo.t()] | [],
-          outputs: [Utxo.t()] | [],
+          inputs: [ExPlasma.Utxo.t()] | [],
+          outputs: [ExPlasma.Utxo.t()] | [],
           metadata: __MODULE__.metadata() | nil
         }
 
