@@ -95,7 +95,7 @@ defmodule ExPlasma.Transaction do
         tx_type: 1,
         sigs: []}
   """
-  @spec new(struct() | nonempty_maybe_improper_list()) :: struct()
+  @spec new(struct() | nonempty_maybe_improper_list()) :: struct() | {:error, {atom(), atom()}}
   def new(%module{inputs: inputs, outputs: outputs} = transaction)
       when is_list(inputs) and is_list(outputs) do
     struct(module, Map.from_struct(transaction))
