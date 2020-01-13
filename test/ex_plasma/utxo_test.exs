@@ -14,7 +14,7 @@ defmodule ExPlasma.UtxoTest do
     end
 
     test "does not allow blknum to exceed maximum" do
-      assert {:error, {:blknum, :exceeds_maximium}} == Utxo.new(%Utxo{blknum: 1_000_000_000_000})
+      assert {:error, {:blknum, :exceeds_maximum}} == Utxo.new(%Utxo{blknum: 1_000_000_000_000})
     end
 
     test "does not allow txindex to exceed maximum" do
