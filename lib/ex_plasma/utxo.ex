@@ -44,6 +44,8 @@ defmodule ExPlasma.Utxo do
   @payment_output_type 1
 
   # Contract settings
+  # These are being hard-coded from the same values on the contracts.
+  # See: https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/contracts/src/utils/PosLib.sol#L16-L23
   @block_offset 1_000_000_000
   @transaction_offset 10_000
   @max_txindex :math.pow(2, 16) - 1
