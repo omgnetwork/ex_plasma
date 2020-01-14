@@ -29,34 +29,47 @@ defmodule ExPlasma.Utxo do
   """
 
   alias ExPlasma.Transaction
-  import ExPlasma.Encoding, only: [to_binary: 1, to_hex: 1, to_int: 1]
+  import ExPlasma.Encoding, only: [to_binary: 1, to_int: 1]
 
   @type t :: %__MODULE__{
-          blknum: non_neg_integer(),
-          oindex: non_neg_integer(),
-          txindex: non_neg_integer(),
-          amount: non_neg_integer(),
-          currency: Transaction.address() | Transaction.address_hash(),
-          owner: Transaction.address() | Transaction.address_hash()
+          blknum: non_neg_integer() | nil,
+          oindex: non_neg_integer() | nil,
+          txindex: non_neg_integer() | nil,
+          amount: non_neg_integer() | nil,
+          currency: Transaction.address() | Transaction.address_hash() | nil,
+          owner: Transaction.address() | Transaction.address_hash() | nil
         }
 
-  @empty_integer 0
-  @empty_address to_hex(<<0::160>>)
+  @type validation_tuples ::
+          {:blknum, :cannot_be_nil}
+          | {:blknum, :exceeds_maximum}
+          | {:oindex, :cannot_be_nil}
+          | {:txindex, :cannot_be_nil}
+          | {:txindex, :exceeds_maximum}
+          | {:amount, :cannot_be_nil}
+          | {:amount, :cannot_be_zero}
+          | {:currency, :cannot_be_nil}
+          | {:owner, :cannot_be_nil}
+          | {:owner, :cannot_be_zero}
 
   # Currently this is the only output type available.
   @payment_output_type 1
 
   # Contract settings
+  # These are being hard-coded from the same values on the contracts.
+  # See: https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/contracts/src/utils/PosLib.sol#L16-L23
   @block_offset 1_000_000_000
   @transaction_offset 10_000
+  @max_txindex :math.pow(2, 16) - 1
+  @max_blknum (:math.pow(2, 54) - 1 - @max_txindex) / (@block_offset / @transaction_offset)
 
-  defstruct blknum: @empty_integer,
-            oindex: @empty_integer,
-            txindex: @empty_integer,
+  defstruct blknum: nil,
+            oindex: nil,
+            txindex: nil,
             output_type: @payment_output_type,
-            amount: @empty_integer,
-            currency: @empty_address,
-            owner: @empty_address
+            amount: nil,
+            currency: nil,
+            owner: nil
 
   @doc """
   Builds a new Utxo.
@@ -66,60 +79,45 @@ defmodule ExPlasma.Utxo do
       # Create a Utxo from an Output RLP list
       iex> alias ExPlasma.Utxo
       iex> Utxo.new([<<1>>, [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]])
-      %ExPlasma.Utxo{
+      {:ok, %ExPlasma.Utxo{
         amount: 1000000000000000000,
-        blknum: 0,
+        blknum: nil,
         currency: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-        oindex: 0,
+        oindex: nil,
         output_type: 1,
         owner: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125,
           202, 87, 133, 226, 40, 180>>,
-        txindex: 0
-      }
+        txindex: nil
+      }}
 
       # Create a Utxo from an Input RLP Item (encoded utxo position)
       iex> alias ExPlasma.Utxo
       iex> Utxo.new(<<233, 16, 63, 218, 0>>)
-      %ExPlasma.Utxo{
-        amount: 0,
+      {:ok, %ExPlasma.Utxo{
+        amount: nil,
         blknum: 1001,
-        currency: "0x0000000000000000000000000000000000000000",
+        currency: nil,
         oindex: 0,
-        owner: "0x0000000000000000000000000000000000000000",
+        owner: nil,
         txindex: 0
-      }
+      }}
 
       # Create a Utxo from a Utxo position.
       iex> alias ExPlasma.Utxo
       iex> pos = 2000010001
       iex> Utxo.new(pos)
-      %ExPlasma.Utxo{
-        amount: 0,
+      {:ok, %ExPlasma.Utxo{
+        amount: nil,
         blknum: 2,
-        currency: "0x0000000000000000000000000000000000000000",
+        currency: nil,
         oindex: 1,
-        owner: "0x0000000000000000000000000000000000000000",
+        owner: nil,
         txindex: 1
-      }
+      }}
   """
-  @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) :: __MODULE__.t()
-  def new([<<output_type>>, rest_of_output]), do: new([output_type, rest_of_output])
-
-  def new([output_type, [owner, currency, amount]]) when is_integer(amount),
-    do: %__MODULE__{output_type: output_type, amount: amount, currency: currency, owner: owner}
-
-  def new([output_type, [owner, currency, amount]]),
-    do: new([output_type, [owner, currency, to_int(amount)]])
-
-  def new(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
-    do: encoded_pos |> :binary.decode_unsigned(:big) |> new()
-
-  def new(utxo_pos) when is_integer(utxo_pos) do
-    blknum = div(utxo_pos, @block_offset)
-    txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
-    oindex = rem(utxo_pos, @transaction_offset)
-    %__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex}
-  end
+  @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) ::
+          {:ok, __MODULE__.t()} | {:error, __MODULE__.validation_tuples()}
+  def new(data), do: do_new(data)
 
   @doc """
   Returns the Utxo position(pos) number.
@@ -149,17 +147,17 @@ defmodule ExPlasma.Utxo do
 
     # Convert from an `output` Utxo
     iex> alias ExPlasma.Utxo
-    iex> utxo = %Utxo{amount: 2}
+    iex> utxo = %Utxo{amount: 2, currency: <<0::160>>, owner: <<0::160>>}
     iex> Utxo.to_rlp(utxo)
     [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<2>>]
     ]
   """
-  def to_rlp(%{owner: @empty_address, currency: @empty_address, amount: @empty_integer} = utxo),
+  def to_rlp(%{owner: nil, currency: nil, amount: nil} = utxo),
     do: to_input_rlp(utxo)
 
-  def to_rlp(%{blknum: @empty_integer, oindex: @empty_integer, txindex: @empty_integer} = utxo),
+  def to_rlp(%{blknum: nil, oindex: nil, txindex: nil} = utxo),
     do: to_output_rlp(utxo)
 
   @doc """
@@ -185,7 +183,7 @@ defmodule ExPlasma.Utxo do
   ## Examples
 
     iex> alias ExPlasma.Utxo
-    iex> Utxo.to_output_rlp(%Utxo{})
+    iex> Utxo.to_output_rlp(%Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>})
     [
       <<1>>,
       [
@@ -208,7 +206,7 @@ defmodule ExPlasma.Utxo do
       ]
     ]
   """
-  @spec to_output_rlp(struct()) :: list(binary)
+  @spec to_output_rlp(struct()) :: list()
   def to_output_rlp(%{amount: amount} = utxo) when is_integer(amount),
     do: to_output_rlp(%{utxo | amount: <<amount::integer-size(256)>>})
 
@@ -221,6 +219,35 @@ defmodule ExPlasma.Utxo do
   def to_output_rlp(%{currency: <<_::160>>, owner: <<_::160>>, amount: <<_::256>>} = utxo),
     do: [<<utxo.output_type>>, [utxo.owner, utxo.currency, truncate_leading_zero(utxo.amount)]]
 
+  defp do_new([<<output_type>>, rest_of_output]), do: do_new([output_type, rest_of_output])
+
+  defp do_new([output_type, [owner, currency, amount]]) when is_integer(amount),
+    do:
+      do_new(%__MODULE__{
+        output_type: output_type,
+        amount: amount,
+        currency: currency,
+        owner: owner
+      })
+
+  defp do_new([output_type, [owner, currency, amount]]),
+    do: do_new([output_type, [owner, currency, to_int(amount)]])
+
+  defp do_new(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
+    do: encoded_pos |> :binary.decode_unsigned(:big) |> do_new()
+
+  defp do_new(utxo_pos) when is_integer(utxo_pos) do
+    blknum = div(utxo_pos, @block_offset)
+    txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
+    oindex = rem(utxo_pos, @transaction_offset)
+    do_new(%__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex})
+  end
+
+  defp do_new(%__MODULE__{owner: nil, currency: nil, amount: nil} = data),
+    do: validate_input(data)
+
+  defp do_new(%__MODULE__{} = data), do: validate_output(data)
+
   defp pad_binary(unpadded) do
     pad_size = (32 - byte_size(unpadded)) * 8
     <<0::size(pad_size)>> <> unpadded
@@ -229,4 +256,36 @@ defmodule ExPlasma.Utxo do
   defp truncate_leading_zero(<<0>>), do: <<0>>
   defp truncate_leading_zero(<<0>> <> binary), do: truncate_leading_zero(binary)
   defp truncate_leading_zero(binary), do: binary
+
+  # Validates that the Utxo is in the expected formats. Returns an error tuple
+  defp validate_output(%{owner: <<0::160>>}), do: {:error, {:owner, :cannot_be_zero}}
+  defp validate_output(%{amount: 0}), do: {:error, {:amount, :cannot_be_zero}}
+
+  defp validate_output(%{amount: nil, currency: _, owner: _}),
+    do: {:error, {:amount, :cannot_be_nil}}
+
+  defp validate_output(%{amount: _, currency: nil, owner: _}),
+    do: {:error, {:currency, :cannot_be_nil}}
+
+  defp validate_output(%{amount: _, currency: _, owner: nil}),
+    do: {:error, {:owner, :cannot_be_nil}}
+
+  defp validate_output(%{} = utxo), do: {:ok, utxo}
+
+  defp validate_input(%{blknum: nil, txindex: _, oindex: _}),
+    do: {:error, {:blknum, :cannot_be_nil}}
+
+  defp validate_input(%{blknum: _, txindex: nil, oindex: _}),
+    do: {:error, {:txindex, :cannot_be_nil}}
+
+  defp validate_input(%{blknum: _, txindex: _, oindex: nil}),
+    do: {:error, {:oindex, :cannot_be_nil}}
+
+  defp validate_input(%{blknum: blknum}) when is_integer(blknum) and blknum > @max_blknum,
+    do: {:error, {:blknum, :exceeds_maximum}}
+
+  defp validate_input(%{txindex: txindex}) when is_integer(txindex) and txindex > @max_txindex,
+    do: {:error, {:txindex, :exceeds_maximum}}
+
+  defp validate_input(%{} = utxo), do: {:ok, utxo}
 end

@@ -61,8 +61,11 @@ defmodule ExPlasma.ClientTest do
   describe "submit_block/3" do
     test "it submits a block of transactions" do
       use_cassette "submit_block", match_requests_on: [:request_body] do
+        input = %Utxo{blknum: 0, txindex: 0, oindex: 0}
+        output = %Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>}
+
         assert {:ok, _receipt_hash} =
-                 Payment.new(%{inputs: [%Utxo{}], outputs: [%Utxo{}]})
+                 Payment.new(%{inputs: [input], outputs: [output]})
                  |> List.wrap()
                  |> Block.new()
                  |> Client.submit_block()

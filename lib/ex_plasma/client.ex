@@ -149,7 +149,6 @@ defmodule ExPlasma.Client do
     eth_send_transaction(%{data: data}, options)
   end
 
-  @spec eth_send_transaction(map(), map()) :: tuple()
   defp eth_send_transaction(%{} = details, options) do
     txmap = merge_default_options(details, options)
 
@@ -159,7 +158,6 @@ defmodule ExPlasma.Client do
     end
   end
 
-  @spec merge_default_options(map(), map()) :: map()
   defp merge_default_options(details, options) when is_list(options),
     do: merge_default_options(details, Enum.into(options, %{}))
 
@@ -184,7 +182,6 @@ defmodule ExPlasma.Client do
 
   defp set_options_to_hex(%{} = options), do: options
 
-  @spec default_options() :: map()
   defp default_options() do
     %{
       from: authority_address(),
@@ -195,7 +192,6 @@ defmodule ExPlasma.Client do
     }
   end
 
-  @spec encode_data(String.t(), list()) :: binary
   defp encode_data(function_signature, data) do
     data = ABI.encode(function_signature, data)
     "0x" <> Base.encode16(data, case: :lower)

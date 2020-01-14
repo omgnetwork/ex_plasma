@@ -5,6 +5,8 @@ defimpl ExPlasma.TypedData,
   alias ExPlasma.TypedData
   alias ExPlasma.Utxo
 
+  import ExPlasma.Encoding, only: [to_hex: 1]
+
   # Prefix and version byte motivated by http://eips.ethereum.org/EIPS/eip-191
   @eip_191_prefix <<0x19, 0x01>>
 
@@ -20,8 +22,25 @@ defimpl ExPlasma.TypedData,
   @max_utxo_count 4
 
   # Pre-computed hashes for hashing
-  @empty_input_hash TypedData.hash(%Utxo{}, as: :input)
-  @empty_output_hash TypedData.hash(%Utxo{output_type: 0}, as: :output)
+  @empty_integer 0
+  @empty_address to_hex(<<0::160>>)
+  @empty_input_hash TypedData.hash(
+                      %Utxo{
+                        blknum: @empty_integer,
+                        txindex: @empty_integer,
+                        oindex: @empty_integer
+                      },
+                      as: :input
+                    )
+  @empty_output_hash TypedData.hash(
+                       %Utxo{
+                         output_type: @empty_integer,
+                         owner: @empty_address,
+                         currency: @empty_address,
+                         amount: @empty_integer
+                       },
+                       as: :output
+                     )
 
   def encode(%{inputs: inputs, outputs: outputs} = transaction, _options) do
     [transaction_type, _inputs, _outputs, transaction_data, metadata] =
