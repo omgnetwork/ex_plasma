@@ -13,11 +13,13 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Utxo do
 
   def hash(%{} = utxo, options), do: utxo |> encode(options) |> hash(options)
 
-  def hash([signature | encoded_list], _options),
-    do:
-      ([Encoding.keccak_hash(signature)] ++ encoded_list)
-      |> Enum.join()
-      |> Encoding.keccak_hash()
+  def hash([signature | encoded_list], _options) do
+    data = [Encoding.keccak_hash(signature) | encoded_list]
+
+    data
+    |> Enum.join()
+    |> Encoding.keccak_hash()
+  end
 
   defp do_encode([output_type, [owner, currency, amount]]) do
     [
