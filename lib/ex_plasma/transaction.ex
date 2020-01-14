@@ -116,8 +116,8 @@ defmodule ExPlasma.Transaction do
       %__MODULE__{
         tx_type: tx_type,
         sigs: sigs,
-        inputs: inputs |> Enum.reverse() |> List.flatten(),
-        outputs: outputs |> Enum.reverse() |> List.flatten(),
+        inputs: inputs,
+        outputs: outputs,
         tx_data: tx_data,
         metadata: metadata
       }

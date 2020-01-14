@@ -63,14 +63,76 @@ defmodule ExPlasma.TransactionTest do
       assert Enum.map(transaction.inputs, & &1.blknum/0) == [0, 1, 3]
     end
 
+    test "build transaction with multiple inputs rlp" do
+      rlp = [
+        0,
+        [
+          <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0>>,
+          <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            59, 154, 202, 0>>,
+          <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            178, 208, 94, 0>>
+        ],
+        [],
+        0,
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0>>
+      ]
+
+      transaction = Transaction.new(rlp)
+
+      assert Enum.map(transaction.inputs, & &1.blknum/0) == [0, 1, 3]
+    end
+
     test "build transaction with multiple outputs" do
       outputs = [
-        %Utxo{amount: 1, currency: <<0::160>>, owner: <<0::160>>},
-        %Utxo{amount: 2, currency: <<0::160>>, owner: <<0::160>>},
-        %Utxo{amount: 3, currency: <<0::160>>, owner: <<0::160>>}
+        %Utxo{amount: 1, currency: <<0::160>>, owner: <<1::160>>},
+        %Utxo{amount: 2, currency: <<0::160>>, owner: <<1::160>>},
+        %Utxo{amount: 3, currency: <<0::160>>, owner: <<1::160>>}
       ]
 
       transaction = Transaction.new(%Transaction{inputs: [], outputs: outputs})
+
+      assert Enum.map(transaction.outputs, & &1.amount/0) == [1, 2, 3]
+    end
+
+    test "build transaction with multiple outputs rlp" do
+      rlp = [
+        0,
+        [],
+        [
+          [
+            <<1>>,
+            [
+              <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
+              <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+              <<1>>
+            ]
+          ],
+          [
+            <<1>>,
+            [
+              <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
+              <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+              <<2>>
+            ]
+          ],
+          [
+            <<1>>,
+            [
+              <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
+              <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+              <<3>>
+            ]
+          ]
+        ],
+        0,
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0>>
+      ]
+
+      transaction = Transaction.new(rlp)
 
       assert Enum.map(transaction.outputs, & &1.amount/0) == [1, 2, 3]
     end
