@@ -252,7 +252,7 @@ defmodule ExPlasma.Transaction do
   defp build_utxos(utxos) do
     Enum.reduce_while(utxos, [], fn utxo, acc ->
       case Utxo.new(utxo) do
-        {:ok, utxo} -> {:cont, {:ok, [utxo | acc]}}
+        {:ok, result} -> {:cont, {:ok, [result | acc]}}
         {:error, reason} -> {:halt, {:error, reason}}
       end
     end)

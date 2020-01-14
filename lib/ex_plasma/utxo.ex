@@ -40,6 +40,11 @@ defmodule ExPlasma.Utxo do
           owner: Transaction.address() | Transaction.address_hash() | nil
         }
 
+  @type validation_tuples :: {
+    :blknum | :oindex | :txindex | :output_type | :amount | :currency | :owner,
+    :cannot_be_zero, :cannot_be_nil, :exceeds_maximum
+  }
+
   # Currently this is the only output type available.
   @payment_output_type 1
 
@@ -104,7 +109,7 @@ defmodule ExPlasma.Utxo do
       }}
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) ::
-          {:ok, __MODULE__.t()} | {:error, {atom(), atom()}}
+          {:ok, __MODULE__.t()} | {:error, __MODULE__.validation_tuples()}
   def new(data), do: do_new(data)
 
   @doc """
