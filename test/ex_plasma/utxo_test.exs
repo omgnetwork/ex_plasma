@@ -30,20 +30,46 @@ defmodule ExPlasma.UtxoTest do
     test "does not allow amount to be zero" do
       assert Utxo.new(%Utxo{amount: 0, currency: <<0::160>>, owner: <<1::160>>}) ==
                {:error, {:amount, :cannot_be_zero}}
+
+      rlp = [
+        <<1>>,
+        [
+          <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
+          <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+          <<0>>
+        ]
+      ]
+
+      assert Utxo.new(rlp) == {:error, {:amount, :cannot_be_zero}}
     end
 
     test "does not allow output guard / owner to be zero" do
       assert Utxo.new(%Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>}) ==
                {:error, {:owner, :cannot_be_zero}}
+
+      rlp = [
+        <<1>>,
+        [
+          <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+          <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+          <<1>>
+        ]
+      ]
+
+      assert Utxo.new(rlp) == {:error, {:owner, :cannot_be_zero}}
     end
 
     test "does not allow blknum to exceed maximum" do
+      assert Utxo.new(1_000_000_000_000_000_000_000) == {:error, {:blknum, :exceeds_maximum}}
+
       assert Utxo.new(%Utxo{blknum: 1_000_000_000_000, txindex: 0, oindex: 0}) ==
                {:error, {:blknum, :exceeds_maximum}}
     end
 
     test "does not allow txindex to exceed maximum" do
-      assert Utxo.new(%Utxo{blknum: 1, txindex: 1_000_000_000, oindex: 0}) ==
+      assert Utxo.new(1_655_360_000) == {:error, {:txindex, :exceeds_maximum}}
+
+      assert Utxo.new(%Utxo{blknum: 1, txindex: 65_536, oindex: 0}) ==
                {:error, {:txindex, :exceeds_maximum}}
     end
   end
