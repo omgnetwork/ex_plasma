@@ -247,6 +247,19 @@ defmodule ExPlasma.Transaction do
   end
 
   # Builds list of utxos and propogates error tuples up the stack.
+  # Builds list of utxos and propogates error tuples up the stack.
+  defp build_utxos(utxos), do: build_utxos(utxos, [])
+  defp build_utxos([], acc), do: {:ok, Enum.reverse(acc)}
+
+  defp build_utxos([utxo | utxos], acc) do
+    case Utxo.new(utxo) do
+      {:ok, utxo} ->
+        build_utxos(utxos, [utxo | acc])
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
   defp build_utxos([]), do: {:ok, []}
 
   defp build_utxos(utxos) do
