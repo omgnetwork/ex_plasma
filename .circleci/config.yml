@@ -78,7 +78,7 @@ jobs:
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
       - restore_cache:
-          key: v1-dialyzer-deps-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+          key: v1-dialyzer-plt-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
       - run:
           name: Unpack PLT cache
           command: |
