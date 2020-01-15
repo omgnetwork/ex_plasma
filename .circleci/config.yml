@@ -29,6 +29,7 @@ jobs:
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
       - run: mix test --exclude skip
+      - run: mix coveralls.circle
   credo:
     working_directory: ~/ex_plasma
     docker:

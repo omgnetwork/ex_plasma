@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/omisego/ex_plasma/badge.svg?branch=master)](https://coveralls.io/github/omisego/ex_plasma?branch=master)
+
 # ExPlasma
 
 **TODO: Add description**
