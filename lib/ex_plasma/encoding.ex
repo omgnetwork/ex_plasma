@@ -25,7 +25,7 @@ defmodule ExPlasma.Encoding do
 
   # Creates a Merkle proof that transaction under a given transaction index
   # is included in block consisting of hashed transactions
-  @spec merkle_proof(list(binary()), non_neg_integer()) :: binary()
+  @spec merkle_proof([binary(), ...], non_neg_integer()) :: binary()
   def merkle_proof(encoded_transactions, txindex) do
     encoded_transactions
     |> build()
@@ -45,7 +45,7 @@ defmodule ExPlasma.Encoding do
       193, 151, 236, 162, 92, 242, 78, 195, 132, 176, 200, 239, 249, 20,
       160, 176, 63, 29>>
   """
-  @spec merkle_root_hash(list(binary())) :: binary()
+  @spec merkle_root_hash([binary(), ...]) :: binary()
   def merkle_root_hash(encoded_transactions) do
     MerkleTree.fast_root(encoded_transactions,
       hash_function: &keccak_hash/1,

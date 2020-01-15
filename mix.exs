@@ -46,7 +46,17 @@ defmodule ExPlasma.MixProject do
     [
       flags: [:error_handling, :race_conditions, :underspecs, :unknown, :unmatched_returns],
       ignore_warnings: "dialyzer.ignore-warnings",
-      list_unused_filters: true
+      list_unused_filters: true,
+      plt_add_apps: plt_apps()
     ]
   end
+
+  defp plt_apps,
+    do: [
+      :ex_abi,
+      :ex_rlp,
+      :exth_crypto,
+      :merkle_tree,
+      :libsecp256k1
+    ]
 end
