@@ -86,7 +86,7 @@ jobs:
             cp plts/dialyxir*.plt _build/dev/ || true
             mkdir -p ~/.mix
             cp plts/dialyxir*.plt ~/.mix/ || true
-      - run: mix dialyzer --plt
+      - run: mix dialyzer
       - run:
           name: Pack PLT cache
           command: |
