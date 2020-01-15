@@ -67,6 +67,37 @@ jobs:
             - "deps"
             - "_build"
       - run: mix test --only conformance
+  dialyzer:
+    working_directory: ~/ex_plasma
+    docker:
+      - image: circleci/elixir:1.9.2
+    environment:
+      MIX_ENV=dev
+    steps:
+      - checkout
+      - run: mix local.rebar --force && mix local.hex --force
+      - restore_cache:
+          key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+      - restore_cache:
+          key: v1-dialyzer-plts-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+      - run:
+          name: Unpack PLT cache
+          command: |
+            mkdir -p _build/dev
+            cp plts/dialyxir*.plt _build/dev/ || true
+            mkdir -p ~/.mix
+            cp plts/dialyxir*.plt ~/.mix/ || true
+      - run: mix dialyzer
+      - run:
+          name: Pack PLT cache
+          command: |
+            mkdir -p plts
+            cp _build/dev/dialyxir*.plt plts/
+            cp ~/.mix/dialyxir*.plt plts/
+      - save_cache:
+          key: v1-dialyzer-plts-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+          paths:
+            - "plts"
   integration:
     machine:
       image: ubuntu-1604:201903-01
@@ -101,6 +132,9 @@ workflows:
           requires:
             - build
       - credo:
+          requires:
+            - build
+      - dialyzer:
           requires:
             - build
       - conformance

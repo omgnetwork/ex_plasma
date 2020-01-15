@@ -125,7 +125,6 @@ defmodule ExPlasma.Client.State do
     end)
   end
 
-  @spec eth_call(String.t(), nonempty_maybe_improper_list(), fun()) :: tuple()
   defp eth_call(contract_signature, data_types, state \\ [to: nil], callback)
 
   defp eth_call(contract_signature, data_types, [to: to], callback) when is_list(data_types) do
@@ -138,13 +137,11 @@ defmodule ExPlasma.Client.State do
     end
   end
 
-  @spec encode_data(String.t(), nonempty_maybe_improper_list()) :: String.t()
   defp encode_data(function_signature, data) do
     data = ABI.encode(function_signature, data)
     "0x" <> Base.encode16(data, case: :lower)
   end
 
-  @spec decode_response(String.t(), list()) :: list()
   defp decode_response("0x" <> unprefixed_hash_response, types) do
     unprefixed_hash_response
     |> Base.decode16!(case: :lower)
