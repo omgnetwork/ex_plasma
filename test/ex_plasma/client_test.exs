@@ -6,8 +6,8 @@ defmodule ExPlasma.ClientTest do
   alias ExPlasma.Client
   alias ExPlasma.Transaction
   alias ExPlasma.Utxo
-  alias ExPlasma.Transactions.Deposit
-  alias ExPlasma.Transactions.Payment
+  alias ExPlasma.Transaction.Deposit
+  alias ExPlasma.Transaction.Payment
 
   import ExPlasma.Client.Config,
     only: [authority_address: 0]

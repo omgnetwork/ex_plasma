@@ -12,8 +12,8 @@ defmodule Integration.StandardExitTest do
   alias ExPlasma.Block
   alias ExPlasma.Client
   alias ExPlasma.Transaction
-  alias ExPlasma.Transactions.Deposit
-  alias ExPlasma.Transactions.Payment
+  alias ExPlasma.Transaction.Deposit
+  alias ExPlasma.Transaction.Payment
   alias ExPlasma.Utxo
 
   import ExPlasma.Client.Config,

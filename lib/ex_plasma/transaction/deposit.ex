@@ -1,4 +1,4 @@
-defmodule ExPlasma.Transactions.Deposit do
+defmodule ExPlasma.Transaction.Deposit do
   @moduledoc """
   A Deposit `Transaction` type. We use this to send money into the contract
   to be used. This is really just a Payment Transaction with no inputs
@@ -50,11 +50,11 @@ defmodule ExPlasma.Transactions.Deposit do
 
   # Generate with a single output Utxo
   iex> alias ExPlasma.Utxo
-  iex> alias ExPlasma.Transactions.Deposit
+  iex> alias ExPlasma.Transaction.Deposit
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> Deposit.new(%Utxo{owner: address, currency: currency, amount: 1})
-  %ExPlasma.Transactions.Deposit{
+  %ExPlasma.Transaction.Deposit{
     inputs: [],
     sigs: [],
     metadata: nil,
@@ -68,11 +68,11 @@ defmodule ExPlasma.Transactions.Deposit do
   }
 
   # Generate with a keyword list
-  iex> alias ExPlasma.Transactions.Deposit
+  iex> alias ExPlasma.Transaction.Deposit
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> Deposit.new(owner: address, currency: currency, amount: 1)
-  %ExPlasma.Transactions.Deposit{
+  %ExPlasma.Transaction.Deposit{
     inputs: [],
     sigs: [],
     metadata: nil,
@@ -87,12 +87,12 @@ defmodule ExPlasma.Transactions.Deposit do
 
   # Generate the whole structure
   iex> alias ExPlasma.Utxo
-  iex> alias ExPlasma.Transactions.Deposit
+  iex> alias ExPlasma.Transaction.Deposit
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> utxo = %Utxo{owner: address, currency: currency, amount: 1}
   iex> Deposit.new(%{inputs: [], outputs: [utxo]})
-  %ExPlasma.Transactions.Deposit{
+  %ExPlasma.Transaction.Deposit{
     inputs: [],
     sigs: [],
     metadata: nil,

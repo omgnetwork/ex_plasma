@@ -1,4 +1,4 @@
-defmodule ExPlasma.Transactions.Payment do
+defmodule ExPlasma.Transaction.Payment do
   @moduledoc """
   A Payment Transaction type. Used to send transactions from one party to 
   another on the child chain.
@@ -45,12 +45,12 @@ defmodule ExPlasma.Transactions.Payment do
   ## Examples
 
   iex> alias ExPlasma.Utxo
-  iex> alias ExPlasma.Transactions.Payment
+  iex> alias ExPlasma.Transaction.Payment
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> utxo = %Utxo{owner: address, currency: currency, amount: 1}
   iex> Payment.new(%{inputs: [], outputs: [utxo]})
-  %ExPlasma.Transactions.Payment{
+  %ExPlasma.Transaction.Payment{
     inputs: [],
     sigs: [],
     metadata: nil,

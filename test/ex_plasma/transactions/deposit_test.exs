@@ -1,10 +1,10 @@
-defmodule ExPlasma.Transactions.DepositTest do
+defmodule ExPlasma.Transaction.DepositTest do
   use ExUnit.Case, async: true
-  doctest ExPlasma.Transactions.Deposit
+  doctest ExPlasma.Transaction.Deposit
 
   alias ExPlasma.Transaction
   alias ExPlasma.Utxo
-  alias ExPlasma.Transactions.Deposit
+  alias ExPlasma.Transaction.Deposit
 
   describe "new/1" do
     test "does not allow more than 0 input" do

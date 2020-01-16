@@ -5,7 +5,7 @@ defmodule ExPlasma.Client do
   """
 
   alias ExPlasma.Transaction
-  alias ExPlasma.Transactions.Deposit
+  alias ExPlasma.Transaction.Deposit
 
   import ExPlasma.Client.Config,
     only: [
@@ -29,7 +29,7 @@ defmodule ExPlasma.Client do
 
     alias ExPlasma.Client
     alias ExPlasma.Utxo
-    alias ExPlasma.Transactions.Deposit
+    alias ExPlasma.Transaction.Deposit
 
     owner_address = "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b"
     currency_address = "0x0000000000000000000000000000000000000000"
