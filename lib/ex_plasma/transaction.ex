@@ -224,6 +224,7 @@ defmodule ExPlasma.Transaction do
 
     ## Examples
 
+      # Signs transaction with the given key.
       iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>} 
       iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
       iex> ExPlasma.Transaction.sign(txn, keys: [key])
@@ -239,7 +240,20 @@ defmodule ExPlasma.Transaction do
             27>>
         ]
       }
+
+      # Signs the transaction with no keys.
+      iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>} 
+      iex> ExPlasma.Transaction.sign(txn, keys: [])
+      %ExPlasma.Transaction{
+        inputs: [],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: []
+      }
   """
+  @spec sign(__MODULE__.t(), keys: []) :: __MODULE__.t()
+  def sign(%{} = transaction, keys: []), do: %{transaction | sigs: []}
+
   def sign(%{} = transaction, keys: keys) when is_list(keys) do
     eip712_hash = ExPlasma.TypedData.hash(transaction)
     sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
