@@ -114,6 +114,18 @@ defmodule ExPlasma.Utxo do
         owner: nil,
         txindex: 1
       }}
+
+      # Create a Utxo from a map
+      iex> alias ExPlasma.Utxo
+      iex> Utxo.new(%{blknum: 2, txindex: 1, oindex: 1})
+      {:ok, %ExPlasma.Utxo{
+        amount: nil,
+        blknum: 2,
+        currency: nil,
+        oindex: 1,
+        owner: nil,
+        txindex: 1
+      }}
   """
   @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) ::
           {:ok, __MODULE__.t()} | {:error, __MODULE__.validation_tuples()}
@@ -243,10 +255,10 @@ defmodule ExPlasma.Utxo do
     do_new(%__MODULE__{blknum: blknum, txindex: txindex, oindex: oindex})
   end
 
-  defp do_new(%__MODULE__{owner: nil, currency: nil, amount: nil} = data),
+  defp do_new(%{owner: nil, currency: nil, amount: nil} = data),
     do: validate_input(data)
 
-  defp do_new(%__MODULE__{} = data), do: validate_output(data)
+  defp do_new(%{} = data), do: validate_output(data)
 
   defp pad_binary(unpadded) do
     pad_size = (32 - byte_size(unpadded)) * 8
@@ -270,7 +282,8 @@ defmodule ExPlasma.Utxo do
   defp validate_output(%{amount: _, currency: _, owner: nil}),
     do: {:error, {:owner, :cannot_be_nil}}
 
-  defp validate_output(%{} = utxo), do: {:ok, utxo}
+  defp validate_output(%__MODULE__{} = utxo), do: {:ok, utxo}
+  defp validate_output(%{} = utxo), do: {:ok, struct(__MODULE__, utxo)}
 
   defp validate_input(%{blknum: nil, txindex: _, oindex: _}),
     do: {:error, {:blknum, :cannot_be_nil}}
@@ -287,5 +300,6 @@ defmodule ExPlasma.Utxo do
   defp validate_input(%{txindex: txindex}) when is_integer(txindex) and txindex > @max_txindex,
     do: {:error, {:txindex, :exceeds_maximum}}
 
-  defp validate_input(%{} = utxo), do: {:ok, utxo}
+  defp validate_input(%__MODULE__{} = utxo), do: {:ok, utxo}
+  defp validate_input(%{} = utxo), do: {:ok, struct(__MODULE__, utxo)}
 end
