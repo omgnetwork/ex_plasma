@@ -30,6 +30,7 @@ defmodule ExPlasma do
       <<229, 1, 192, 192, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
+  @spec encode(Transaction.t() | list()) :: <<_::632>>
   def encode(txn) when is_map(txn), do: Transaction.encode(txn)
 
   def encode(txn) when is_list(txn) do
@@ -106,6 +107,8 @@ defmodule ExPlasma do
          txindex: nil
        }}
   """
+  @spec decode(list() | non_neg_integer() | binary()) ::
+          {:ok, Transaction.t()} | {:ok, Utxo.t()} | Utxo.validation_tuples()
   def decode([_output_type, [_owner, _currency, _amount]] = output_rlp), do: Utxo.new(output_rlp)
 
   def decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = tx_rlp),
@@ -135,6 +138,7 @@ defmodule ExPlasma do
         39, 111, 80, 235, 153, 10, 175, 113, 195, 91, 188, 174, 39, 167,
         20, 14, 81>>
   """
+  @spec hash(Transaction.t() | binary()) :: <<_::256>>
   def hash(txn) when is_map(txn), do: Transaction.hash(txn)
   def hash(txn) when is_binary(txn), do: Transaction.hash(txn)
 end
