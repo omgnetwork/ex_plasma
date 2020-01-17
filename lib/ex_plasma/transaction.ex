@@ -220,6 +220,29 @@ defmodule ExPlasma.Transaction do
   """
   def decode(rlp_encoded_txn), do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
 
+
+  @doc """
+  Keccak hash a transaction.
+
+  ## Examples
+
+      # Hash a transaction
+      iex> txn = %ExPlasma.Transaction{}
+      iex> ExPlasma.Transaction.hash(txn)
+      <<95, 34, 177, 98, 209, 215, 55, 18, 40, 254, 215, 73, 183, 221,
+        118, 253, 137, 66, 155, 62, 39, 96, 202, 110, 29, 216, 60, 225,
+        201, 158, 136, 67>>
+
+      # Hash an encoded transaction bytes
+      iex> tx_bytes = ExPlasma.Transaction.encode(%ExPlasma.Transaction{})
+      iex> ExPlasma.Transaction.hash(tx_bytes)
+      <<95, 34, 177, 98, 209, 215, 55, 18, 40, 254, 215, 73, 183, 221,
+        118, 253, 137, 66, 155, 62, 39, 96, 202, 110, 29, 216, 60, 225,
+        201, 158, 136, 67>>
+  """
+  def hash(txn) when is_map(txn), do: txn |> encode() |> hash()
+  def hash(txn) when is_binary(txn), do: ExPlasma.Encoding.keccak_hash(txn)
+
   @doc """
 
     ## Examples
