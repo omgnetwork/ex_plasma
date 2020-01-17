@@ -95,7 +95,8 @@ defmodule ExPlasma.Transaction do
         tx_type: 1,
         sigs: []}}
   """
-  @spec new(struct() | nonempty_maybe_improper_list()) :: {:ok, __MODULE__.t()} | Utxo.validation_tuples()
+  @spec new(struct() | nonempty_maybe_improper_list()) ::
+          {:ok, __MODULE__.t()} | Utxo.validation_tuples()
   def new(%module{inputs: inputs, outputs: outputs} = transaction)
       when is_list(inputs) and is_list(outputs) do
     {:ok, struct(module, Map.from_struct(transaction))}
