@@ -53,7 +53,7 @@ defmodule Integration.StandardExitTest do
   #
   # Returns the input utxo for the deposit.
   defp deposit(from: owner, amount: amount) do
-    deposit = Deposit.new(owner: owner, currency: <<0::160>>, amount: amount)
+    {:ok, deposit} = Deposit.new(owner: owner, currency: <<0::160>>, amount: amount)
     {:ok, _deposit_receipt_hash} = Client.deposit(deposit, to: :eth)
 
     blknum = get_deposits_blknum()
@@ -77,7 +77,7 @@ defmodule Integration.StandardExitTest do
   # Returns the "exit data" that we can use to standard exit from.
   defp transact(to: to, utxo: utxo) do
     output = %{utxo | owner: to}
-    payment = Payment.new(%{inputs: [utxo], outputs: [output]})
+    {:ok, payment} = Payment.new(%{inputs: [utxo], outputs: [output]})
     block = payment |> List.wrap() |> Block.new()
 
     {:ok, _submit_block_receipt_hash} = Client.submit_block(block)
