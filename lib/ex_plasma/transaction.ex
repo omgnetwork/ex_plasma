@@ -98,7 +98,7 @@ defmodule ExPlasma.Transaction do
   @spec new(struct() | nonempty_maybe_improper_list()) :: struct() | {:error, {atom(), atom()}}
   def new(%module{inputs: inputs, outputs: outputs} = transaction)
       when is_list(inputs) and is_list(outputs) do
-        {:ok, struct(module, Map.from_struct(transaction))}
+    {:ok, struct(module, Map.from_struct(transaction))}
   end
 
   def new([tx_type, inputs, outputs, <<tx_data>>, metadata]),
@@ -114,15 +114,14 @@ defmodule ExPlasma.Transaction do
     with {:ok, inputs} <- build_utxos(inputs),
          {:ok, outputs} <- build_utxos(outputs) do
       {:ok,
-      %__MODULE__{
-        tx_type: tx_type,
-        sigs: sigs,
-        inputs: inputs,
-        outputs: outputs,
-        tx_data: tx_data,
-        metadata: metadata
-      }
-      }
+       %__MODULE__{
+         tx_type: tx_type,
+         sigs: sigs,
+         inputs: inputs,
+         outputs: outputs,
+         tx_data: tx_data,
+         metadata: metadata
+       }}
     end
   end
 
@@ -221,7 +220,6 @@ defmodule ExPlasma.Transaction do
     }}
   """
   def decode(rlp_encoded_txn), do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
-
 
   @doc """
   Keccak hash a transaction.

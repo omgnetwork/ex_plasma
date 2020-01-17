@@ -31,10 +31,10 @@ defmodule ExPlasma do
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
   def encode(txn) when is_map(txn), do: Transaction.encode(txn)
+
   def encode(txn) when is_list(txn) do
     with {:ok, transaction} <- Transaction.new(txn), do: Transaction.encode(transaction)
   end
-
 
   @doc """
 
@@ -107,8 +107,13 @@ defmodule ExPlasma do
        }}
   """
   def decode([_output_type, [_owner, _currency, _amount]] = output_rlp), do: Utxo.new(output_rlp)
-  def decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = tx_rlp), do: Transaction.new(tx_rlp)
-  def decode([_sigs, _tx_type, _inputs, _outputs, _tx_data, _metadata] = tx_rlp), do: Transaction.new(tx_rlp)
+
+  def decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = tx_rlp),
+    do: Transaction.new(tx_rlp)
+
+  def decode([_sigs, _tx_type, _inputs, _outputs, _tx_data, _metadata] = tx_rlp),
+    do: Transaction.new(tx_rlp)
+
   def decode(utxo_pos) when is_integer(utxo_pos), do: Utxo.new(utxo_pos)
   def decode(tx_bytes) when is_binary(tx_bytes), do: Transaction.decode(tx_bytes)
 
