@@ -15,13 +15,6 @@ defmodule ExPlasma.Transaction.Payment do
   @max_input_count 4
   @max_output_count 4
 
-  @type t :: %__MODULE__{
-          sigs: list(String.t()),
-          inputs: list(ExPlasma.Utxo.t()),
-          outputs: list(ExPlasma.Utxo.t()),
-          metadata: binary()
-        }
-
   defstruct(tx_type: nil, sigs: [], inputs: [], outputs: [], tx_data: nil, metadata: nil)
 
   @doc """
@@ -63,7 +56,7 @@ defmodule ExPlasma.Transaction.Payment do
       txindex: nil}]
   }}
   """
-  @spec new(map()) :: __MODULE__.t()
+  @spec new(map()) :: {:ok, Transaction.t()} | ExPlasma.Utxo.validation_tuples()
   def new(%{inputs: inputs, outputs: outputs} = payment)
       when is_list(inputs) and length(inputs) <= @max_input_count and
              is_list(outputs) and length(outputs) <= @max_output_count do

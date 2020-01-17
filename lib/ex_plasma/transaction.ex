@@ -31,7 +31,7 @@ defmodule ExPlasma.Transaction do
           metadata: __MODULE__.metadata() | nil
         }
 
-  @callback new(map()) :: struct()
+  @callback new(map()) :: tuple()
   @callback transaction_type() :: non_neg_integer()
   @callback output_type() :: non_neg_integer()
 
@@ -95,7 +95,7 @@ defmodule ExPlasma.Transaction do
         tx_type: 1,
         sigs: []}}
   """
-  @spec new(struct() | nonempty_maybe_improper_list()) :: struct() | {:error, {atom(), atom()}}
+  @spec new(struct() | nonempty_maybe_improper_list()) :: {:ok, __MODULE__.t()} | Utxo.validation_tuples()
   def new(%module{inputs: inputs, outputs: outputs} = transaction)
       when is_list(inputs) and is_list(outputs) do
     {:ok, struct(module, Map.from_struct(transaction))}

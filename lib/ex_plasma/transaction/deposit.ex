@@ -105,7 +105,7 @@ defmodule ExPlasma.Transaction.Deposit do
       txindex: nil}]
   }}
   """
-  @spec new(map()) :: __MODULE__.t()
+  @spec new(map()) :: {:ok, Transaction.t()} | Utxo.validation_tuples()
   def new(%{inputs: inputs, outputs: outputs} = deposit)
       when is_list(inputs) and length(inputs) <= @max_input_count and
              is_list(outputs) and length(outputs) <= @max_output_count do
