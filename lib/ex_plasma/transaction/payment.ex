@@ -50,7 +50,7 @@ defmodule ExPlasma.Transaction.Payment do
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> utxo = %Utxo{owner: address, currency: currency, amount: 1}
   iex> Payment.new(%{inputs: [], outputs: [utxo]})
-  %ExPlasma.Transaction.Payment{
+  {:ok, %ExPlasma.Transaction.Payment{
     inputs: [],
     sigs: [],
     metadata: nil,
@@ -61,7 +61,7 @@ defmodule ExPlasma.Transaction.Payment do
       oindex: nil,
       owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
       txindex: nil}]
-  }
+  }}
   """
   @spec new(map()) :: __MODULE__.t()
   def new(%{inputs: inputs, outputs: outputs} = payment)

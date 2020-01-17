@@ -54,7 +54,7 @@ defmodule ExPlasma.Transaction.Deposit do
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> Deposit.new(%Utxo{owner: address, currency: currency, amount: 1})
-  %ExPlasma.Transaction.Deposit{
+  {:ok, %ExPlasma.Transaction.Deposit{
     inputs: [],
     sigs: [],
     metadata: nil,
@@ -65,14 +65,14 @@ defmodule ExPlasma.Transaction.Deposit do
       oindex: nil,
       owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
       txindex: nil}]
-  }
+  }}
 
   # Generate with a keyword list
   iex> alias ExPlasma.Transaction.Deposit
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> Deposit.new(owner: address, currency: currency, amount: 1)
-  %ExPlasma.Transaction.Deposit{
+  {:ok, %ExPlasma.Transaction.Deposit{
     inputs: [],
     sigs: [],
     metadata: nil,
@@ -83,7 +83,7 @@ defmodule ExPlasma.Transaction.Deposit do
       oindex: nil,
       owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
       txindex: nil}]
-  }
+  }}
 
   # Generate the whole structure
   iex> alias ExPlasma.Utxo
@@ -92,7 +92,7 @@ defmodule ExPlasma.Transaction.Deposit do
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> utxo = %Utxo{owner: address, currency: currency, amount: 1}
   iex> Deposit.new(%{inputs: [], outputs: [utxo]})
-  %ExPlasma.Transaction.Deposit{
+  {:ok, %ExPlasma.Transaction.Deposit{
     inputs: [],
     sigs: [],
     metadata: nil,
@@ -103,7 +103,7 @@ defmodule ExPlasma.Transaction.Deposit do
       oindex: nil,
       owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
       txindex: nil}]
-  }
+  }}
   """
   @spec new(map()) :: __MODULE__.t()
   def new(%{inputs: inputs, outputs: outputs} = deposit)

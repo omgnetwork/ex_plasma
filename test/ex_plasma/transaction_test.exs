@@ -58,7 +58,7 @@ defmodule ExPlasma.TransactionTest do
         %Utxo{blknum: 3, txindex: 0, oindex: 0}
       ]
 
-      transaction = Transaction.new(%Transaction{inputs: inputs, outputs: []})
+      {:ok, transaction} = Transaction.new(%Transaction{inputs: inputs, outputs: []})
 
       assert Enum.map(transaction.inputs, & &1.blknum/0) == [0, 1, 3]
     end
@@ -80,7 +80,7 @@ defmodule ExPlasma.TransactionTest do
           0, 0, 0>>
       ]
 
-      transaction = Transaction.new(rlp)
+      {:ok, transaction} = Transaction.new(rlp)
 
       assert Enum.map(transaction.inputs, & &1.blknum/0) == [0, 1, 3]
     end
@@ -92,7 +92,7 @@ defmodule ExPlasma.TransactionTest do
         %Utxo{amount: 3, currency: <<0::160>>, owner: <<1::160>>}
       ]
 
-      transaction = Transaction.new(%Transaction{inputs: [], outputs: outputs})
+      {:ok, transaction} = Transaction.new(%Transaction{inputs: [], outputs: outputs})
 
       assert Enum.map(transaction.outputs, & &1.amount/0) == [1, 2, 3]
     end
@@ -132,7 +132,7 @@ defmodule ExPlasma.TransactionTest do
           0, 0, 0>>
       ]
 
-      transaction = Transaction.new(rlp)
+      {:ok, transaction} = Transaction.new(rlp)
 
       assert Enum.map(transaction.outputs, & &1.amount/0) == [1, 2, 3]
     end

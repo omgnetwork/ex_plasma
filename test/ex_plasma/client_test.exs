@@ -24,33 +24,27 @@ defmodule ExPlasma.ClientTest do
     test "accepts a keyword list for the options" do
       use_cassette "deposit", match_requests_on: [:request_body] do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+        {:ok, deposit} = Deposit.new(%Utxo{owner: authority_address(), currency: currency, amount: 1})
 
-        assert {:ok, _receipt_hash} =
-                 %Utxo{owner: authority_address(), currency: currency, amount: 1}
-                 |> Deposit.new()
-                 |> Client.deposit(to: :eth)
+        assert {:ok, _receipt_hash} = Client.deposit(deposit, to: :eth)
       end
     end
 
     test "sends deposit transaction with a deposit struct" do
       use_cassette "deposit", match_requests_on: [:request_body] do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+        {:ok, deposit} = Deposit.new(%Utxo{owner: authority_address(), currency: currency, amount: 1})
 
-        assert {:ok, _receipt_hash} =
-                 %Utxo{owner: authority_address(), currency: currency, amount: 1}
-                 |> Deposit.new()
-                 |> Client.deposit(%{to: :eth})
+        assert {:ok, _receipt_hash} = Client.deposit(deposit, %{to: :eth})
       end
     end
 
     test "sends deposit tx_bytes into the contract" do
       use_cassette "deposit", match_requests_on: [:request_body] do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
+        {:ok, deposit} = Deposit.new(%Utxo{owner: authority_address(), currency: currency, amount: 1})
 
-        tx_bytes =
-          %Utxo{owner: authority_address(), currency: currency, amount: 1}
-          |> Deposit.new()
-          |> Transaction.encode()
+        tx_bytes = Transaction.encode(deposit)
 
         assert {:ok, _receipt_hash} =
                  Client.deposit(tx_bytes, %{from: authority_address(), to: :eth, value: 1})
@@ -63,9 +57,10 @@ defmodule ExPlasma.ClientTest do
       use_cassette "submit_block", match_requests_on: [:request_body] do
         input = %Utxo{blknum: 0, txindex: 0, oindex: 0}
         output = %Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>}
+        {:ok, payment} = Payment.new(%{inputs: [input], outputs: [output]})
 
         assert {:ok, _receipt_hash} =
-                 Payment.new(%{inputs: [input], outputs: [output]})
+                 payment
                  |> List.wrap()
                  |> Block.new()
                  |> Client.submit_block()

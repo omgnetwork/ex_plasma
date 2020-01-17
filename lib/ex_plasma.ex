@@ -13,7 +13,7 @@ defmodule ExPlasma do
   ## Examples
 
       # Encode a transaction
-      iex> txn = ExPlasma.Transaction.Payment.new(%{inputs: [], outputs: []})
+      iex> {:ok, txn} = ExPlasma.Transaction.Payment.new(%{inputs: [], outputs: []})
       iex> ExPlasma.encode(txn)
       <<229, 1, 192, 192, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
@@ -25,13 +25,15 @@ defmodule ExPlasma do
         0, 0, 0, 0>>
 
        Encode a signed transaction
-      iex> txn = ExPlasma.Transaction.Payment.new(%{inputs: [], outputs: [], sigs: []})
+      iex> {:ok, txn} = ExPlasma.Transaction.Payment.new(%{inputs: [], outputs: [], sigs: []})
       iex> ExPlasma.encode(txn)
       <<229, 1, 192, 192, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
   def encode(txn) when is_map(txn), do: Transaction.encode(txn)
-  def encode(txn) when is_list(txn), do: txn |> Transaction.new() |> Transaction.encode()
+  def encode(txn) when is_list(txn) do
+    with {:ok, transaction} <- Transaction.new(txn), do: Transaction.encode(transaction)
+  end
 
 
   @doc """
@@ -41,7 +43,7 @@ defmodule ExPlasma do
       # Decodes an encoded transaction bytes
       iex> tx_bytes = <<229, 1, 192, 192, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
       iex> ExPlasma.decode(tx_bytes)
-      %ExPlasma.Transaction{
+      {:ok, %ExPlasma.Transaction{
           inputs: [],
           metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -50,11 +52,12 @@ defmodule ExPlasma do
           tx_data: "",
           tx_type: 1
         }
+      }
 
       # Decodes a signed encoded transaction bytes
       iex> tx_bytes = <<239, 201, 136, 48, 120, 49, 50, 51, 52, 53, 54, 1, 192, 192, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
       iex> ExPlasma.decode(tx_bytes)
-      %ExPlasma.Transaction{
+      {:ok, %ExPlasma.Transaction{
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -62,12 +65,12 @@ defmodule ExPlasma do
         sigs: ["0x123456"],
         tx_data: "",
         tx_type: <<1>>
-      }
+      }}
 
        Decodes a transaction rlp data
       iex> rlp = [1, [], [], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
       iex> ExPlasma.decode(rlp)
-      %ExPlasma.Transaction{
+      {:ok, %ExPlasma.Transaction{
           inputs: [],
           metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -75,7 +78,7 @@ defmodule ExPlasma do
           sigs: [],
           tx_data: 0,
           tx_type: 1
-      }
+      }}
 
       # Decodes a utxo position
       iex> ExPlasma.decode(1000000000)
@@ -114,7 +117,7 @@ defmodule ExPlasma do
   ## Examples
 
       # Hash a transaction
-      iex> txn = ExPlasma.Transaction.Payment.new(%{inputs: [], outputs: []})
+      iex> {:ok, txn} = ExPlasma.Transaction.Payment.new(%{inputs: [], outputs: []})
       iex> ExPlasma.hash(txn)
       <<3, 225, 217, 46, 83, 133, 97, 248, 114, 1, 89, 94, 179, 68, 60,
         39, 111, 80, 235, 153, 10, 175, 113, 195, 91, 188, 174, 39, 167,

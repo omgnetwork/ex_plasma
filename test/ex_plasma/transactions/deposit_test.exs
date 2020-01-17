@@ -24,10 +24,8 @@ defmodule ExPlasma.Transaction.DepositTest do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
 
-    list =
-      %Utxo{owner: owner, currency: currency, amount: 1}
-      |> Deposit.new()
-      |> Transaction.to_rlp()
+    {:ok, deposit} = Deposit.new(%Utxo{owner: owner, currency: currency, amount: 1})
+    list = Transaction.to_rlp(deposit)
 
     assert list == [
              1,
@@ -54,10 +52,8 @@ defmodule ExPlasma.Transaction.DepositTest do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
 
-    encoded =
-      %Utxo{owner: owner, currency: currency, amount: 1}
-      |> Deposit.new()
-      |> Transaction.encode()
+    {:ok, deposit} = Deposit.new(%Utxo{owner: owner, currency: currency, amount: 1})
+    encoded = Transaction.encode(deposit)
 
     assert encoded ==
              <<248, 83, 1, 192, 238, 237, 1, 235, 148, 29, 246, 47, 41, 27, 46, 150, 159, 176,
