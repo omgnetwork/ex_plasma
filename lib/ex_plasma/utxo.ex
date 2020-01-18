@@ -28,7 +28,6 @@ defmodule ExPlasma.Utxo do
       - oindex:  The offset index for the given utxo. TODO
   """
 
-  alias __MODULE__
   import ExPlasma.Encoding, only: [to_binary: 1, to_int: 1]
 
   # Binary representation of an address

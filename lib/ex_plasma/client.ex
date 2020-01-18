@@ -5,7 +5,6 @@ defmodule ExPlasma.Client do
   """
 
   alias ExPlasma.Transaction
-  alias ExPlasma.Transaction.Deposit
 
   import ExPlasma.Client.Config,
     only: [
