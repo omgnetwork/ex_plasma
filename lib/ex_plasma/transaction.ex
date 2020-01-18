@@ -216,7 +216,9 @@ defmodule ExPlasma.Transaction do
       ]
     }}
   """
-  def decode(rlp_encoded_txn), do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
+  @spec decode(binary()) :: {:ok, t()} | Utxo.validation_tuples()
+  def decode(rlp_encoded_txn) when is_binary(rlp_encoded_txn),
+    do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
 
   @doc """
   Keccak hash a transaction.
