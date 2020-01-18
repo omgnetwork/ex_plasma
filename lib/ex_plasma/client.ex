@@ -38,21 +38,18 @@ defmodule ExPlasma.Client do
     |> Deposit.new()
     |> Client.deposit()
   """
-  @spec deposit(Deposit.t() | binary(), map() | list()) :: tuple()
+  @spec deposit(Transaction.t() | binary(), map()) :: tuple()
   def deposit(tx_bytes, options \\ %{})
-
-  def deposit(tx_bytes, options) when is_list(options),
-    do: deposit(tx_bytes, Enum.into(options, %{}))
 
   def deposit(tx_bytes, %{to: :eth} = options),
     do: deposit(tx_bytes, %{options | to: eth_vault_address()})
 
-  def deposit(%Deposit{outputs: [output]} = transaction, options) do
+  def deposit(%Transaction{outputs: [output]} = transaction, options) do
     options = Map.merge(options, %{from: output.owner, to: :eth, value: output.amount})
     transaction |> Transaction.encode() |> deposit(options)
   end
 
-  def deposit(tx_bytes, %{from: from, to: to, value: value} = options) do
+  def deposit(tx_bytes, %{from: from, to: to, value: value} = options) when is_binary(tx_bytes) do
     data = encode_data("deposit(bytes)", [tx_bytes])
     eth_send_transaction(%{data: data, from: from, to: to, value: value}, options)
   end

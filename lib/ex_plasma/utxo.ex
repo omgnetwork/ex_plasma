@@ -28,16 +28,38 @@ defmodule ExPlasma.Utxo do
       - oindex:  The offset index for the given utxo. TODO
   """
 
-  alias ExPlasma.Transaction
+  alias __MODULE__
   import ExPlasma.Encoding, only: [to_binary: 1, to_int: 1]
+
+  # Binary representation of an address
+  @type address_binary :: <<_::160>>
+
+  # Hash string representation of an address
+  @type address_hex :: <<_::336>>
 
   @type t :: %__MODULE__{
           blknum: non_neg_integer() | nil,
           oindex: non_neg_integer() | nil,
           txindex: non_neg_integer() | nil,
           amount: non_neg_integer() | nil,
-          currency: Transaction.address() | Transaction.address_hash() | nil,
-          owner: Transaction.address() | Transaction.address_hash() | nil
+          currency: address_binary() | address_hex() | nil,
+          owner: address_binary() | address_hex() | nil
+        }
+
+  # Also known as the Utxo position
+  @type input_rlp :: non_neg_integer() | binary()
+  @type output_rlp :: list()
+
+  @type input_map :: %{
+          blknum: non_neg_integer(),
+          txindex: non_neg_integer(),
+          oindex: non_neg_integer()
+        }
+
+  @type output_map :: %{
+          owner: address_binary() | address_hex(),
+          currency: address_binary() | address_hex(),
+          amount: non_neg_integer()
         }
 
   @type validation_tuples ::
@@ -127,8 +149,8 @@ defmodule ExPlasma.Utxo do
         txindex: 1
       }}
   """
-  @spec new(binary() | nonempty_maybe_improper_list() | non_neg_integer()) ::
-          {:ok, __MODULE__.t()} | {:error, __MODULE__.validation_tuples()}
+  @spec new(map() | t() | input_rlp() | output_rlp() | input_map() | output_map()) ::
+          {:ok, t()} | {:error, validation_tuples()}
   def new(data), do: do_new(data)
 
   @doc """
@@ -141,8 +163,10 @@ defmodule ExPlasma.Utxo do
     iex> Utxo.pos(utxo)
     2000010001
   """
-  def pos(%{blknum: blknum, oindex: oindex, txindex: txindex}),
-    do: blknum * @block_offset + txindex * @transaction_offset + oindex
+  @spec pos(input_map) :: non_neg_integer()
+  def pos(%{blknum: blknum, oindex: oindex, txindex: txindex})
+      when is_integer(blknum) and is_integer(txindex) and is_integer(oindex),
+      do: blknum * @block_offset + txindex * @transaction_offset + oindex
 
   @doc """
   Converts a Utxo into an RLP-encodable list. If your Utxo contains both sets of input/output data,
@@ -166,8 +190,10 @@ defmodule ExPlasma.Utxo do
       <<2>>]
     ]
   """
-  def to_rlp(%{owner: nil, currency: nil, amount: nil} = utxo),
-    do: to_input_rlp(utxo)
+  @spec to_rlp(input_map() | output_map()) :: binary()
+  def to_rlp(%{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
+      when is_integer(blknum) and is_integer(oindex) and is_integer(txindex),
+      do: to_input_rlp(utxo)
 
   def to_rlp(%{blknum: nil, oindex: nil, txindex: nil} = utxo),
     do: to_output_rlp(utxo)
@@ -183,7 +209,7 @@ defmodule ExPlasma.Utxo do
     <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 119, 53, 187, 17>>
   """
-  @spec to_input_rlp(__MODULE__.t()) :: binary()
+  @spec to_input_rlp(__MODULE__.t() | input_map()) :: binary()
   def to_input_rlp(%{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
     utxo |> pos() |> :binary.encode_unsigned(:big) |> pad_binary()
