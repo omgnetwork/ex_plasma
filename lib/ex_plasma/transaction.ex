@@ -17,25 +17,22 @@ defmodule ExPlasma.Transaction do
 
   # The RLP encoded transaction as a binary
   @type tx_bytes :: <<_::632>>
-  # Binary representation of an address
-  @type address :: <<_::160>>
-  # Hash string representation of an address
-  @type address_hash :: <<_::336>>
+
   # Metadata field. Currently unusued.
   @type metadata :: <<_::160>>
 
   @type t :: %__MODULE__{
           sigs: [binary()] | [],
-          inputs: [ExPlasma.Utxo.t()] | [],
-          outputs: [ExPlasma.Utxo.t()] | [],
-          metadata: __MODULE__.metadata() | nil
+          inputs: [Utxo.t()] | [],
+          outputs: [Utxo.t()] | [],
+          metadata: metadata() | nil
         }
 
-  @callback new(map()) :: struct()
+  @type rlp :: nonempty_list()
+
+  @callback new(map()) :: tuple()
   @callback transaction_type() :: non_neg_integer()
   @callback output_type() :: non_neg_integer()
-
-  # @callback decode(binary) :: struct()
 
   defstruct(tx_type: nil, sigs: [], inputs: [], outputs: [], tx_data: nil, metadata: nil)
 
@@ -60,13 +57,13 @@ defmodule ExPlasma.Transaction do
   ## Examples
 
     iex> ExPlasma.Transaction.new(%ExPlasma.Transaction{inputs: [], outputs: []})
-    %ExPlasma.Transaction{
+    {:ok, %ExPlasma.Transaction{
       inputs: [],
       outputs: [],
       tx_data: nil,
       tx_type: nil,
       metadata: nil
-    }
+    }}
 
     # Create a transaction from a RLP list
     iex> rlp = [
@@ -88,17 +85,17 @@ defmodule ExPlasma.Transaction do
     ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
     ...>]
     iex> ExPlasma.Transaction.new(rlp)
-  	 %ExPlasma.Transaction{inputs: [%ExPlasma.Utxo{amount: nil, blknum: 0, currency: nil, oindex: 0, owner: nil, txindex: 0 }],
+    {:ok, %ExPlasma.Transaction{inputs: [%ExPlasma.Utxo{amount: nil, blknum: 0, currency: nil, oindex: 0, owner: nil, txindex: 0 }],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [%ExPlasma.Utxo{amount: 1, blknum: nil, currency: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, oindex: nil, owner: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, txindex: nil}],
         tx_data: 0,
         tx_type: 1,
-        sigs: []}
+        sigs: []}}
   """
-  @spec new(struct() | nonempty_maybe_improper_list()) :: struct() | {:error, {atom(), atom()}}
+  @spec new(t() | rlp()) :: {:ok, t()} | Utxo.validation_tuples()
   def new(%module{inputs: inputs, outputs: outputs} = transaction)
       when is_list(inputs) and is_list(outputs) do
-    struct(module, Map.from_struct(transaction))
+    {:ok, struct(module, Map.from_struct(transaction))}
   end
 
   def new([tx_type, inputs, outputs, <<tx_data>>, metadata]),
@@ -113,14 +110,15 @@ defmodule ExPlasma.Transaction do
   def new([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
     with {:ok, inputs} <- build_utxos(inputs),
          {:ok, outputs} <- build_utxos(outputs) do
-      %__MODULE__{
-        tx_type: tx_type,
-        sigs: sigs,
-        inputs: inputs,
-        outputs: outputs,
-        tx_data: tx_data,
-        metadata: metadata
-      }
+      {:ok,
+       %__MODULE__{
+         tx_type: tx_type,
+         sigs: sigs,
+         inputs: inputs,
+         outputs: outputs,
+         tx_data: tx_data,
+         metadata: metadata
+       }}
     end
   end
 
@@ -133,7 +131,7 @@ defmodule ExPlasma.Transaction do
   iex> ExPlasma.Transaction.to_rlp(txn)
   [0, [], [], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
-  @spec to_rlp(struct()) :: list()
+  @spec to_rlp(t()) :: rlp()
   def to_rlp(%module{sigs: [], inputs: inputs, outputs: outputs, metadata: metadata})
       when is_list(inputs) and is_list(outputs) do
     computed_inputs = Enum.map(inputs, &Utxo.to_input_rlp/1)
@@ -162,7 +160,7 @@ defmodule ExPlasma.Transaction do
   iex> ExPlasma.Transaction.encode(txn)
   <<229, 128, 192, 192, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   """
-  @spec encode(map()) :: __MODULE__.tx_bytes()
+  @spec encode(t()) :: tx_bytes()
   def encode(%{} = transaction), do: transaction |> Transaction.to_rlp() |> ExRLP.Encode.encode()
 
   @doc """
@@ -172,7 +170,7 @@ defmodule ExPlasma.Transaction do
 
     iex> rlp_encoded = <<248, 116, 128, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
     iex> ExPlasma.Transaction.decode(rlp_encoded)
-    %ExPlasma.Transaction{
+    {:ok, %ExPlasma.Transaction{
       inputs: [
         %ExPlasma.Utxo{
           amount: nil,
@@ -199,12 +197,12 @@ defmodule ExPlasma.Transaction do
       tx_type: "",
       tx_data: "",
       sigs: []
-    }
+    }}
 
     # Create a transaction from a signed encoded hash of a transaction
     iex> signed_encoded_hash = "0xf85ef843b841aa061b1df64f0b5c3bd350d9444b8fd2d02d4523abb23fbe8d270d6bc2e782c037d45e0c0afaf615cfc0701f4cde6af04f60ddb756e52f8459f459f1e65dcd511b80c0c080940000000000000000000000000000000000000000"
     iex> signed_encoded_hash |> ExPlasma.Encoding.to_binary() |> ExPlasma.Transaction.decode()
-    %ExPlasma.Transaction{
+    {:ok, %ExPlasma.Transaction{
       tx_type: "",
       tx_data: "",
       inputs: [],
@@ -216,14 +214,40 @@ defmodule ExPlasma.Transaction do
           212, 94, 12, 10, 250, 246, 21, 207, 192, 112, 31, 76, 222, 106, 240, 79,
           96, 221, 183, 86, 229, 47, 132, 89, 244, 89, 241, 230, 93, 205, 81, 27>>
       ]
-    }
+    }}
   """
-  def decode(rlp_encoded_txn), do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
+  @spec decode(binary()) :: {:ok, t()} | Utxo.validation_tuples()
+  def decode(rlp_encoded_txn) when is_binary(rlp_encoded_txn),
+    do: rlp_encoded_txn |> ExRLP.decode() |> Transaction.new()
+
+  @doc """
+  Keccak hash a transaction.
+
+  ## Examples
+
+      # Hash a transaction
+      iex> txn = %ExPlasma.Transaction{}
+      iex> ExPlasma.Transaction.hash(txn)
+      <<95, 34, 177, 98, 209, 215, 55, 18, 40, 254, 215, 73, 183, 221,
+        118, 253, 137, 66, 155, 62, 39, 96, 202, 110, 29, 216, 60, 225,
+        201, 158, 136, 67>>
+
+      # Hash an encoded transaction bytes
+      iex> tx_bytes = ExPlasma.Transaction.encode(%ExPlasma.Transaction{})
+      iex> ExPlasma.Transaction.hash(tx_bytes)
+      <<95, 34, 177, 98, 209, 215, 55, 18, 40, 254, 215, 73, 183, 221,
+        118, 253, 137, 66, 155, 62, 39, 96, 202, 110, 29, 216, 60, 225,
+        201, 158, 136, 67>>
+  """
+  @spec hash(t() | binary()) :: <<_::256>>
+  def hash(txn) when is_map(txn), do: txn |> encode() |> hash()
+  def hash(txn) when is_binary(txn), do: ExPlasma.Encoding.keccak_hash(txn)
 
   @doc """
 
     ## Examples
 
+      # Signs transaction with the given key.
       iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>} 
       iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
       iex> ExPlasma.Transaction.sign(txn, keys: [key])
@@ -239,7 +263,20 @@ defmodule ExPlasma.Transaction do
             27>>
         ]
       }
+
+      # Signs the transaction with no keys.
+      iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>} 
+      iex> ExPlasma.Transaction.sign(txn, keys: [])
+      %ExPlasma.Transaction{
+        inputs: [],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: []
+      }
   """
+  @spec sign(__MODULE__.t(), keys: []) :: __MODULE__.t()
+  def sign(%{} = transaction, keys: []), do: %{transaction | sigs: []}
+
   def sign(%{} = transaction, keys: keys) when is_list(keys) do
     eip712_hash = ExPlasma.TypedData.hash(transaction)
     sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)

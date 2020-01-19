@@ -6,8 +6,8 @@ defmodule ExPlasma.ClientTest do
   alias ExPlasma.Client
   alias ExPlasma.Transaction
   alias ExPlasma.Utxo
-  alias ExPlasma.Transactions.Deposit
-  alias ExPlasma.Transactions.Payment
+  alias ExPlasma.Transaction.Deposit
+  alias ExPlasma.Transaction.Payment
 
   import ExPlasma.Client.Config,
     only: [authority_address: 0]
@@ -21,25 +21,14 @@ defmodule ExPlasma.ClientTest do
   end
 
   describe "deposit/2" do
-    test "accepts a keyword list for the options" do
-      use_cassette "deposit", match_requests_on: [:request_body] do
-        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
-
-        assert {:ok, _receipt_hash} =
-                 %Utxo{owner: authority_address(), currency: currency, amount: 1}
-                 |> Deposit.new()
-                 |> Client.deposit(to: :eth)
-      end
-    end
-
     test "sends deposit transaction with a deposit struct" do
       use_cassette "deposit", match_requests_on: [:request_body] do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
 
-        assert {:ok, _receipt_hash} =
-                 %Utxo{owner: authority_address(), currency: currency, amount: 1}
-                 |> Deposit.new()
-                 |> Client.deposit(%{to: :eth})
+        {:ok, deposit} =
+          Deposit.new(%Utxo{owner: authority_address(), currency: currency, amount: 1})
+
+        assert {:ok, _receipt_hash} = Client.deposit(deposit, %{to: :eth})
       end
     end
 
@@ -47,10 +36,10 @@ defmodule ExPlasma.ClientTest do
       use_cassette "deposit", match_requests_on: [:request_body] do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
 
-        tx_bytes =
-          %Utxo{owner: authority_address(), currency: currency, amount: 1}
-          |> Deposit.new()
-          |> Transaction.encode()
+        {:ok, deposit} =
+          Deposit.new(%Utxo{owner: authority_address(), currency: currency, amount: 1})
+
+        tx_bytes = Transaction.encode(deposit)
 
         assert {:ok, _receipt_hash} =
                  Client.deposit(tx_bytes, %{from: authority_address(), to: :eth, value: 1})
@@ -63,9 +52,10 @@ defmodule ExPlasma.ClientTest do
       use_cassette "submit_block", match_requests_on: [:request_body] do
         input = %Utxo{blknum: 0, txindex: 0, oindex: 0}
         output = %Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>}
+        {:ok, payment} = Payment.new(%{inputs: [input], outputs: [output]})
 
         assert {:ok, _receipt_hash} =
-                 Payment.new(%{inputs: [input], outputs: [output]})
+                 payment
                  |> List.wrap()
                  |> Block.new()
                  |> Client.submit_block()

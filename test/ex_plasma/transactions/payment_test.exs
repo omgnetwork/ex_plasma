@@ -1,17 +1,17 @@
-defmodule ExPlasma.Transactions.PaymentTest do
+defmodule ExPlasma.Transaction.PaymentTest do
   use ExUnit.Case, async: true
-  doctest ExPlasma.Transactions.Payment
+  doctest ExPlasma.Transaction.Payment
 
   alias ExPlasma.Transaction
   alias ExPlasma.Utxo
-  alias ExPlasma.Transactions.Payment
+  alias ExPlasma.Transaction.Payment
 
   test "to_rlp/1 forms an RLP-encodable list for a payment transaction" do
     owner = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
     input = %Utxo{blknum: 0, txindex: 0, oindex: 0}
     output = %Utxo{owner: owner, currency: currency, amount: 1}
-    txn = Payment.new(%{inputs: [input], outputs: [output]})
+    {:ok, txn} = Payment.new(%{inputs: [input], outputs: [output]})
     list = Transaction.to_rlp(txn)
 
     assert list == [
@@ -43,7 +43,7 @@ defmodule ExPlasma.Transactions.PaymentTest do
     currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
     input = %Utxo{blknum: 0, txindex: 0, oindex: 0}
     output = %Utxo{owner: owner, currency: currency, amount: 1}
-    txn = Payment.new(%{inputs: [input], outputs: [output]})
+    {:ok, txn} = Payment.new(%{inputs: [input], outputs: [output]})
     encoded = Transaction.encode(txn)
 
     assert encoded ==

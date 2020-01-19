@@ -6,7 +6,7 @@ defmodule Conformance.SignaturesTest do
   use ExUnit.Case, async: false
 
   alias ExPlasma.Transaction
-  alias ExPlasma.Transactions.Payment
+  alias ExPlasma.Transaction.Payment
   alias ExPlasma.TypedData
   alias ExPlasma.Utxo
 

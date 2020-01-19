@@ -1,4 +1,4 @@
-defmodule ExPlasma.Transactions.Payment do
+defmodule ExPlasma.Transaction.Payment do
   @moduledoc """
   A Payment Transaction type. Used to send transactions from one party to 
   another on the child chain.
@@ -14,13 +14,6 @@ defmodule ExPlasma.Transactions.Payment do
   # A payment transaction is only allowed to have up to 4 inputs/outputs.
   @max_input_count 4
   @max_output_count 4
-
-  @type t :: %__MODULE__{
-          sigs: list(String.t()),
-          inputs: list(ExPlasma.Utxo.t()),
-          outputs: list(ExPlasma.Utxo.t()),
-          metadata: binary()
-        }
 
   defstruct(tx_type: nil, sigs: [], inputs: [], outputs: [], tx_data: nil, metadata: nil)
 
@@ -45,12 +38,12 @@ defmodule ExPlasma.Transactions.Payment do
   ## Examples
 
   iex> alias ExPlasma.Utxo
-  iex> alias ExPlasma.Transactions.Payment
+  iex> alias ExPlasma.Transaction.Payment
   iex> address = "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e"
   iex> currency = "0x2e262d291c2E969fB0849d99D9Ce41e2F137006e"
   iex> utxo = %Utxo{owner: address, currency: currency, amount: 1}
   iex> Payment.new(%{inputs: [], outputs: [utxo]})
-  %ExPlasma.Transactions.Payment{
+  {:ok, %ExPlasma.Transaction.Payment{
     inputs: [],
     sigs: [],
     metadata: nil,
@@ -61,9 +54,9 @@ defmodule ExPlasma.Transactions.Payment do
       oindex: nil,
       owner: "0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e",
       txindex: nil}]
-  }
+  }}
   """
-  @spec new(map()) :: __MODULE__.t()
+  @spec new(map()) :: {:ok, Transaction.t()} | ExPlasma.Utxo.validation_tuples()
   def new(%{inputs: inputs, outputs: outputs} = payment)
       when is_list(inputs) and length(inputs) <= @max_input_count and
              is_list(outputs) and length(outputs) <= @max_output_count do

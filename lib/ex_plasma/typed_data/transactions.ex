@@ -1,5 +1,5 @@
 defimpl ExPlasma.TypedData,
-  for: [ExPlasma.Transaction, ExPlasma.Transactions.Deposit, ExPlasma.Transactions.Payment] do
+  for: [ExPlasma.Transaction, ExPlasma.Transaction.Deposit, ExPlasma.Transaction.Payment] do
   alias ExPlasma.Encoding
   alias ExPlasma.Transaction
   alias ExPlasma.TypedData
