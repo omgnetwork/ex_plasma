@@ -47,7 +47,7 @@ defmodule ExPlasma.Utxo do
 
   # Also known as the Utxo position
   @type input_rlp :: non_neg_integer() | binary()
-  @type output_rlp :: list()
+  @type output_rlp :: nonempty_list()
 
   @type input_map :: %{
           blknum: non_neg_integer(),
