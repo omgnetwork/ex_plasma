@@ -21,17 +21,6 @@ defmodule ExPlasma.ClientTest do
   end
 
   describe "deposit/2" do
-    test "accepts a keyword list for the options" do
-      use_cassette "deposit", match_requests_on: [:request_body] do
-        currency = ExPlasma.Encoding.to_hex(<<0::160>>)
-
-        {:ok, deposit} =
-          Deposit.new(%Utxo{owner: authority_address(), currency: currency, amount: 1})
-
-        assert {:ok, _receipt_hash} = Client.deposit(deposit, to: :eth)
-      end
-    end
-
     test "sends deposit transaction with a deposit struct" do
       use_cassette "deposit", match_requests_on: [:request_body] do
         currency = ExPlasma.Encoding.to_hex(<<0::160>>)
