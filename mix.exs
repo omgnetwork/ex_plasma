@@ -50,6 +50,19 @@ defmodule ExPlasma.MixProject do
     ]
   end
 
+  defp description do
+    "Elixir client library to the OmiseGO Plasma Framework"
+  end
+
+  defp package do
+    [
+      name: "ex_plasma",
+      files: ~w(lib mix.exs README.md LICENSE),
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => "https://github.com/omisego/ex_plasma"}
+    ]
+  end
+
   defp dialyzer do
     [
       flags: [:error_handling, :race_conditions, :underspecs, :unknown, :unmatched_returns],
