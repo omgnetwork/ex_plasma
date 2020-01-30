@@ -4,7 +4,9 @@ defmodule ExPlasma.MixProject do
   def project do
     [
       app: :ex_plasma,
-      version: "0.1.0",
+      version: "0.2.0",
+      description: "Elixir client library to the OmiseGO Plasma Framework",
+      package: package(),
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -16,6 +18,14 @@ defmodule ExPlasma.MixProject do
         "coveralls.html": :test
       ],
       dialyzer: dialyzer()
+    ]
+  end
+
+  defp package() do
+    [
+      files: ~w(lib .formatter.exs mix.exs README.md LICENSE),
+      licenses: ["Apache 2.0"],
+      links: %{"GitHub" => "https://github.com/omisego/ex_plasma"}
     ]
   end
 
@@ -34,7 +44,7 @@ defmodule ExPlasma.MixProject do
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.5.5"},
       {:ex_abi, "~> 0.2.0"},
-      {:ex_rlp, "~> 0.5.2", override: true},
+      {:ex_rlp, "~> 0.5.2"},
       {:exth_crypto, "~> 0.1.6"},
       {:exvcr, "~> 0.10", only: :test},
       {:libsecp256k1,
