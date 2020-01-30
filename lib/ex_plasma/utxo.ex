@@ -53,13 +53,21 @@ defmodule ExPlasma.Utxo do
   @type input_rlp :: non_neg_integer() | binary()
   @type output_rlp :: nonempty_list()
 
-  @type input_map :: %{
+  @type input_map :: %__MODULE__{
           blknum: non_neg_integer(),
           txindex: non_neg_integer(),
-          oindex: non_neg_integer()
+          oindex: non_neg_integer(),
+          output_type: unquote(@payment_output_type),
+          amount: nil,
+          currency: nil,
+          owner: nil
         }
 
   @type output_map :: %{
+          blknum: nil,
+          txindex: nil,
+          oindex: nil,
+          output_type: unquote(@payment_output_type),
           owner: address_binary() | address_hex(),
           currency: address_binary() | address_hex(),
           amount: non_neg_integer()
