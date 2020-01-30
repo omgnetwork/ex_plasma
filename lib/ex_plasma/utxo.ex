@@ -63,7 +63,7 @@ defmodule ExPlasma.Utxo do
           owner: nil
         }
 
-  @type output_map :: %{
+  @type output_map :: %__MODULE__{
           blknum: nil,
           txindex: nil,
           oindex: nil,
