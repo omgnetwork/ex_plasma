@@ -31,7 +31,7 @@ defmodule ExPlasma.MixProject do
   defp deps do
     [
       {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.5.5"},
       {:ex_abi, "~> 0.2.0"},
       {:ex_rlp, "~> 0.5.2", override: true},
