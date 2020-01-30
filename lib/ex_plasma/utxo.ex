@@ -30,6 +30,9 @@ defmodule ExPlasma.Utxo do
 
   import ExPlasma.Encoding, only: [to_binary: 1, to_int: 1]
 
+  # Currently this is the only output type available
+  @payment_output_type 1
+
   # Binary representation of an address
   @type address_binary :: <<_::160>>
 
@@ -40,6 +43,7 @@ defmodule ExPlasma.Utxo do
           blknum: non_neg_integer() | nil,
           oindex: non_neg_integer() | nil,
           txindex: non_neg_integer() | nil,
+          output_type: unquote(@payment_output_type),
           amount: non_neg_integer() | nil,
           currency: address_binary() | address_hex() | nil,
           owner: address_binary() | address_hex() | nil
@@ -72,9 +76,6 @@ defmodule ExPlasma.Utxo do
           | {:currency, :cannot_be_nil}
           | {:owner, :cannot_be_nil}
           | {:owner, :cannot_be_zero}
-
-  # Currently this is the only output type available.
-  @payment_output_type 1
 
   # Contract settings
   # These are being hard-coded from the same values on the contracts.
