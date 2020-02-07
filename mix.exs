@@ -34,7 +34,7 @@ defmodule ExPlasma.MixProject do
       {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.5.5"},
       {:ex_abi, "~> 0.2.0"},
-      {:ex_rlp, "~> 0.5.2", override: true},
+      {:ex_rlp, "~> 0.5.3"},
       {:exth_crypto, "~> 0.1.6"},
       {:exvcr, "~> 0.10", only: :test},
       {:libsecp256k1,

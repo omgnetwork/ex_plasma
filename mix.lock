@@ -11,7 +11,7 @@
   "ethereumex": {:hex, :ethereumex, "0.5.5", "af623a88e78a3abcab28cbbc7817ace6e8a430e19d6514e9b39ed871224cc041", [:mix], [{:httpoison, "~> 1.4.0", [hex: :httpoison, repo: "hexpm", optional: false]}, {:jason, "~> 1.1", [hex: :jason, repo: "hexpm", optional: false]}, {:poolboy, "~> 1.5.1", [hex: :poolboy, repo: "hexpm", optional: false]}], "hexpm"},
   "evm": {:hex, :evm, "0.1.14", "59a3fd332beb6a529cd7c2571a87a7f63c51200f2de381a412ee9bb02f5cbbcc", [:mix], [{:keccakf1600, "~> 2.0.0", [hex: :keccakf1600_orig, repo: "hexpm", optional: false]}, {:merkle_patricia_tree, "~> 0.2.5", [hex: :merkle_patricia_tree, repo: "hexpm", optional: false]}], "hexpm"},
   "ex_abi": {:hex, :ex_abi, "0.2.2", "805c19edccb98ecd02a2eee1851d49f625ae036953ae45b3349468333b19870e", [:mix], [{:exth_crypto, "~> 0.1.6", [hex: :exth_crypto, repo: "hexpm", optional: false]}], "hexpm"},
-  "ex_rlp": {:hex, :ex_rlp, "0.5.2", "7f4ce7bd55e543c054ce6d49629b01e9833c3462e3d547952be89865f39f2c58", [:mix], [], "hexpm"},
+  "ex_rlp": {:hex, :ex_rlp, "0.5.3", "9055bddade545ee3e734aaad62c4b4d08211834da3beb43ae269b75785909e5e", [:mix], [], "hexpm"},
   "exactor": {:hex, :exactor, "2.2.4", "5efb4ddeb2c48d9a1d7c9b465a6fffdd82300eb9618ece5d34c3334d5d7245b1", [:mix], [], "hexpm"},
   "excoveralls": {:hex, :excoveralls, "0.12.1", "a553c59f6850d0aff3770e4729515762ba7c8e41eedde03208182a8dc9d0ce07", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm"},
   "exjsx": {:hex, :exjsx, "4.0.0", "60548841e0212df401e38e63c0078ec57b33e7ea49b032c796ccad8cde794b5c", [:mix], [{:jsx, "~> 2.8.0", [hex: :jsx, repo: "hexpm", optional: false]}], "hexpm"},
