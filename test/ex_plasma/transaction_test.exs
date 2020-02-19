@@ -172,6 +172,76 @@ defmodule ExPlasma.TransactionTest do
                0, 0, 0, 0, 0, 0>>
   end
 
+  test "map/1 turns struct into map" do
+    txn = %ExPlasma.Transaction{
+      inputs: [
+        %ExPlasma.Utxo{
+          amount: nil,
+          blknum: 0,
+          currency: nil,
+          oindex: 0,
+          output_type: 1,
+          owner: nil,
+          txindex: 0
+        }
+      ],
+      metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      outputs: [
+        %ExPlasma.Utxo{
+          amount: 1,
+          blknum: nil,
+          currency:
+            <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0,
+              110>>,
+          oindex: nil,
+          output_type: 1,
+          owner:
+            <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
+              0, 110>>,
+          txindex: nil
+        }
+      ],
+      sigs: [],
+      tx_data: 0,
+      tx_type: 1
+    }
+
+    map = ExPlasma.Transaction.to_map(txn)
+
+    assert map == %{
+             inputs: [
+               %{
+                 amount: nil,
+                 blknum: 0,
+                 currency: nil,
+                 oindex: 0,
+                 output_type: 1,
+                 owner: nil,
+                 txindex: 0
+               }
+             ],
+             metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+             outputs: [
+               %{
+                 amount: 1,
+                 blknum: nil,
+                 currency:
+                   <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
+                     55, 0, 110>>,
+                 oindex: nil,
+                 output_type: 1,
+                 owner:
+                   <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
+                     241, 55, 0, 110>>,
+                 txindex: nil
+               }
+             ],
+             sigs: [],
+             tx_data: 0,
+             tx_type: 1
+           }
+  end
+
   describe "TypedData" do
     test "encode/1 encodes a transaction eip 712 object" do
       encoded = ExPlasma.TypedData.encode(%Transaction{})

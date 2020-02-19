@@ -248,7 +248,7 @@ defmodule ExPlasma.Transaction do
     ## Examples
 
       # Signs transaction with the given key.
-      iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>} 
+      iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>}
       iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
       iex> ExPlasma.Transaction.sign(txn, keys: [key])
       %ExPlasma.Transaction{
@@ -265,7 +265,7 @@ defmodule ExPlasma.Transaction do
       }
 
       # Signs the transaction with no keys.
-      iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>} 
+      iex> txn = %ExPlasma.Transaction{metadata: <<0::160>>}
       iex> ExPlasma.Transaction.sign(txn, keys: [])
       %ExPlasma.Transaction{
         inputs: [],
@@ -281,6 +281,20 @@ defmodule ExPlasma.Transaction do
     eip712_hash = ExPlasma.TypedData.hash(transaction)
     sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
     %{transaction | sigs: sigs}
+  end
+
+  @doc """
+  Converts a transaction and its members into a map.
+  """
+  @spec to_map(struct()) :: map()
+  def to_map(transaction) do
+    params = Map.from_struct(transaction)
+
+    %{
+      params
+      | inputs: Enum.map(transaction.inputs, &Map.from_struct/1),
+        outputs: Enum.map(transaction.outputs, &Map.from_struct/1)
+    }
   end
 
   # Builds list of utxos and propogates error tuples up the stack.
