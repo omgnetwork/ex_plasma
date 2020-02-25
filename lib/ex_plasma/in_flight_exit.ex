@@ -7,7 +7,7 @@ defmodule ExPlasma.InFlightExit do
   @doc """
   Derive the in-flight exit ID from its transaction bytes.
 
-  See https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/contracts/src/exits/utils/ExitId.sol#L53-L55
+  See https://github.com/omisego/plasma-contracts/blob/v1.0.3/plasma_framework/contracts/src/exits/utils/ExitId.sol#L53-L55
   """
   def txbytes_to_id(txbytes) do
     txbytes
