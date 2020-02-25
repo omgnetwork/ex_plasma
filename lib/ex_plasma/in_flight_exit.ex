@@ -9,6 +9,7 @@ defmodule ExPlasma.InFlightExit do
 
   See https://github.com/omisego/plasma-contracts/blob/v1.0.3/plasma_framework/contracts/src/exits/utils/ExitId.sol#L53-L55
   """
+  @spec txbytes_to_id(binary()) :: pos_integer()
   def txbytes_to_id(txbytes) do
     txbytes
     |> ExPlasma.Encoding.keccak_hash()
