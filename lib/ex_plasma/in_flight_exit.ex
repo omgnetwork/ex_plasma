@@ -18,6 +18,6 @@ defmodule ExPlasma.InFlightExit do
   end
 
   defp set_bit(data, bit_position) do
-    data ||| (1 <<< bit_position)
+    data ||| 1 <<< bit_position
   end
 end

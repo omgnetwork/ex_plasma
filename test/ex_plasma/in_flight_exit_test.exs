@@ -22,14 +22,29 @@ defmodule ExPlasma.InFlightExitTest do
       #         return _self | ONE << _index;
       #     }
       # }
-      assert InFlightExit.txbytes_to_id(to_binary("0x")) == 5060277488387867361168243832726934991540486235
-      assert InFlightExit.txbytes_to_id(to_binary("0x1234")) == 3817219175777579444019728485725459454579489354
-      assert InFlightExit.txbytes_to_id(to_binary("0xb26f143eb9e68e5b")) == 4423187252251026420447811542410043191383319711
-      assert InFlightExit.txbytes_to_id(to_binary("0x70de28d3cd1cb609")) == 3110272171107387954030746231895833085925917747
-      assert InFlightExit.txbytes_to_id(to_binary("0xc235a61a575eb3e2")) == 5361575098523492156916835341228175600149117682
-      assert InFlightExit.txbytes_to_id(to_binary("0x8fdeb13e6acdc74955fdcf0f345ae57a")) == 4404745967111218594847696181449381826825993906
-      assert InFlightExit.txbytes_to_id(to_binary("0x00000000000000000000000000000000")) == 5581496182896756123499329818246993621247309773
-      assert InFlightExit.txbytes_to_id(to_binary("0xffffffffffffffffffffffffffffffff")) == 5148223842797971894055932452183428950371578310
+      assert InFlightExit.txbytes_to_id(to_binary("0x")) ==
+               5_060_277_488_387_867_361_168_243_832_726_934_991_540_486_235
+
+      assert InFlightExit.txbytes_to_id(to_binary("0x1234")) ==
+               3_817_219_175_777_579_444_019_728_485_725_459_454_579_489_354
+
+      assert InFlightExit.txbytes_to_id(to_binary("0xb26f143eb9e68e5b")) ==
+               4_423_187_252_251_026_420_447_811_542_410_043_191_383_319_711
+
+      assert InFlightExit.txbytes_to_id(to_binary("0x70de28d3cd1cb609")) ==
+               3_110_272_171_107_387_954_030_746_231_895_833_085_925_917_747
+
+      assert InFlightExit.txbytes_to_id(to_binary("0xc235a61a575eb3e2")) ==
+               5_361_575_098_523_492_156_916_835_341_228_175_600_149_117_682
+
+      assert InFlightExit.txbytes_to_id(to_binary("0x8fdeb13e6acdc74955fdcf0f345ae57a")) ==
+               4_404_745_967_111_218_594_847_696_181_449_381_826_825_993_906
+
+      assert InFlightExit.txbytes_to_id(to_binary("0x00000000000000000000000000000000")) ==
+               5_581_496_182_896_756_123_499_329_818_246_993_621_247_309_773
+
+      assert InFlightExit.txbytes_to_id(to_binary("0xffffffffffffffffffffffffffffffff")) ==
+               5_148_223_842_797_971_894_055_932_452_183_428_950_371_578_310
     end
   end
 end
