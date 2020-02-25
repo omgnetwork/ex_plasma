@@ -7,15 +7,16 @@ defmodule ExPlasma.InFlightExitTest do
 
   describe "txbytes_to_id/1" do
     test "basic txbytes is converted to the correct IDs" do
-      # The right hand side of these assertions should match results from this contract:
+      # The right hand side of these assertions should match results from this contract,
+      # a stripped down version of https://github.com/omisego/plasma-contracts/blob/v1.0.3/plasma_framework/contracts/src/exits/utils/ExitId.sol#L53-L55
       #
       # pragma solidity 0.5.11;
       #
-      # contract MiniIFE {
+      # contract ExitId {
       #     uint constant internal ONE = uint(1);
       #
-      #     function txbytes_to_id(bytes memory _txBytes) public pure returns(uint160) {
-      #         return uint160(setBit(uint256(keccak256(_txBytes)) >> 105, 151));
+      #     function getInFlightExitId(bytes memory _txBytes) public pure returns(uint160) {
+      #         return uint160((uint256(keccak256(_txBytes)) >> 105).setBit(151));
       #     }
       #
       #     function setBit(uint _self, uint8 _index) internal pure returns (uint) {
