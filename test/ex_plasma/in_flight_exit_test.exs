@@ -7,8 +7,8 @@ defmodule ExPlasma.InFlightExitTest do
 
   describe "txbytes_to_id/1" do
     test "basic txbytes is converted to the correct IDs" do
-      # The right hand side of these assertions should match results from this contract,
-      # a stripped down version of https://github.com/omisego/plasma-contracts/blob/v1.0.3/plasma_framework/contracts/src/exits/utils/ExitId.sol#L53-L55
+      # The right hand side of these assertions are collected from this contract, a stripped down version
+      # of https://github.com/omisego/plasma-contracts/blob/v1.0.3/plasma_framework/contracts/src/exits/utils/ExitId.sol#L53-L55
       #
       # pragma solidity 0.5.11;
       #
