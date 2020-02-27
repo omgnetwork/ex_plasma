@@ -4,6 +4,7 @@ defmodule Conformance.InFlightExitTest do
   """
   use ExUnit.Case, async: true
   import ExPlasma.Client.Config, only: [contract_address: 0]
+  alias ExPlasma.InFlightExit
 
   @moduletag :conformance
 
@@ -25,7 +26,7 @@ defmodule Conformance.InFlightExitTest do
     test "matches PaymentExitGame.getInFlightExitId(bytes)" do
       Enum.each(@ife_tx_hexes, fn hex ->
         txbytes = ExPlasma.Encoding.to_binary(hex)
-        assert ExPlasma.InFlightExit.txbytes_to_id(txbytes) == contract_get_in_flight_exit_id(txbytes)
+        assert InFlightExit.txbytes_to_id(txbytes) == contract_get_in_flight_exit_id(txbytes)
       end)
     end
   end
