@@ -32,7 +32,7 @@ defmodule ExPlasma.MixProject do
     [
       {:credo, "~> 1.2.2", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
-      {:ethereumex, git: "https://github.com/mana-ethereum/ethereumex.git", ref: "b5b8a6057bb26ce6dc6365bbb8b699d72b13b7b1"},
+      {:ethereumex, "~> 0.6.0"},
       {:ex_abi, "~> 0.2.0"},
       {:ex_rlp, "~> 0.5.3"},
       {:exth_crypto, "~> 0.1.6"},
