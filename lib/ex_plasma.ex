@@ -6,6 +6,17 @@ defmodule ExPlasma do
   alias ExPlasma.Transaction
   alias ExPlasma.Utxo
 
+  # constants that identify payment types, make sure that 
+  # when we introduce a new payment type, you name it `paymentV2`
+  # https://github.com/omisego/plasma-contracts/blob/6ab35256b805e25cfc30d85f95f0616415220b20/plasma_framework/docs/design/tx-types-dependencies.md
+  @payment_v1 <<1>>
+  @type payment :: <<_::8>>
+  @doc """
+    Simple payment type V1
+  """
+  @spec payment_v1() :: payment()
+  def payment_v1(), do: @payment_v1
+
   @doc """
 
   Produces a RLP encoded transaction bytes for the given transaction data.
@@ -65,7 +76,7 @@ defmodule ExPlasma do
         outputs: [],
         sigs: ["0x123456"],
         tx_data: "",
-        tx_type: <<1>>
+        tx_type: ExPlasma.payment_v1()
       }}
 
        Decodes a transaction rlp data
@@ -95,7 +106,7 @@ defmodule ExPlasma do
        }}
 
       # Decodes an output utxo rlp data
-      iex> rlp = [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<1>>]]
+      iex> rlp = [ExPlasma.payment_v1(), [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, ExPlasma.payment_v1()]]
       iex> ExPlasma.decode(rlp)
       {:ok, %ExPlasma.Utxo{
          amount: 1,

@@ -8,11 +8,11 @@ defmodule ExPlasma.TransactionTest do
   describe "new/1" do
     test "does not allow amount to be zero" do
       rlp = [
-        <<1>>,
+        ExPlasma.payment_v1(),
         [<<0>>],
         [
           [
-            <<1>>,
+            ExPlasma.payment_v1(),
             [
               <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
                 0, 110>>,
@@ -31,11 +31,11 @@ defmodule ExPlasma.TransactionTest do
 
     test "does not allow output guard / owner to be zero" do
       rlp = [
-        <<1>>,
+        ExPlasma.payment_v1(),
         [<<0>>],
         [
           [
-            <<1>>,
+            ExPlasma.payment_v1(),
             [
               <<0::160>>,
               <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
@@ -103,15 +103,15 @@ defmodule ExPlasma.TransactionTest do
         [],
         [
           [
-            <<1>>,
+            ExPlasma.payment_v1(),
             [
               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-              <<1>>
+              ExPlasma.payment_v1()
             ]
           ],
           [
-            <<1>>,
+            ExPlasma.payment_v1(),
             [
               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -119,7 +119,7 @@ defmodule ExPlasma.TransactionTest do
             ]
           ],
           [
-            <<1>>,
+            ExPlasma.payment_v1(),
             [
               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
               <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
