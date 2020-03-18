@@ -102,7 +102,7 @@ defmodule ExPlasma.Utxo do
 
       # Create a Utxo from an Output RLP list
       iex> alias ExPlasma.Utxo
-      iex> Utxo.new([ExPlasma.payment(), [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]])
+      iex> Utxo.new([ExPlasma.payment_v1(), [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]])
       {:ok, %ExPlasma.Utxo{
         amount: 1000000000000000000,
         blknum: nil,
@@ -187,7 +187,7 @@ defmodule ExPlasma.Utxo do
     iex> alias ExPlasma.Utxo
     iex> utxo = %Utxo{amount: 2, currency: <<0::160>>, owner: <<0::160>>}
     iex> Utxo.to_rlp(utxo)
-    [ExPlasma.payment(), [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+    [ExPlasma.payment_v1(), [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
       <<2>>]
     ]
@@ -225,7 +225,7 @@ defmodule ExPlasma.Utxo do
     iex> alias ExPlasma.Utxo
     iex> Utxo.to_output_rlp(%Utxo{amount: 0, currency: <<0::160>>, owner: <<0::160>>})
     [
-      ExPlasma.payment(),
+      ExPlasma.payment_v1(),
       [
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -238,11 +238,11 @@ defmodule ExPlasma.Utxo do
     iex> address = "0x0000000000000000000000000000000000000000"
     iex> Utxo.to_output_rlp(%Utxo{owner: address, currency: address, amount: 1})
     [
-      ExPlasma.payment(),
+      ExPlasma.payment_v1(),
       [
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-        ExPlasma.payment()
+        ExPlasma.payment_v1()
       ]
     ]
   """

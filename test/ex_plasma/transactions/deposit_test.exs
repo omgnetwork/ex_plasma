@@ -32,13 +32,13 @@ defmodule ExPlasma.Transaction.DepositTest do
              [],
              [
                [
-                 ExPlasma.payment(),
+                 ExPlasma.payment_v1(),
                  [
                    <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
                      241, 55, 0, 110>>,
                    <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
                      55, 0, 110>>,
-                   ExPlasma.payment()
+                   ExPlasma.payment_v1()
                  ]
                ]
              ],

@@ -32,7 +32,7 @@ defmodule ExPlasma.UtxoTest do
                {:error, {:amount, :cannot_be_zero}}
 
       rlp = [
-        ExPlasma.payment(),
+        ExPlasma.payment_v1(),
         [
           <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>,
           <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -48,11 +48,11 @@ defmodule ExPlasma.UtxoTest do
                {:error, {:owner, :cannot_be_zero}}
 
       rlp = [
-        ExPlasma.payment(),
+        ExPlasma.payment_v1(),
         [
           <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
           <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-          ExPlasma.payment()
+          ExPlasma.payment_v1()
         ]
       ]
 

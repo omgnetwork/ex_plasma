@@ -67,11 +67,11 @@ defmodule ExPlasma.Transaction do
 
     # Create a transaction from a RLP list
     iex> rlp = [
-    ...>  ExPlasma.payment(),
+    ...>  ExPlasma.payment_v1(),
     ...>  [<<0>>],
     ...>  [
     ...>    [
-    ...>      ExPlasma.payment(),
+    ...>      ExPlasma.payment_v1(),
     ...>      [
     ...>        <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
     ...>          226, 241, 55, 0, 110>>,
