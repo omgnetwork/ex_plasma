@@ -72,6 +72,7 @@ defmodule ExPlasma do
           metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
           outputs: [],
+          sigs: [],
           tx_data: "",
           tx_type: 1
         }
