@@ -26,7 +26,7 @@ defmodule ExPlasma do
   @spec fee_token_claim_v1() :: payment()
   def fee_token_claim_v1(), do: @fee_token_claim_v1
 
-  @spec transaction_types :: list()
+  @spec transaction_types :: [<<_::8>>, ...]
   def transaction_types(), do: [payment_v1(), fee_token_claim_v1()]
 
   @doc """
