@@ -10,12 +10,24 @@ defmodule ExPlasma do
   # when we introduce a new payment type, you name it `paymentV2`
   # https://github.com/omisego/plasma-contracts/blob/6ab35256b805e25cfc30d85f95f0616415220b20/plasma_framework/docs/design/tx-types-dependencies.md
   @payment_v1 <<1>>
+  @fee_token_claim_v1 <<3>>
+
   @type payment :: <<_::8>>
+
   @doc """
     Simple payment type V1
   """
   @spec payment_v1() :: payment()
   def payment_v1(), do: @payment_v1
+
+  @doc """
+    Transaction fee claim V1
+  """
+  @spec fee_token_claim_v1() :: payment()
+  def fee_token_claim_v1(), do: @fee_token_claim_v1
+
+  @spec transaction_types :: list()
+  def transaction_types(), do: [payment_v1(), fee_token_claim_v1()]
 
   @doc """
 
@@ -60,7 +72,6 @@ defmodule ExPlasma do
           metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
           outputs: [],
-          sigs: [],
           tx_data: "",
           tx_type: 1
         }
