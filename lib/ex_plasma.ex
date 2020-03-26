@@ -131,7 +131,7 @@ defmodule ExPlasma do
        }}
   """
   @spec decode(Transaction.rlp() | Utxo.output_rlp() | Utxo.input_rlp()) ::
-          {:ok, Transaction.t()} | {:ok, Utxo.t()} | Utxo.validation_tuples()
+          {:ok, Transaction.t()} | {:ok, Utxo.t()} | {:error, Utxo.validation_tuples()}
   def decode([_output_type, [_owner, _currency, _amount]] = output_rlp), do: Utxo.new(output_rlp)
 
   def decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = tx_rlp),
