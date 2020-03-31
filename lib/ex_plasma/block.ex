@@ -34,7 +34,11 @@ defmodule ExPlasma.Block do
       ]
     }
   """
-  @spec new(maybe_improper_list()) :: __MODULE__.t()
+  @spec new(maybe_improper_list()) :: %__MODULE__{
+          hash: binary(),
+          timestamp: nil,
+          transactions: maybe_improper_list
+        }
   def new(transactions) when is_list(transactions),
     do: %__MODULE__{transactions: transactions, hash: merkle_root_hash(transactions)}
 

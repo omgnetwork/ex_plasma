@@ -49,6 +49,12 @@ defmodule ExPlasma.Utxo do
           owner: address_binary() | address_hex() | nil
         }
 
+  @type input_t :: %__MODULE__{
+          blknum: non_neg_integer(),
+          oindex: non_neg_integer(),
+          txindex: non_neg_integer()
+        }
+
   # Also known as the Utxo position
   @type input_rlp :: non_neg_integer() | binary()
   @type output_rlp :: nonempty_list()
@@ -211,7 +217,7 @@ defmodule ExPlasma.Utxo do
     <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 119, 53, 187, 17>>
   """
-  @spec to_input_rlp(__MODULE__.t() | input_map()) :: binary()
+  @spec to_input_rlp(__MODULE__.input_t() | input_map()) :: binary()
   def to_input_rlp(%{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
     utxo |> pos() |> :binary.encode_unsigned(:big) |> pad_binary()
