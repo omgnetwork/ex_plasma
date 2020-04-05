@@ -46,7 +46,7 @@ defmodule ExPlasma.Output.Position do
   1_000_000_000
   """
   @impl Output
-  @spec encode(t()) :: position()
+  @spec encode(map()) :: any()
   def encode(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     blknum * @block_offset + txindex * @transaction_offset + oindex
   end
