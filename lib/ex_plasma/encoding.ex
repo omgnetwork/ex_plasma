@@ -132,9 +132,9 @@ defmodule ExPlasma.Encoding do
     # EIP-155
     # See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
     base_recovery_id = 27
-    recovery_id = base_recovery_id + recovery_id
+    rid = base_recovery_id + recovery_id
 
-    <<r::integer-size(256), s::integer-size(256), recovery_id::integer-size(8)>>
+    <<r::integer-size(256), s::integer-size(256), rid::integer-size(8)>>
   end
 
   defp build(encoded_transactions) do
