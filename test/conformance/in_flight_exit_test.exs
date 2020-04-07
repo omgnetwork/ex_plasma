@@ -37,7 +37,6 @@ defmodule Conformance.InFlightExitTest do
   end
 
   defp eth_call(contract_signature, data, [to: to], callback) when is_list(data) do
-    to = to
     options = %{data: encode_data(contract_signature, data), to: to}
 
     case Ethereumex.HttpClient.eth_call(options) do

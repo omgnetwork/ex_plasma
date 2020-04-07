@@ -64,7 +64,6 @@ defmodule Conformance.SignaturesTest do
   end
 
   defp eth_call(contract_signature, data_types, [to: to], callback) when is_list(data_types) do
-    to = to
     options = %{data: encode_data(contract_signature, data_types), to: to}
 
     case Ethereumex.HttpClient.eth_call(options) do
