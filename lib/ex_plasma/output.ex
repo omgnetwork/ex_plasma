@@ -1,6 +1,10 @@
 defmodule ExPlasma.Output do
   @moduledoc """
   An Output.
+
+  `output_id` - the Identifier scheme for the Output. We currently have two: Position and Id.
+  `output_type` - An integer value of what type of output data is associated.
+  `output_data` - The main data for the output. This can be decode by the different output types.
   """
 
   @type output_type() :: pos_integer()
@@ -83,7 +87,6 @@ defmodule ExPlasma.Output do
   defp do_validate_data(%{output_type: nil, output_data: []} = output), do: {:ok, output}
   defp do_validate_data(%{output_type: type, output_data: data}), do: @output_types[type].validate(data)
 
-
   # Generate our decoded output data based on the output type.
   defp do_new([<<output_type>>, output_data]), do: do_new([output_type, output_data])
 
@@ -96,7 +99,9 @@ defmodule ExPlasma.Output do
   end
 
   # Passing in output identifiers like positions
-  defp do_new(pos) when is_binary(pos) and byte_size(pos) <= 32, do: build_position(pos)
+  defp do_new(pos) when is_binary(pos) and byte_size(pos) <= 32,
+    do: pos |> :binary.decode_unsigned(:big) |> build_position()
+
   defp do_new(pos) when is_integer(pos), do: build_position(pos)
 
   defp build_position(pos) do
