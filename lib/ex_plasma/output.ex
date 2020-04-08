@@ -22,42 +22,35 @@ defmodule ExPlasma.Output do
   # that we can have.
   #
   # Currently there is only 1 type.
-  #@output_types %{
-    #1 =>
-  #}
+  @output_types %{
+    1 =>
+  }
 
-  #@doc """
-  #Generate new Output.
-  #"""
-  #@spec new(t()) :: 
-  #def new(), do: do_new(data)
+  @doc """
+  Generate new Output.
+  """
+  @spec new(t()) :: 
+  def new(), do: do_new(data)
 
-  #defp do_new([<<output_type>>, output_data]), do: do_new([output_type, output_data])
-  #defp do_new([output_type, output_data]), do: @output_types[output_type].build(output_data)
+  defp do_new([<<output_type>>, output_data]), do: do_new([output_type, output_data])
 
-  ## Passing in output identifiers like positions
-  #defp do_new(pos) when is_binary(pos) and byte_size(pos) <= 32, do: build_input(pos)
-  #defp do_new(pos) when is_integer(pos), do: build_input(pos)
-  #defp build_input(pos), do: ExPlasma.Output.Position.build(pos)
+  defp do_new([output_type, output_data]) do
+    %{
+      output_id: nil,
+      output_type: output_type,
+      output_data: @output_types[output_type].build(output_data)
+    }
+  end
 
+  # Passing in output identifiers like positions
+  defp do_new(pos) when is_binary(pos) and byte_size(pos) <= 32, do: build_input(pos)
+  defp do_new(pos) when is_integer(pos), do: build_input(pos)
 
-
-
-
-
-
-  #@doc """
-  #Validates an Output.
-  #"""
-
-  #def validate(%{}), do: @output_types[output_type].validate(output_data)
-
-
-  #defp unfurl_position(pos) do
-    #blknum = div(utxo_pos, @block_offset)
-    #txindex = utxo_pos |> rem(@block_offset) |> div(@transaction_offset)
-    #oindex = rem(utxo_pos, @transaction_offset)
-
-    #%{blknum: blknum, txindex: txindex, oindex: oindex}
-  #end
+  defp build_input(pos) do
+    %{
+      output_id: ExPlasma.Output.Position.decode(pos),
+      output_type: nil,
+      output_data: []
+    }
+  end
 end
