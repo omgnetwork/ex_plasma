@@ -49,6 +49,12 @@ defmodule ExPlasma.Utxo do
           owner: address_binary() | address_hex() | nil
         }
 
+  @type input_t :: %__MODULE__{
+          blknum: non_neg_integer(),
+          oindex: non_neg_integer(),
+          txindex: non_neg_integer()
+        }
+
   # Also known as the Utxo position
   @type input_rlp :: non_neg_integer() | binary()
   @type output_rlp :: nonempty_list()
