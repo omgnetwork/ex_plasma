@@ -7,12 +7,11 @@ defmodule ExPlasma.Block do
   """
 
   @type t() :: %__MODULE__{
-          hash: binary() | nil,
-          timestamp: non_neg_integer() | nil,
+          hash: binary(),
           transactions: maybe_improper_list()
         }
 
-  defstruct(hash: nil, timestamp: nil, transactions: [])
+  defstruct(hash: nil, transactions: [])
 
   alias ExPlasma.Encoding
   alias ExPlasma.Transaction
