@@ -10,17 +10,13 @@ defmodule Conformance.SignaturesTest do
   alias ExPlasma.TypedData
   alias ExPlasma.Utxo
 
-  import ExPlasma.Client.Config,
-    only: [
-      authority_address: 0,
-      contract_address: 0
-    ]
-
   @moduletag :conformance
 
   # The address where eip 712 lib mock is deployed. Ganache keeps this
   # deterministic
   @contract "0xd3aa556287afe63102e5797bfddd2a1e8dbb3ea5"
+  @authority "0x22d491bde2303f2f43325b2108d26f1eaba1e32b"
+  @verifying "0xd17e1233a03affb9092d5109179b43d6a8828607"
 
   test "signs empty transactions",
     do: assert_signs_conform(%Payment{})
@@ -28,7 +24,7 @@ defmodule Conformance.SignaturesTest do
   test "signs without inputs",
     do:
       assert_signs_conform(%Payment{
-        outputs: [%Utxo{owner: authority_address(), currency: <<0::160>>, amount: 1}]
+        outputs: [%Utxo{owner: @authority, currency: <<0::160>>, amount: 1}]
       })
 
   test "signs without outputs",
@@ -41,14 +37,13 @@ defmodule Conformance.SignaturesTest do
     do:
       assert_signs_conform(%Payment{
         inputs: [%Utxo{blknum: 1, txindex: 0, oindex: 0}],
-        outputs: [%Utxo{owner: authority_address(), currency: <<0::160>>, amount: 1}]
+        outputs: [%Utxo{owner: @authority, currency: <<0::160>>, amount: 1}]
       })
 
   test "signs with a filled transaction (4x4)" do
     inputs = List.duplicate(%Utxo{blknum: 1, txindex: 0, oindex: 0}, 4)
 
-    outputs =
-      List.duplicate(%Utxo{amount: 1, currency: <<0::160>>, owner: authority_address()}, 4)
+    outputs = List.duplicate(%Utxo{amount: 1, currency: <<0::160>>, owner: @authority}, 4)
 
     assert_signs_conform(%Payment{inputs: inputs, outputs: outputs})
   end
@@ -61,7 +56,7 @@ defmodule Conformance.SignaturesTest do
   end
 
   defp verify_hash(tx_bytes) do
-    verifying_address = contract_address() |> ExPlasma.Encoding.to_binary()
+    verifying_address = ExPlasma.Encoding.to_binary(@verifying)
 
     eth_call("hashTx(address,bytes)", [verifying_address, tx_bytes], [to: @contract], fn resp ->
       resp |> decode_response([{:bytes, 32}]) |> hd()
@@ -69,7 +64,6 @@ defmodule Conformance.SignaturesTest do
   end
 
   defp eth_call(contract_signature, data_types, [to: to], callback) when is_list(data_types) do
-    to = to || contract_address()
     options = %{data: encode_data(contract_signature, data_types), to: to}
 
     case Ethereumex.HttpClient.eth_call(options) do

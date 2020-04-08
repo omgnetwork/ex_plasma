@@ -23,13 +23,6 @@ You will also need to specify some configurations in your [config/config.exs]():
 
 ```elixir
 config :ex_plasma,
-  authority_address: "0x22d491bde2303f2f43325b2108d26f1eaba1e32b",
-  contract_address: "0xd17e1233a03affb9092d5109179b43d6a8828607",
-  eth_vault_address: "0x1967d06b1faba91eaadb1be33b277447ea24fa0e",
-  exit_game_address: "0x902719f192aa5240632f704aa7a94bab61b86550",
-  gas: 1_000_000,
-  gas_price: 1_000_000,
-  standard_exit_bond_size: 14_000_000_000_000_000,
   eip_712_domain: [
     name: "ExPlasma",
     salt: "some-salt",

@@ -217,7 +217,7 @@ defmodule ExPlasma.Utxo do
     <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 119, 53, 187, 17>>
   """
-  @spec to_input_rlp(__MODULE__.input_t() | input_map()) :: binary()
+  @spec to_input_rlp(input_map()) :: binary()
   def to_input_rlp(%{blknum: blknum, oindex: oindex, txindex: txindex} = utxo)
       when is_integer(blknum) and is_integer(oindex) and is_integer(txindex) do
     utxo |> pos() |> :binary.encode_unsigned(:big) |> pad_binary()

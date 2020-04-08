@@ -22,7 +22,7 @@ defmodule ExPlasma.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      applications: [:ethereumex],
+      applications: [],
       extra_applications: [:logger]
     ]
   end
@@ -30,19 +30,18 @@ defmodule ExPlasma.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo, "~> 1.2.2", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
-      {:ethereumex, "~> 0.6.0"},
-      {:telemetry, "~> 0.4.1"},
+      {:credo, "~> 1.3", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:ethereumex, "~> 0.6.0", only: [:test]},
       {:ex_abi, "~> 0.2.0"},
       {:ex_rlp, "~> 0.5.3"},
+      {:excoveralls, "~> 0.10", only: [:test]},
       {:exth_crypto, "~> 0.1.6"},
-      {:exvcr, "~> 0.10", only: :test},
       {:libsecp256k1,
        git: "https://github.com/omisego/libsecp256k1.git", branch: "elixir-only", override: true},
       {:merkle_tree, "~> 2.0.0"},
-      {:stream_data, "~>0.4.3", only: :test},
-      {:excoveralls, "~> 0.10", only: :test}
+      {:stream_data, "~>0.4.3", only: [:test]},
+      {:telemetry, "~> 0.4", only: [:test]}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

@@ -3,7 +3,6 @@ defmodule Conformance.InFlightExitTest do
   Conformance tests that check our local in-flight exit implementation aligns with the plasma contracts.
   """
   use ExUnit.Case, async: true
-  import ExPlasma.Client.Config, only: [contract_address: 0]
   alias ExPlasma.InFlightExit
 
   @moduletag :conformance
@@ -38,7 +37,6 @@ defmodule Conformance.InFlightExitTest do
   end
 
   defp eth_call(contract_signature, data, [to: to], callback) when is_list(data) do
-    to = to || contract_address()
     options = %{data: encode_data(contract_signature, data), to: to}
 
     case Ethereumex.HttpClient.eth_call(options) do
