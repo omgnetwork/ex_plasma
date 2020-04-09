@@ -15,6 +15,11 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
 
   @tx_type 1
 
+  # Currently, the plasma-contracts don't have these
+  # values set, so we mark them explicitly empty.
+  @empty_tx_data 0
+  @empty_metadata <<0::160>>
+
   @doc """
   """
   @impl Transaction2
@@ -23,10 +28,10 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
     [
       transaction.sigs,
       @tx_type,
-      transaction.inputs,
-      transaction.outputs,
-      transaction.tx_data,
-      transaction.metadata
+      Enum.map(transaction.inputs, &ExPlasma.Output.encode_id/1),
+      Enum.map(transaction.outputs, &ExPlasma.Output.encode/1),
+      @empty_tx_data,
+      @empty_metadata
     ]
   end
 
@@ -39,7 +44,7 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
     %{
       sigs: sigs,
       tx_type: tx_type,
-      inputs: Enum.map(inputs, &ExPlasma.Output.decode/1),
+      inputs: Enum.map(inputs, &ExPlasma.Output.decode_id/1),
       outputs: Enum.map(outputs, &ExPlasma.Output.decode/1),
       tx_data: tx_data,
       metadata: metadata

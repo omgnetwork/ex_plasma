@@ -29,9 +29,13 @@ defmodule ExPlasma.Transaction2 do
 
   iex> txn = %{inputs: [%{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: <<1>>}
   iex> ExPlasma.Transaction2.encode(txn)
-  [[], 1, [%{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], [%{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], <<0>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
+  <<248, 80, 192, 1, 193, 128, 245, 180, 243, 148, 29, 246, 47, 41, 27, 46, 150,
+    159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46, 38, 45,
+    41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
+    136, 0, 0, 0, 0, 0, 0, 0, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0>>
   """
-  def encode(%{tx_type: <<tx_type>>} = transaction), do: @transaction_types[tx_type].encode(transaction)
+  def encode(%{tx_type: <<tx_type>>} = transaction), do: @transaction_types[tx_type].encode(transaction) |> ExRLP.encode()
 
   @doc """
   Decode the given RLP list into a Transaction.
@@ -41,7 +45,7 @@ defmodule ExPlasma.Transaction2 do
   @spec decode(list()) :: t()
   def decode(data), do: data |> ExRLP.decode() |> do_decode()
   defp do_decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = rlp), do: do_decode([[] | rlp])
-  defp do_decode([_sigs, tx_type, _inputs, _outputs, _tx_data, _metadata] = rlp), do: @transaction_types[tx_type].decode(rlp)
+  defp do_decode([_sigs, <<tx_type>>, _inputs, _outputs, _tx_data, _metadata] = rlp), do: @transaction_types[tx_type].decode(rlp)
 
   @doc """
   Validate a Transation. This will check the inputs, outputs, and run
