@@ -13,9 +13,41 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
   # The maximum input and outputs the Transaction can have.
   @output_limit 4
 
+  @tx_type 1
+
+  @doc """
+  """
+  @impl Transaction2
+  @spec encode(Transaction2.t()) :: Transaction2.rlp()
+  def encode(%{} = transaction) do
+    [
+      transaction.sigs,
+      @tx_type,
+      transaction.inputs,
+      transaction.outputs,
+      transaction.tx_data,
+      transaction.metadata
+    ]
+  end
+
+  @doc """
+  Decodes an RLP list into a Payment V1 Transaction.
+  """
+  @impl Transaction2
+  @spec decode(Transaction2.rlp()) :: Transaction2.t()
+  def decode([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
+    %{
+      sigs: sigs,
+      tx_type: tx_type,
+      inputs: Enum.map(inputs, &ExPlasma.Output.new/1),
+      outputs: Enum.map(outputs, &ExPlasma.Output.new/1),
+      tx_data: tx_data,
+      metadata: metadata
+    }
+  end
+
   @doc """
   Validates the Transaction.
-
 
   ## Example
 
@@ -31,7 +63,7 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
     end
   end
 
-  defp do_validate_total(field, list, min_limit) when length(list) > @output_limit do
+  defp do_validate_total(field, list, _min_limit) when length(list) > @output_limit do
     {:error, {field, :cannot_exceed_maximum_value}}
   end
 
