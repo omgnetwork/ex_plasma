@@ -7,7 +7,7 @@ defmodule ExPlasma.Transaction2Test do
 
   describe "validate/1" do
     test "that the inputs in a transaction have valid positions" do
-      bad_position = ExPlasma.Output.new(1_000_000_000_000_000_000_000)
+      bad_position = ExPlasma.Output.decode(1_000_000_000_000_000_000_000)
       txn = %{
         inputs: [bad_position],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -22,7 +22,7 @@ defmodule ExPlasma.Transaction2Test do
 
     test "that the outputs in a transaction are valid outputs" do
       # zero amount output
-      bad_output = ExPlasma.Output.new([<<1>>, [<<1::160>>, <<0::160>>, 0]])
+      bad_output = ExPlasma.Output.decode([<<1>>, [<<1::160>>, <<0::160>>, 0]])
       txn = %{
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,

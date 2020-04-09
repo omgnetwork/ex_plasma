@@ -39,8 +39,8 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
     %{
       sigs: sigs,
       tx_type: tx_type,
-      inputs: Enum.map(inputs, &ExPlasma.Output.new/1),
-      outputs: Enum.map(outputs, &ExPlasma.Output.new/1),
+      inputs: Enum.map(inputs, &ExPlasma.Output.decode/1),
+      outputs: Enum.map(outputs, &ExPlasma.Output.decode/1),
       tx_data: tx_data,
       metadata: metadata
     }
