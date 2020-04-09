@@ -1,10 +1,11 @@
 defmodule ExPlasma.OutputTest do
   use ExUnit.Case, async: true
   doctest ExPlasma.Output
+  alias ExPlasma.Output
 
   describe "validate/1" do
     test "validates output_id and output_data" do
-      %{output_id: id} = ExPlasma.Output.decode(1_000_000_000)
+      %{output_id: id} = 1_000_000 |> ExRLP.encode() |> Output.decode_id()
 
       output = %{
         output_id: id,
@@ -26,7 +27,10 @@ defmodule ExPlasma.OutputTest do
     end
 
     test "does not raise output_type and output_data errors if missing" do
-      %{output_id: id} = ExPlasma.Output.decode(1_000_000_000_000_000_000_000)
+      %{output_id: id} =
+        1_000_000_000_000_000_000_000
+        |> ExRLP.encode()
+        |> Output.decode_id()
 
       output = %{
         output_id: id,
@@ -38,7 +42,10 @@ defmodule ExPlasma.OutputTest do
     end
 
     test "validates id if type and data are valid" do
-      %{output_id: id} = ExPlasma.Output.decode(1_000_000_000_000_000_000_000)
+      %{output_id: id} =
+        1_000_000_000_000_000_000_000
+        |> ExRLP.encode()
+        |> Output.decode_id()
 
       output = %{
         output_id: id,

@@ -41,17 +41,60 @@ defmodule ExPlasma.Output do
 
   # Generate an Output from an RLP list
 
-  iex> data = [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]
-  iex> rlp = [ExPlasma.payment_v1(), data]
-  iex> ExPlasma.Output.decode(rlp)
+  iex> encoded = <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
+  ...> 50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ...> 0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>
+  iex> ExPlasma.Output.decode(encoded)
   %{output_data: %{amount: <<13, 224, 182, 179, 167, 100, 0, 0>>, output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>}, output_id: nil, output_type: 1}
-
-  # Generate an Output from a position.
-  iex> ExPlasma.Output.decode(1_000_000_000)
-  %{output_data: [], output_id: %{blknum: 1, oindex: 0, position: 1000000000, txindex: 0}, output_type: nil}
   """
   @spec decode(rlp()) :: t()
-  def decode(data), do: do_decode(data)
+  def decode(data) when is_list(data), do: do_decode(data)
+  def decode(data), do: data |> ExRLP.decode() |> do_decode()
+
+
+  @doc """
+
+  ## Example
+
+  iex> encoded_position = << 59, 154, 202, 0>>
+  iex> ExPlasma.Output.decode_id(encoded_position)
+  %{output_data: [], output_id: %{blknum: 1, oindex: 0, position: 1000000000, txindex: 0}, output_type: nil}
+  """
+  def decode_id(data), do: data |> :binary.decode_unsigned(:big) |> do_decode()
+
+  @doc """
+  Encode an Output into RLP bytes
+
+  ## Examples
+
+  # Encode an Output
+
+  iex>
+
+  # Encode an Output identifier, like a position.
+
+  iex> output = %{
+  ...>      output_id: nil,
+  ...>      output_type: 1,
+  ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 0}
+  ...>    }
+  iex> ExPlasma.Output.encode(output)
+  <<235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 148, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128>>
+  """
+  @spec encode(any()) :: rlp()
+  def encode(%{output_type: nil}), do: nil
+  def encode(%{output_type: type, output_data: data}), do: data |> @output_types[type].encode() |> ExRLP.encode()
+
+  @doc """
+  Encodes an Output identifer into RLP bytes. This is to generate
+  the `inputs` in a Transaction.
+
+  ## Example
+  """
+  @spec encode_id(any()) :: rlp()
+  def encode_id(%{output_id: nil}), do: nil
+  def encode_id(%{output_id: id}), do: ExPlasma.Output.Position.encode(id)
 
   @doc """
   Validates the Output
@@ -60,14 +103,15 @@ defmodule ExPlasma.Output do
 
   # Validate a Payment v1 Output
 
-  iex> data = [<<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<13, 224, 182, 179, 167, 100, 0, 0>>]
-  iex> rlp = [ExPlasma.payment_v1(), data]
-  iex> {:ok, output} = rlp |> ExPlasma.Output.decode() |> ExPlasma.Output.validate()
+  iex> encoded = <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
+  ...>  50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ...>  0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>
+  iex> {:ok, output} = encoded |> ExPlasma.Output.decode() |> ExPlasma.Output.validate()
 
   # Validate a Output position
 
-  iex> position =  1_000_000_000
-  iex> {:ok, id} = position |> ExPlasma.Output.decode() |> ExPlasma.Output.validate()
+  iex> encoded_position = <<59, 154, 202, 0>>
+  iex> {:ok, id} = encoded_position |> ExPlasma.Output.decode_id() |> ExPlasma.Output.validate()
   """
   @spec validate(t()) :: validation_responses()
   def validate(%{} = output) do
@@ -97,10 +141,6 @@ defmodule ExPlasma.Output do
       output_data: @output_types[output_type].decode(output_data)
     }
   end
-
-  # Passing in output identifiers like positions
-  defp do_decode(pos) when is_binary(pos) and byte_size(pos) <= 32,
-    do: pos |> :binary.decode_unsigned(:big) |> build_position()
 
   defp do_decode(pos) when is_integer(pos), do: build_position(pos)
 

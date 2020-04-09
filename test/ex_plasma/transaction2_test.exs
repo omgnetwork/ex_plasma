@@ -7,7 +7,10 @@ defmodule ExPlasma.Transaction2Test do
 
   describe "validate/1" do
     test "that the inputs in a transaction have valid positions" do
-      bad_position = ExPlasma.Output.decode(1_000_000_000_000_000_000_000)
+      bad_position = 
+        1_000_000_000_000_000_000_000
+        |> :binary.encode_unsigned(:big)
+        |> ExPlasma.Output.decode_id()
       txn = %{
         inputs: [bad_position],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -34,12 +37,6 @@ defmodule ExPlasma.Transaction2Test do
 
       assert_field(txn, :amount, :cannot_be_zero)
     end
-  end
-
-  describe "encode/1" do
-  end
-
-  describe "decode/1" do
   end
 
   defp assert_field(data, field, message) do
