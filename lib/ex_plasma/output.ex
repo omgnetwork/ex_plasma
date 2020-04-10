@@ -7,13 +7,13 @@ defmodule ExPlasma.Output do
   `output_data` - The main data for the output. This can be decode by the different output types.
   """
 
-  @type output_type() :: pos_integer()
-  @type output_data() :: list()
+  @type output_type() :: pos_integer() | nil
+  @type output_data() :: map() | nil
   @type rlp() :: [output_type() | output_data()]
 
-  @type id() :: map()
+  @type id() :: map() | nil
 
-  @type t() :: %{
+  @type t() :: %__MODULE__{
     output_id: id(),
     output_type: output_type(),
     output_data: output_data()
@@ -94,7 +94,7 @@ defmodule ExPlasma.Output do
   <<237, 1, 235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>
   """
-  @spec encode(any()) :: rlp()
+  @spec encode(t()) :: binary()
   def encode(%{output_type: nil}), do: nil
   def encode(%{output_type: type, output_data: data}), do: data |> @output_types[type].to_rlp() |> ExRLP.encode()
 
@@ -104,7 +104,7 @@ defmodule ExPlasma.Output do
 
   ## Example
   """
-  @spec encode_id(any()) :: rlp()
+  @spec encode_id(t()) :: binary()
   def encode_id(%{output_id: nil}), do: nil
   def encode_id(%{output_id: id}), do: ExPlasma.Output.Position.to_rlp(id)
 
