@@ -35,7 +35,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   """
   @impl Output
-  @spec to_rlp(Output.t()) :: rlp()
+  @spec to_rlp(t()) :: rlp()
   def to_rlp(%{output_guard: output_guard, token: token, amount: amount}) do
     [
       <<@output_type>>, 
