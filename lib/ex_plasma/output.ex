@@ -68,7 +68,7 @@ defmodule ExPlasma.Output do
   iex> encoded_position = << 59, 154, 202, 0>>
   iex> ExPlasma.Output.decode_id(encoded_position)
   %ExPlasma.Output{
-    output_data: [],
+    output_data: nil,
     output_id: %{
       blknum: 1,
       oindex: 0,
@@ -140,8 +140,9 @@ defmodule ExPlasma.Output do
 
   # Validate the output type and data. Bypass the validation if it doesn't
   # exist in the output body.
-  defp do_validate_data(%{output_type: nil, output_data: []} = output), do: {:ok, output}
-  defp do_validate_data(%{output_type: type, output_data: data}), do: @output_types[type].validate(data)
+  defp do_validate_data(%{output_type: nil, output_data: nil} = output), do: {:ok, output}
+  defp do_validate_data(%{output_type: type, output_data: data}) when is_integer(type), do: @output_types[type].validate(data)
+  defp do_validate_data(%{output_type: <<type>>, output_data: data}), do: @output_types[type].validate(data)
 
   # Generate our decoded output data based on the output type.
   defp do_decode([<<output_type>>, output_data]), do: do_decode([output_type, output_data])
@@ -158,7 +159,7 @@ defmodule ExPlasma.Output do
     %__MODULE__{
       output_id: ExPlasma.Output.Position.to_map(pos),
       output_type: nil,
-      output_data: []
+      output_data: nil
     }
   end
 end

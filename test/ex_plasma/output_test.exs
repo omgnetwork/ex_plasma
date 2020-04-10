@@ -35,7 +35,7 @@ defmodule ExPlasma.OutputTest do
       output = %{
         output_id: id,
         output_type: nil,
-        output_data: []
+        output_data: nil
       }
 
       assert {:error, {:blknum, :exceeds_maximum_value}} = ExPlasma.Output.validate(output)
