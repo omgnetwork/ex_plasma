@@ -60,7 +60,6 @@ defmodule ExPlasma.Output do
   def decode(data) when is_list(data), do: do_decode(data)
   def decode(data), do: data |> ExRLP.decode() |> do_decode()
 
-
   @doc """
 
   ## Example
@@ -96,7 +95,7 @@ defmodule ExPlasma.Output do
   """
   @spec encode(t()) :: binary()
   def encode(%{output_type: nil}), do: nil
-  def encode(%{output_type: type, output_data: data}), do: data |> @output_types[type].to_rlp() |> ExRLP.encode()
+  def encode(%{output_type: type, output_data: data}), do: data |> get_output_type(type).to_rlp() |> ExRLP.encode()
 
   @doc """
   Encodes an Output identifer into RLP bytes. This is to generate
@@ -141,8 +140,8 @@ defmodule ExPlasma.Output do
   # Validate the output type and data. Bypass the validation if it doesn't
   # exist in the output body.
   defp do_validate_data(%{output_type: nil, output_data: nil} = output), do: {:ok, output}
-  defp do_validate_data(%{output_type: type, output_data: data}) when is_integer(type), do: @output_types[type].validate(data)
-  defp do_validate_data(%{output_type: <<type>>, output_data: data}), do: @output_types[type].validate(data)
+  defp do_validate_data(%{output_type: type, output_data: data}) when is_integer(type), do: get_output_type(type).validate(data)
+  defp do_validate_data(%{output_type: <<type>>, output_data: data}), do: get_output_type(type).validate(data)
 
   # Generate our decoded output data based on the output type.
   defp do_decode([<<output_type>>, output_data]), do: do_decode([output_type, output_data])
@@ -151,7 +150,7 @@ defmodule ExPlasma.Output do
     %__MODULE__{
       output_id: nil,
       output_type: output_type,
-      output_data: @output_types[output_type].to_map(output_data)
+      output_data: get_output_type(output_type).to_map(output_data)
     }
   end
 
@@ -162,4 +161,6 @@ defmodule ExPlasma.Output do
       output_data: nil
     }
   end
+
+  defp get_output_type(type), do: Map.get(@output_types, type, ExPlasma.Output.Type.Empty)
 end

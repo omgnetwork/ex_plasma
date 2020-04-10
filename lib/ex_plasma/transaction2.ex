@@ -9,8 +9,10 @@ defmodule ExPlasma.Transaction2 do
 
   @type t() :: %{
     sigs: sigs(),
+    tx_type: pos_integer(),
     inputs: outputs(),
     outputs: outputs(),
+    tx_data: any(),
     metadata: metadata()
   }
 
@@ -76,7 +78,7 @@ defmodule ExPlasma.Transaction2 do
     tx_type: <<1>>
   }
   """
-  @spec decode(list()) :: t()
+  @spec decode(binary()) :: t()
   def decode(data), do: data |> ExRLP.decode() |> do_decode()
   defp do_decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = rlp), do: do_decode([[] | rlp])
   defp do_decode([_sigs, <<tx_type>>, _inputs, _outputs, _tx_data, _metadata] = rlp), do: @transaction_types[tx_type].to_map(rlp)
