@@ -50,11 +50,27 @@ defmodule ExPlasma.Transaction2 do
   iex> ExPlasma.Transaction2.decode(rlp)
   %{
     inputs: [
-      %{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}
-    ], 
+      %ExPlasma.Output{
+        output_data: [],
+        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+        output_type: nil
+      }
+    ],
     metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-    outputs: [%{output_data: %{amount: <<1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}],
-    sigs: [], 
+    outputs: [
+      %ExPlasma.Output{
+        output_data: %{
+          amount: <<1>>,
+          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
+            217, 206, 65, 226, 241, 55, 0, 110>>,
+          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
+            65, 226, 241, 55, 0, 110>>
+        },
+        output_id: nil,
+        output_type: 1
+      }
+    ],
+    sigs: [],
     tx_data: "",
     tx_type: <<1>>
   }

@@ -34,6 +34,8 @@ defmodule ExPlasma.Output do
     1 => ExPlasma.Output.Type.PaymentV1
   }
 
+  defstruct [output_id: nil, output_type: nil, output_data: nil]
+
   @doc """
   Decode RLP data into an Output.
 
@@ -45,7 +47,14 @@ defmodule ExPlasma.Output do
   ...> 50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ...> 0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>
   iex> ExPlasma.Output.decode(encoded)
-  %{output_data: %{amount: <<13, 224, 182, 179, 167, 100, 0, 0>>, output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>, token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>}, output_id: nil, output_type: 1}
+  %ExPlasma.Output{
+    output_data: %{
+      amount: <<13, 224, 182, 179, 167, 100, 0, 0>>,
+      output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>,
+      token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>},
+    output_id: nil,
+    output_type: 1
+  }
   """
   @spec decode(rlp()) :: t()
   def decode(data) when is_list(data), do: do_decode(data)
@@ -58,7 +67,16 @@ defmodule ExPlasma.Output do
 
   iex> encoded_position = << 59, 154, 202, 0>>
   iex> ExPlasma.Output.decode_id(encoded_position)
-  %{output_data: [], output_id: %{blknum: 1, oindex: 0, position: 1000000000, txindex: 0}, output_type: nil}
+  %ExPlasma.Output{
+    output_data: [],
+    output_id: %{
+      blknum: 1,
+      oindex: 0,
+      position: 1000000000,
+      txindex: 0
+    },
+    output_type: nil
+  }
   """
   def decode_id(data), do: data |> :binary.decode_unsigned(:big) |> do_decode()
 
@@ -129,7 +147,7 @@ defmodule ExPlasma.Output do
   defp do_decode([<<output_type>>, output_data]), do: do_decode([output_type, output_data])
 
   defp do_decode([output_type, output_data]) do
-    %{
+    %__MODULE__{
       output_id: nil,
       output_type: output_type,
       output_data: @output_types[output_type].to_map(output_data)
@@ -137,7 +155,7 @@ defmodule ExPlasma.Output do
   end
 
   defp do_decode(pos) when is_integer(pos) do
-    %{
+    %__MODULE__{
       output_id: ExPlasma.Output.Position.to_map(pos),
       output_type: nil,
       output_data: []
