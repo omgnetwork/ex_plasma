@@ -37,18 +37,33 @@ defmodule ExPlasma.Output.Position do
   @max_blknum (:math.pow(2, 54) - 1 - @max_txindex) / (@block_offset / @transaction_offset)
 
   @doc """
-  Encodes the blknum, txindex, and oindex into a single value.
+  Encodes the blknum, txindex, and oindex into a single integer.
+
+  ## Example
+
+  iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
+  iex> ExPlasma.Output.Position.pos(pos)
+  1_000_000_000
+  """
+  @impl Output
+  @spec pos(t()) :: number()
+  def pos(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
+    blknum * @block_offset + txindex * @transaction_offset + oindex
+  end
+
+  @doc """
+  Encodes the output position into an RLP encodeable object.
 
   ## Example
 
   iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
   iex> ExPlasma.Output.Position.to_rlp(pos)
-  1_000_000_000
+  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
   @impl Output
-  @spec to_rlp(map()) :: any()
-  def to_rlp(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
-    blknum * @block_offset + txindex * @transaction_offset + oindex
+  @spec to_rlp(t()) :: binary()
+  def to_rlp(%{blknum: _, txindex: _, oindex: _} = id) do
+    id |> pos() |> :binary.encode_unsigned(:big) |> pad_binary()
   end
 
   @doc """
@@ -98,4 +113,9 @@ defmodule ExPlasma.Output.Position do
     do: {:txindex, :exceeds_maximum_value}
 
   defp do_validate({_, _, _}), do: nil
+
+  defp pad_binary(unpadded) do
+    pad_size = (32 - byte_size(unpadded)) * 8
+    <<0::size(pad_size)>> <> unpadded
+  end
 end
