@@ -65,22 +65,16 @@ defmodule ExPlasma.Output do
   @doc """
   Encode an Output into RLP bytes
 
-  ## Examples
-
-  # Encode an Output
-
-  iex>
-
-  # Encode an Output identifier, like a position.
+  ## Example
 
   iex> output = %{
   ...>      output_id: nil,
   ...>      output_type: 1,
-  ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 0}
+  ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: <<1>>}
   ...>    }
   iex> ExPlasma.Output.encode(output)
-  <<235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 148, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128>>
+  <<237, 1, 235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>
   """
   @spec encode(any()) :: rlp()
   def encode(%{output_type: nil}), do: nil

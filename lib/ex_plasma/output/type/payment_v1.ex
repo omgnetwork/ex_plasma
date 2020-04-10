@@ -22,6 +22,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
     amount: amount()
   }
 
+  @output_type 1
   @zero_address <<0::160>>
 
   @doc """
@@ -29,23 +30,30 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
 
   ## Example
 
-  iex> output = %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}
+  iex> output = %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}
   iex> ExPlasma.Output.Type.PaymentV1.encode(output)
-  [<<1::160>>, <<1::160>>, 1]
+  [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   """
   @impl Output
   @spec encode(Output.t()) :: rlp()
   def encode(%{output_guard: output_guard, token: token, amount: amount}) do
-    [output_guard, token, amount]
+    [
+      <<@output_type>>, 
+      [
+        output_guard,
+        token,
+        truncate_leading_zero(amount)
+      ]
+    ]
   end
 
   @doc """
   Decode a map of the output data into the Payment V1 format:
 
   ## Example
-  iex> data = [<<1::160>>, <<1::160>>, 1]
+  iex> data = [<<1::160>>, <<1::160>>, <<1>>]
   iex> ExPlasma.Output.Type.PaymentV1.decode(data)
-  %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}
+  %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}
   """
   @impl Output
   @spec decode(rlp()) :: t()
@@ -80,4 +88,8 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   defp do_validate([@zero_address, _token, _amount]), do: {:output_guard, :cannot_be_zero}
 
   defp do_validate([_, _, _]), do: nil
+
+  defp truncate_leading_zero(<<0>>), do: <<0>>
+  defp truncate_leading_zero(<<0>> <> binary), do: truncate_leading_zero(binary)
+  defp truncate_leading_zero(binary), do: binary
 end
