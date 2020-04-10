@@ -12,7 +12,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Output do
   def encode(output, as: :output), do: do_encode(output)
 
 
-  @spec hash(Output.t(), [as: atom()]) :: binary()
+  @spec hash(Output.t(), [{:as, :input | :output}, ...]) :: <<_::256>>
   def hash(output, options), do: output |> encode(options) |> do_hash(options)
 
   defp do_encode(%{output_type: type, output_data: data}) do

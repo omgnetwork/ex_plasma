@@ -7,14 +7,14 @@ defmodule ExPlasma.Output do
   `output_data` - The main data for the output. This can be decode by the different output types.
   """
 
+  @type output_id() :: map() | nil
   @type output_type() :: pos_integer() | nil
   @type output_data() :: map() | nil
   @type rlp() :: [output_type() | output_data()]
 
-  @type id() :: map() | nil
 
   @type t() :: %__MODULE__{
-    output_id: id(),
+    output_id: output_id(),
     output_type: output_type(),
     output_data: output_data()
   }
