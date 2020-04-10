@@ -42,12 +42,12 @@ defmodule ExPlasma.Output.Position do
   ## Example
 
   iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
-  iex> ExPlasma.Output.Position.encode(pos)
+  iex> ExPlasma.Output.Position.to_rlp(pos)
   1_000_000_000
   """
   @impl Output
-  @spec encode(map()) :: any()
-  def encode(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
+  @spec to_rlp(map()) :: any()
+  def to_rlp(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     blknum * @block_offset + txindex * @transaction_offset + oindex
   end
 
@@ -57,12 +57,12 @@ defmodule ExPlasma.Output.Position do
   ## Example
 
   iex> pos = 1_000_000_000
-  iex> ExPlasma.Output.Position.decode(pos)
+  iex> ExPlasma.Output.Position.to_map(pos)
   %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}
   """
   @impl Output
-  @spec decode(position()) :: t()
-  def decode(pos) do
+  @spec to_map(position()) :: t()
+  def to_map(pos) do
     blknum = div(pos, @block_offset)
     txindex = pos |> rem(@block_offset) |> div(@transaction_offset)
     oindex = rem(pos, @transaction_offset)

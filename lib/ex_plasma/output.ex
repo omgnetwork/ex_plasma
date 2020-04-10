@@ -22,8 +22,8 @@ defmodule ExPlasma.Output do
   @type validation_responses() :: {:ok, map}
 
   # Output Types and Identifiers can implement these.
-  @callback decode(any()) :: map()
-  @callback encode(map()) :: any()
+  @callback to_map(any()) :: map()
+  @callback to_rlp(map()) :: any()
   @callback validate(any()) :: {:ok, map()} | {:error, {atom(), atom()}}
 
   # This maps to the various types of outputs
@@ -78,7 +78,7 @@ defmodule ExPlasma.Output do
   """
   @spec encode(any()) :: rlp()
   def encode(%{output_type: nil}), do: nil
-  def encode(%{output_type: type, output_data: data}), do: data |> @output_types[type].encode() |> ExRLP.encode()
+  def encode(%{output_type: type, output_data: data}), do: data |> @output_types[type].to_rlp() |> ExRLP.encode()
 
   @doc """
   Encodes an Output identifer into RLP bytes. This is to generate
@@ -88,7 +88,7 @@ defmodule ExPlasma.Output do
   """
   @spec encode_id(any()) :: rlp()
   def encode_id(%{output_id: nil}), do: nil
-  def encode_id(%{output_id: id}), do: ExPlasma.Output.Position.encode(id)
+  def encode_id(%{output_id: id}), do: ExPlasma.Output.Position.to_rlp(id)
 
   @doc """
   Validates the Output
@@ -132,15 +132,13 @@ defmodule ExPlasma.Output do
     %{
       output_id: nil,
       output_type: output_type,
-      output_data: @output_types[output_type].decode(output_data)
+      output_data: @output_types[output_type].to_map(output_data)
     }
   end
 
-  defp do_decode(pos) when is_integer(pos), do: build_position(pos)
-
-  defp build_position(pos) do
+  defp do_decode(pos) when is_integer(pos) do
     %{
-      output_id: ExPlasma.Output.Position.decode(pos),
+      output_id: ExPlasma.Output.Position.to_map(pos),
       output_type: nil,
       output_data: []
     }

@@ -14,8 +14,8 @@ defmodule ExPlasma.Transaction2 do
     metadata: metadata()
   }
 
-  @callback decode(any()) :: map()
-  @callback encode(map()) :: any()
+  @callback to_map(any()) :: map()
+  @callback to_rlp(map()) :: any()
   @callback validate(any()) :: {:ok, map()} | {:error, {atom(), atom()}}
 
   @transaction_types %{
@@ -35,7 +35,7 @@ defmodule ExPlasma.Transaction2 do
     0, 110, 1, 0, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0>>
   """
-  def encode(%{tx_type: <<tx_type>>} = transaction), do: @transaction_types[tx_type].encode(transaction) |> ExRLP.encode()
+  def encode(%{tx_type: <<tx_type>>} = transaction), do: @transaction_types[tx_type].to_rlp(transaction) |> ExRLP.encode()
 
   @doc """
   Decode the given RLP list into a Transaction.
@@ -62,7 +62,7 @@ defmodule ExPlasma.Transaction2 do
   @spec decode(list()) :: t()
   def decode(data), do: data |> ExRLP.decode() |> do_decode()
   defp do_decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = rlp), do: do_decode([[] | rlp])
-  defp do_decode([_sigs, <<tx_type>>, _inputs, _outputs, _tx_data, _metadata] = rlp), do: @transaction_types[tx_type].decode(rlp)
+  defp do_decode([_sigs, <<tx_type>>, _inputs, _outputs, _tx_data, _metadata] = rlp), do: @transaction_types[tx_type].to_map(rlp)
 
   @doc """
   Validate a Transation. This will check the inputs, outputs, and run

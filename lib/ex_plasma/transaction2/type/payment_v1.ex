@@ -23,8 +23,8 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
   @doc """
   """
   @impl Transaction2
-  @spec encode(Transaction2.t()) :: Transaction2.rlp()
-  def encode(%{} = transaction) do
+  @spec to_rlp(Transaction2.t()) :: Transaction2.rlp()
+  def to_rlp(%{} = transaction) do
     [
       transaction.sigs || [],
       <<@tx_type>>,
@@ -39,8 +39,8 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
   Decodes an RLP list into a Payment V1 Transaction.
   """
   @impl Transaction2
-  @spec decode(Transaction2.rlp()) :: Transaction2.t()
-  def decode([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
+  @spec to_map(Transaction2.rlp()) :: Transaction2.t()
+  def to_map([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
     %{
       sigs: sigs,
       tx_type: tx_type,

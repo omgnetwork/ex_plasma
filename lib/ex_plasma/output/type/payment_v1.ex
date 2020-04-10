@@ -31,12 +31,12 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   ## Example
 
   iex> output = %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}
-  iex> ExPlasma.Output.Type.PaymentV1.encode(output)
+  iex> ExPlasma.Output.Type.PaymentV1.to_rlp(output)
   [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   """
   @impl Output
-  @spec encode(Output.t()) :: rlp()
-  def encode(%{output_guard: output_guard, token: token, amount: amount}) do
+  @spec to_rlp(Output.t()) :: rlp()
+  def to_rlp(%{output_guard: output_guard, token: token, amount: amount}) do
     [
       <<@output_type>>, 
       [
@@ -52,12 +52,12 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
 
   ## Example
   iex> data = [<<1::160>>, <<1::160>>, <<1>>]
-  iex> ExPlasma.Output.Type.PaymentV1.decode(data)
+  iex> ExPlasma.Output.Type.PaymentV1.to_map(data)
   %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}
   """
   @impl Output
-  @spec decode(rlp()) :: t()
-  def decode([output_guard, token, amount]) do
+  @spec to_map(rlp()) :: t()
+  def to_map([output_guard, token, amount]) do
     %{output_guard: output_guard, token: token, amount: amount}
   end
 
