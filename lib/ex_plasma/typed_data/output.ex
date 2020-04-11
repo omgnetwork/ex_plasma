@@ -18,7 +18,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Output do
   defp do_encode(%{output_type: type, output_data: data}) do
     [
       @output_signature,
-      encode_raw([:binary.decode_unsigned(type)], [{:uint, 256}]),
+      encode_raw([type], [{:uint, 256}]),
       encode_raw([data.output_guard], [{:bytes, 20}]),
       encode_raw([data.token], [:address]),
       encode_raw([data.amount], [{:uint, 256}])

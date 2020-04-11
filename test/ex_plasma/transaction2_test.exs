@@ -14,7 +14,7 @@ defmodule ExPlasma.Transaction2Test do
       txn = %{
         inputs: [bad_position],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-        outputs: [%{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}],
+        outputs: [%{output_data: %{amount: 1, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}],
         sigs: [],
         tx_data: <<0>>,
         tx_type: <<1>>
@@ -25,7 +25,7 @@ defmodule ExPlasma.Transaction2Test do
 
     test "that the outputs in a transaction are valid outputs" do
       # zero amount output
-      bad_output = ExPlasma.Output.decode([<<1>>, [<<1::160>>, <<0::160>>, 0]])
+      bad_output = ExPlasma.Output.decode([<<1>>, [<<1::160>>, <<0::160>>, <<0>>]])
       txn = %{
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,

@@ -6,6 +6,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   @behaviour ExPlasma.Output
 
   alias ExPlasma.Output
+  import ExPlasma.Encoding, only: [to_int: 1]
 
   @type address() :: <<_::160>>
   @type output_guard() :: address()
@@ -30,7 +31,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
 
   ## Example
 
-  iex> output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}}
+  iex> output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}}
   iex> ExPlasma.Output.Type.PaymentV1.to_rlp(output)
   [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   """
@@ -42,7 +43,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
       [
         data.output_guard,
         data.token,
-        truncate_leading_zero(data.amount)
+        truncate_leading_zero(<<data.amount::integer-size(256)>>)
       ]
     ]
   end
@@ -55,7 +56,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   iex> ExPlasma.Output.Type.PaymentV1.to_map(data)
   %{
     output_type: 1, 
-    output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}
+    output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}
   }
   """
   @impl Output
@@ -63,7 +64,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   def to_map([<<output_type>>, [output_guard, token, amount]]) do
     %{
       output_type: output_type,
-      output_data: %{output_guard: output_guard, token: token, amount: amount}
+      output_data: %{output_guard: output_guard, token: token, amount: to_int(amount)}
     }
   end
 

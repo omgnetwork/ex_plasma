@@ -7,11 +7,11 @@ defmodule ExPlasma.TypedData.OutputTest do
   describe "encode/2" do
     test "builds an EIP712 encodable output" do
       output = %ExPlasma.Output{
-        output_type: <<1>>, 
+        output_type: 1, 
         output_data: %{
           output_guard: <<0::160>>,
           token: <<0::160>>,
-          amount: <<10>>
+          amount: 10
         }
       }
 
@@ -66,11 +66,11 @@ defmodule ExPlasma.TypedData.OutputTest do
 
     test "hashes an eip712 encoded output" do
       output = %ExPlasma.Output{
-        output_type: <<1>>, 
+        output_type: 1, 
         output_data: %{
           output_guard: <<0::160>>,
           token: <<0::160>>,
-          amount: <<10>>
+          amount: 10
         }
       }
 

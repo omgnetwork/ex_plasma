@@ -49,7 +49,7 @@ defmodule ExPlasma.Output do
   iex> ExPlasma.Output.decode(encoded)
   %ExPlasma.Output{
     output_data: %{
-      amount: <<13, 224, 182, 179, 167, 100, 0, 0>>,
+      amount: 1000000000000000000,
       output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>,
       token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>},
     output_id: nil,
@@ -87,7 +87,7 @@ defmodule ExPlasma.Output do
   iex> output = %{
   ...>      output_id: nil,
   ...>      output_type: 1,
-  ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: <<1>>}
+  ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
   ...>    }
   iex> ExPlasma.Output.encode(output)
   <<237, 1, 235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
