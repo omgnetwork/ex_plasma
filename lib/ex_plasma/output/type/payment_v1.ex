@@ -30,19 +30,19 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
 
   ## Example
 
-  iex> output = %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}
+  iex> output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}}
   iex> ExPlasma.Output.Type.PaymentV1.to_rlp(output)
   [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   """
   @impl Output
-  @spec to_rlp(t()) :: rlp()
-  def to_rlp(%{output_guard: output_guard, token: token, amount: amount}) do
+  @spec to_rlp(Output.t()) :: rlp()
+  def to_rlp(%{output_type: type, output_data: data}) do
     [
-      <<@output_type>>, 
+      <<type>>, 
       [
-        output_guard,
-        token,
-        truncate_leading_zero(amount)
+        data.output_guard,
+        data.token,
+        truncate_leading_zero(data.amount)
       ]
     ]
   end
@@ -51,28 +51,34 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   Decode a map of the output data into the Payment V1 format:
 
   ## Example
-  iex> data = [<<1::160>>, <<1::160>>, <<1>>]
+  iex> data = [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   iex> ExPlasma.Output.Type.PaymentV1.to_map(data)
-  %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}
+  %{
+    output_type: 1, 
+    output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: <<1>>}
+  }
   """
   @impl Output
-  @spec to_map(rlp()) :: t()
-  def to_map([output_guard, token, amount]) do
-    %{output_guard: output_guard, token: token, amount: amount}
+  @spec to_map(Output.rlp()) :: Output.t()
+  def to_map([<<output_type>>, [output_guard, token, amount]]) do
+    %{
+      output_type: output_type,
+      output_data: %{output_guard: output_guard, token: token, amount: amount}
+    }
   end
 
   @doc """
   Validates the output data
 
   ## Example
-  iex> data = %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
+  iex> data = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
   iex> {:ok, resp} = ExPlasma.Output.Type.PaymentV1.validate(data)
   {:ok, %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
   """
   @impl Output
-  @spec validate(t()) :: validation_responses()
-  def validate(%{output_guard: output_guard, token: token, amount: amount} = data) do
-    case do_validate([output_guard, token, amount]) do
+  @spec validate(Output.t()) :: validation_responses()
+  def validate(%{output_data: data}) do
+    case do_validate([data.output_guard, data.token, data.amount]) do
       {field, value} ->
         {:error, {field, value}}
       nil ->
