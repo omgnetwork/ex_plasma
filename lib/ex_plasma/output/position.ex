@@ -45,7 +45,6 @@ defmodule ExPlasma.Output.Position do
   iex> ExPlasma.Output.Position.pos(pos)
   1_000_000_000
   """
-  @impl Output
   @spec pos(t()) :: number()
   def pos(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     blknum * @block_offset + txindex * @transaction_offset + oindex

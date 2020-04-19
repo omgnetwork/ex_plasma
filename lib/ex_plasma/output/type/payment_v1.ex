@@ -23,7 +23,6 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
     amount: amount()
   }
 
-  @output_type 1
   @zero_address <<0::160>>
 
   @doc """

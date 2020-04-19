@@ -1,5 +1,5 @@
 defimpl ExPlasma.TypedData, for: ExPlasma.Transaction2 do
-  import ExPlasma.Encoding, only: [to_binary: 1, to_hex: 1, keccak_hash: 1]
+  import ExPlasma.Encoding, only: [to_binary: 1, keccak_hash: 1]
   import ABI.TypeEncoder, only: [encode_raw: 2]
 
   alias ExPlasma.Output
@@ -18,10 +18,6 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction2 do
 
   # NB: Currently we only support 1 type of transaction: Payment.
   @max_output_count 4
-
-  # Pre-computed hashes for hashing
-  @empty_integer 0
-  @empty_address to_hex(<<0::160>>)
 
   @empty_input Output.decode_id(<<0>>)
   @empty_input_hash TypedData.hash(@empty_input, as: :input)
