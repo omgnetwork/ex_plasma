@@ -89,13 +89,12 @@ defmodule ExPlasma.Output do
   ...>      output_type: 1,
   ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
   ...>    }
-  iex> ExPlasma.Output.encode(output)
-  <<237, 1, 235, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>
+  iex> ExPlasma.Output.to_rlp(output)
+  [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<1>>]]
   """
-  @spec encode(t()) :: binary()
-  def encode(%{output_type: nil}), do: nil
-  def encode(%{output_type: type} = output), do: output |> get_output_type(type).to_rlp() |> ExRLP.encode()
+  @spec to_rlp(t()) :: binary()
+  def to_rlp(%{output_type: nil}), do: nil
+  def to_rlp(%{output_type: type} = output), do: output |> get_output_type(type).to_rlp()
 
   @doc """
   Encodes an Output identifer into RLP bytes. This is to generate
@@ -103,9 +102,9 @@ defmodule ExPlasma.Output do
 
   ## Example
   """
-  @spec encode_id(t()) :: binary()
-  def encode_id(%{output_id: nil}), do: nil
-  def encode_id(%{output_id: id}), do: ExPlasma.Output.Position.to_rlp(id)
+  @spec to_rlp_id(t()) :: binary()
+  def to_rlp_id(%{output_id: nil}), do: nil
+  def to_rlp_id(%{output_id: id}), do: ExPlasma.Output.Position.to_rlp(id)
 
   @doc """
   Validates the Output

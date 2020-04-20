@@ -28,8 +28,8 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
     [
       transaction.sigs || [],
       <<@tx_type>>,
-      Enum.map(transaction.inputs, &ExPlasma.Output.encode_id/1),
-      Enum.map(transaction.outputs, &ExPlasma.Output.encode/1),
+      Enum.map(transaction.inputs, &ExPlasma.Output.to_rlp_id/1),
+      Enum.map(transaction.outputs, &ExPlasma.Output.to_rlp/1),
       @empty_tx_data,
       @empty_metadata
     ]

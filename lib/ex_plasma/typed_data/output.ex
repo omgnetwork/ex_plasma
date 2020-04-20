@@ -8,7 +8,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Output do
   @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
 
   @spec encode(Output.t(), [as: atom()]) :: list()
-  def encode(output, as: :input), do: do_encode_id(output.output_id)
+  def encode(output, as: :input), do: do_to_rlp_id(output.output_id)
   def encode(output, as: :output), do: do_encode(output)
 
 
@@ -25,7 +25,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Output do
     ]
   end
 
-  defp do_encode_id(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
+  defp do_to_rlp_id(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     [
       @input_signature,
       encode_raw([blknum], [{:uint, 256}]),
