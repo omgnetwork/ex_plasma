@@ -17,26 +17,38 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1 do
 
   # Currently, the plasma-contracts don't have these
   # values set, so we mark them explicitly empty.
-  @empty_tx_data <<0>>
-  @empty_metadata <<0::160>>
+  @empty_tx_data 0
+  @empty_metadata <<0::256>>
 
   @doc """
+  Encode the given Transaction into an RLP encodeable list.
+
+  ## Example
+
+  iex> txn = %{inputs: [%{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: 1, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: 1}
+  iex> ExPlasma.Transaction2.to_rlp(txn)
+  [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>], [[<<1>>, [<<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<1>>]]], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
   @impl Transaction2
   @spec to_rlp(Transaction2.t()) :: list()
   def to_rlp(%{} = transaction) do
     [
-      transaction.sigs || [],
       <<@tx_type>>,
       Enum.map(transaction.inputs, &ExPlasma.Output.to_rlp_id/1),
       Enum.map(transaction.outputs, &ExPlasma.Output.to_rlp/1),
       @empty_tx_data,
-      @empty_metadata
+      transaction.metadata || @empty_metadata
     ]
   end
 
   @doc """
   Decodes an RLP list into a Payment V1 Transaction.
+
+  ## Example
+
+  iex> rlp = [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>], [[<<1>>, [<<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<1>>]]], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
+  iex> ExPlasma.Transaction2.to_map(rlp)
+  %{inputs: [%{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: 1, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: 1}
   """
   @impl Transaction2
   @spec to_map(list()) :: Transaction2.t()
