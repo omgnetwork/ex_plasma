@@ -31,14 +31,40 @@ defmodule ExPlasma.Transaction2 do
 
   ## Example
 
-  iex> txn = %{inputs: [%{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: 1, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: 1}
-  iex> ExPlasma.Transaction2.encode(txn)
-  <<248, 104, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
-    41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
-    148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
-    241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0>>
+		iex> txn =
+		...>	%{
+		...>		inputs: [
+		...>			%{
+		...>				output_data: nil,
+		...>				output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+		...>				output_type: nil
+		...>			}
+		...>		],
+		...>		metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+		...>		outputs: [
+		...>			%{
+		...>				output_data: %{
+		...>					amount: 1,
+		...>					output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
+		...>						217, 206, 65, 226, 241, 55, 0, 110>>,
+		...>					token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
+		...>						65, 226, 241, 55, 0, 110>>
+		...>				},
+		...>				output_id: nil,
+		...>				output_type: 1
+		...>			}
+		...>		],
+		...>		sigs: [],
+		...>		tx_data: <<0>>,
+		...>		tx_type: 1
+		...>	}
+		iex> ExPlasma.Transaction2.encode(txn)
+		<<248, 104, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
+			41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
+			148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
+			241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0>>
   """
   def encode(%{} = transaction), do: transaction |> to_rlp() |> ExRLP.encode()
   def encode(transaction) when is_list(transaction), do: ExRLP.encode(transaction)
@@ -143,6 +169,7 @@ defmodule ExPlasma.Transaction2 do
   def to_rlp(%{tx_type: tx_type} = transaction),
     do: transaction |> @transaction_types[tx_type].to_rlp() |> remove_empty_sigs()
 
+  # NB: We need to standardize on this. Currently, if there is no sig, we strip the empty list.
   defp remove_empty_sigs([[] | raw_transaction_rlp]), do: raw_transaction_rlp
 
   @doc """
@@ -169,6 +196,37 @@ defmodule ExPlasma.Transaction2 do
 
   defp validate_output([]), do: {:ok, []}
 
-  defp do_validate(%{tx_type: <<type>>} = transaction),
-    do: @transaction_types[type].validate(transaction)
+  defp do_validate(%{tx_type: <<type>>} = transaction), do: @transaction_types[type].validate(transaction)
+
+  @doc """
+  Sign the inputs of the transaction with the given keys in the corresponding order.
+
+
+  ## Example
+
+    iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
+    iex> txn = %ExPlasma.Transaction2{tx_type: 1}
+    iex> ExPlasma.Transaction2.sign(txn, keys: [key])
+    %ExPlasma.Transaction2{
+        inputs: [],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: [
+              <<129, 213, 32, 15, 183, 218, 255, 22, 82, 95, 22, 86, 103, 227, 92, 109, 9,
+                89, 7, 142, 235, 107, 203, 29, 20, 231, 91, 168, 255, 119, 204, 239, 44,
+                125, 76, 109, 200, 196, 204, 230, 224, 241, 84, 75, 9, 3, 160, 177, 37,
+                181, 174, 98, 51, 15, 136, 235, 47, 96, 15, 209, 45, 85, 153, 2, 28>>
+            ],
+        tx_data: 0,
+        tx_type: 1
+    }
+  """
+  def sign(%{} = transaction, keys: []), do: %{transaction | sigs: []}
+
+  def sign(%{} = transaction, keys: keys) when is_list(keys) do
+    eip712_hash = ExPlasma.TypedData.hash(transaction)
+    sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
+    %{transaction | sigs: sigs}
+  end
 end
