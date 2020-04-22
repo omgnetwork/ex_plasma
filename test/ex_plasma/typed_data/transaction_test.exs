@@ -2,11 +2,11 @@ defmodule ExPlasma.TypedData.TransactionTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
-  alias ExPlasma.Transaction2
+  alias ExPlasma.Transaction
 
   describe "encode/1" do
     test "builds a eip712 transaction object" do
-      encoded = ExPlasma.TypedData.encode(%Transaction2{})
+      encoded = ExPlasma.TypedData.encode(%Transaction{})
 
       assert encoded == [
                <<25, 1>>,
@@ -32,7 +32,7 @@ defmodule ExPlasma.TypedData.TransactionTest do
 
   describe "hash/1" do
     test "hashes a eip 712 encoded object" do
-      encoded_hash = ExPlasma.TypedData.hash(%Transaction2{})
+      encoded_hash = ExPlasma.TypedData.hash(%Transaction{})
 
       assert encoded_hash ==
                <<237, 222, 56, 55, 149, 76, 223, 131, 240, 226, 246, 122, 166, 114, 38, 102, 122,

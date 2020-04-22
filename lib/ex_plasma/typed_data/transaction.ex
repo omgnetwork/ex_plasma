@@ -1,4 +1,4 @@
-defimpl ExPlasma.TypedData, for: ExPlasma.Transaction2 do
+defimpl ExPlasma.TypedData, for: ExPlasma.Transaction do
   import ExPlasma.Encoding, only: [to_binary: 1, keccak_hash: 1]
   import ABI.TypeEncoder, only: [encode_raw: 2]
 

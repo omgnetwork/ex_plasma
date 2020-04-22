@@ -8,7 +8,7 @@ defmodule Conformance.SignaturesTest do
   alias ExPlasma.Transaction
   alias ExPlasma.TypedData
 
-  alias ExPlasma.Transaction2, as: Transaction
+  alias ExPlasma.Transaction, as: Transaction
   alias ExPlasma.Output
 
   import ExPlasma.Encoding, only: [to_binary: 1]
@@ -35,7 +35,7 @@ defmodule Conformance.SignaturesTest do
   end
 
   test "signs without outputs" do
-    input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0} }
+    input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
 
     assert_signs_conform(%Transaction{tx_type: 1, inputs: [input]})
   end
@@ -45,7 +45,7 @@ defmodule Conformance.SignaturesTest do
   end
 
   test "signs with a minimal transaction (1x1)" do
-    input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0} }
+    input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
 
     output = %Output{
       output_type: 1,
@@ -56,7 +56,7 @@ defmodule Conformance.SignaturesTest do
   end
 
   test "signs with a minimal transaction (4x4)" do
-    input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0} }
+    input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
 
     output = %Output{
       output_type: 1,
@@ -64,7 +64,7 @@ defmodule Conformance.SignaturesTest do
     }
 
     assert_signs_conform(%Transaction{
-      tx_type: 1, 
+      tx_type: 1,
       inputs: List.duplicate(input, 4),
       outputs: List.duplicate(output, 4)
     })

@@ -1,9 +1,9 @@
-defmodule ExPlasma.Transaction2.Type.PaymentV1Test do
+defmodule ExPlasma.Transaction.Type.PaymentV1Test do
   @moduledoc false
   use ExUnit.Case, async: true
-  doctest ExPlasma.Transaction2.Type.PaymentV1
+  doctest ExPlasma.Transaction.Type.PaymentV1
 
-  alias ExPlasma.Transaction2.Type.PaymentV1
+  alias ExPlasma.Transaction.Type.PaymentV1
 
   describe "validate/1" do
     test "that inputs cannot be greater than 4" do
