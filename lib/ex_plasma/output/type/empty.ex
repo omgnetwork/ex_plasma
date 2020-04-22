@@ -17,5 +17,5 @@ defmodule ExPlasma.Output.Type.Empty do
 
   @impl Output
   @spec validate(any) :: {:error, {:output_type, :unknown}}
-    def validate(_), do: {:error, {:output_type, :unknown}}
+  def validate(_), do: {:error, {:output_type, :unknown}}
 end

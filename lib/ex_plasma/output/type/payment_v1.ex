@@ -18,10 +18,10 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   @type validation_responses() :: {:ok, t()}
 
   @type t() :: %{
-    output_guard: output_guard(),
-    token: token(),
-    amount: amount()
-  }
+          output_guard: output_guard(),
+          token: token(),
+          amount: amount()
+        }
 
   @zero_address <<0::160>>
 
@@ -38,7 +38,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   @spec to_rlp(Output.t()) :: rlp()
   def to_rlp(%{output_type: type, output_data: data}) do
     [
-      <<type>>, 
+      <<type>>,
       [
         data.output_guard,
         data.token,
@@ -81,13 +81,16 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
     case do_validate([data.output_guard, data.token, data.amount]) do
       {field, value} ->
         {:error, {field, value}}
+
       nil ->
         {:ok, data}
     end
   end
 
   defp do_validate([_output_guard, _token, nil]), do: {:amount, :cannot_be_nil}
-  defp do_validate([_output_guard, _token, amount]) when amount <= 0, do: {:amount, :cannot_be_zero}
+
+  defp do_validate([_output_guard, _token, amount]) when amount <= 0,
+    do: {:amount, :cannot_be_zero}
 
   defp do_validate([_output_guard, nil, _amount]), do: {:token, :cannot_be_nil}
   defp do_validate([nil, _token, _amount]), do: {:output_guard, :cannot_be_nil}

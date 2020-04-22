@@ -12,10 +12,10 @@ defmodule ExPlasma.Output do
   @type rlp() :: [output_type() | output_data()]
 
   @type t() :: %__MODULE__{
-    output_id: output_id(),
-    output_type: output_type(),
-    output_data: output_data()
-  }
+          output_id: output_id(),
+          output_type: output_type(),
+          output_data: output_data()
+        }
 
   @type validation_responses() :: {:ok, map}
 
@@ -34,7 +34,7 @@ defmodule ExPlasma.Output do
     1 => ExPlasma.Output.Type.PaymentV1
   }
 
-  defstruct [output_id: nil, output_type: nil, output_data: nil]
+  defstruct output_id: nil, output_type: nil, output_data: nil
 
   @doc """
   Decode RLP data into an Output.
@@ -134,17 +134,26 @@ defmodule ExPlasma.Output do
   # Validate the output ID. Bypass the validation if it doesn't
   # exist in the output body.
   defp do_validate_id(%{output_id: nil} = output), do: {:ok, output}
-  defp do_validate_id(%{output_id: %{} = output_id}), do: ExPlasma.Output.Position.validate(output_id)
+
+  defp do_validate_id(%{output_id: %{} = output_id}),
+    do: ExPlasma.Output.Position.validate(output_id)
 
   # Validate the output type and data. Bypass the validation if it doesn't
   # exist in the output body.
   defp do_validate_data(%{output_type: nil} = output), do: {:ok, output}
-  defp do_validate_data(%{output_type: type} = output) when is_integer(type), do: get_output_type(type).validate(output)
-  defp do_validate_data(%{output_type: <<type>>} = output), do: get_output_type(type).validate(output)
+
+  defp do_validate_data(%{output_type: type} = output) when is_integer(type),
+    do: get_output_type(type).validate(output)
+
+  defp do_validate_data(%{output_type: <<type>>} = output),
+    do: get_output_type(type).validate(output)
 
   # Generate our decoded output data based on the output type.
-  defp do_decode([<<type>>, _data] = rlp), do: struct(__MODULE__, get_output_type(type).to_map(rlp))
-  defp do_decode(pos) when is_integer(pos), do: %__MODULE__{output_id: ExPlasma.Output.Position.to_map(pos)}
+  defp do_decode([<<type>>, _data] = rlp),
+    do: struct(__MODULE__, get_output_type(type).to_map(rlp))
+
+  defp do_decode(pos) when is_integer(pos),
+    do: %__MODULE__{output_id: ExPlasma.Output.Position.to_map(pos)}
 
   # Grabs the matching Output type by id. If it doesn't exist, use the empty type.
   defp get_output_type(type), do: Map.get(@output_types, type, ExPlasma.Output.Type.Empty)

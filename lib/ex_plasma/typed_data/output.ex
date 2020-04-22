@@ -7,10 +7,9 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Output do
   @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
   @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
 
-  @spec encode(Output.t(), [as: atom()]) :: list()
+  @spec encode(Output.t(), as: atom()) :: list()
   def encode(output, as: :input), do: do_to_rlp_id(output.output_id)
   def encode(output, as: :output), do: do_encode(output)
-
 
   @spec hash(Output.t(), [{:as, :input | :output}, ...]) :: <<_::256>>
   def hash(output, options), do: output |> encode(options) |> do_hash(options)

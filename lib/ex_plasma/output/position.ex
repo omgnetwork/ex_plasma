@@ -14,19 +14,19 @@ defmodule ExPlasma.Output.Position do
   @type position() :: pos_integer()
 
   @type t() :: %{
-    position: position(),
-    blknum: non_neg_integer(),
-    txindex: non_neg_integer(),
-    oindex: non_neg_integer(),
-  }
+          position: position(),
+          blknum: non_neg_integer(),
+          txindex: non_neg_integer(),
+          oindex: non_neg_integer()
+        }
 
   @type validation_responses() ::
-    {:ok, t() | Output.t()}
-      | {:error, {:blknum, :cannot_be_nil}}
-      | {:error, {:blknum, :exceeds_maximum_value}}
-      | {:error, {:oindex, :cannot_be_nil}}
-      | {:error, {:txindex, :cannot_be_nil}}
-      | {:error, {:txindex, :exceeds_maximum_value}}
+          {:ok, t() | Output.t()}
+          | {:error, {:blknum, :cannot_be_nil}}
+          | {:error, {:blknum, :exceeds_maximum_value}}
+          | {:error, {:oindex, :cannot_be_nil}}
+          | {:error, {:txindex, :cannot_be_nil}}
+          | {:error, {:txindex, :exceeds_maximum_value}}
 
   # Contract settings
   # These are being hard-coded from the same values on the contracts.
@@ -108,7 +108,7 @@ defmodule ExPlasma.Output.Position do
   defp do_validate({blknum, _, _}) when is_integer(blknum) and blknum > @max_blknum,
     do: {:blknum, :exceeds_maximum_value}
 
-  defp do_validate({_, txindex, _})  when is_integer(txindex) and txindex > @max_txindex,
+  defp do_validate({_, txindex, _}) when is_integer(txindex) and txindex > @max_txindex,
     do: {:txindex, :exceeds_maximum_value}
 
   defp do_validate({_, _, _}), do: nil

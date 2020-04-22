@@ -22,7 +22,10 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction2 do
   @empty_input Output.decode_id(<<0>>)
   @empty_input_hash TypedData.hash(@empty_input, as: :input)
 
-  @empty_output %Output{output_type: 0, output_data: %{output_guard: <<0::160>>, token: <<0::160>>, amount: 0}}
+  @empty_output %Output{
+    output_type: 0,
+    output_data: %{output_guard: <<0::160>>, token: <<0::160>>, amount: 0}
+  }
   @empty_output_hash TypedData.hash(@empty_output, as: :output)
 
   def encode(%{} = transaction, _options) do
@@ -47,10 +50,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction2 do
   def hash(%{} = transaction, options), do: transaction |> encode(options) |> hash(options)
 
   def hash([prefix, domain_separator | encoded_transaction], _options),
-    do:
-      keccak_hash(
-        prefix <> hash_domain(domain_separator) <> hash_encoded(encoded_transaction)
-      )
+    do: keccak_hash(prefix <> hash_domain(domain_separator) <> hash_encoded(encoded_transaction))
 
   defp domain_separator() do
     domain = Application.get_env(:ex_plasma, :eip_712_domain)

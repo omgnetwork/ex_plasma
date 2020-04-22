@@ -7,11 +7,30 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1Test do
 
   describe "validate/1" do
     test "that inputs cannot be greater than 4" do
-      input = %{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}
+      input = %{
+        output_data: [],
+        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+        output_type: nil
+      }
+
       txn = %{
         inputs: [input, input, input, input, input],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-        outputs: [%{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}],
+        outputs: [
+          %{
+            output_data: %{
+              amount: <<0, 0, 0, 0, 0, 0, 0, 1>>,
+              output_guard:
+                <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
+                  55, 0, 110>>,
+              token:
+                <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
+                  55, 0, 110>>
+            },
+            output_id: nil,
+            output_type: 1
+          }
+        ],
         sigs: [],
         tx_data: <<0>>,
         tx_type: <<1>>
@@ -21,9 +40,28 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1Test do
     end
 
     test "that outputs cannot be greater than 4" do
-      output = %{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}
+      output = %{
+        output_data: %{
+          amount: <<0, 0, 0, 0, 0, 0, 0, 1>>,
+          output_guard:
+            <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
+              0, 110>>,
+          token:
+            <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0,
+              110>>
+        },
+        output_id: nil,
+        output_type: 1
+      }
+
       txn = %{
-        inputs: [%{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}],
+        inputs: [
+          %{
+            output_data: [],
+            output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+            output_type: nil
+          }
+        ],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [output, output, output, output, output],
         sigs: [],
@@ -36,7 +74,13 @@ defmodule ExPlasma.Transaction2.Type.PaymentV1Test do
 
     test "that outputs cannot be less than 1" do
       txn = %{
-        inputs: [%{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}],
+        inputs: [
+          %{
+            output_data: [],
+            output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+            output_type: nil
+          }
+        ],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [],
         sigs: [],
