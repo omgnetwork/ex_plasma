@@ -4,7 +4,6 @@ defmodule ExPlasma do
   """
 
   alias ExPlasma.Transaction
-  alias ExPlasma.Utxo
 
   # constants that identify payment types, make sure that 
   # when we introduce a new payment type, you name it `paymentV2`
