@@ -62,6 +62,43 @@ defmodule ExPlasma.Output do
 
   @doc """
 
+  ## Examples
+
+  # Encode as an Output
+
+  iex> output = %ExPlasma.Output{
+  ...>   output_data: %{
+  ...>     amount: 1000000000000000000,
+  ...>     output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>,
+  ...>     token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>},
+  ...>   output_id: nil,
+  ...>   output_type: 1
+  ...> }
+  iex> ExPlasma.Output.encode(output)
+  <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
+  50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>
+
+  # Encode as an Input
+
+  iex> output = %ExPlasma.Output{
+  ...>   output_data: nil,
+  ...>   output_id: %{
+  ...>     blknum: 1,
+  ...>     oindex: 0,
+  ...>     position: 1000000000,
+  ...>     txindex: 0
+  ...>   },
+  ...>   output_type: nil
+  ...> }
+  iex> ExPlasma.Output.encode(output, as: :input)
+  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+  """
+  def encode(%{} = output, as: :input), do: to_rlp_id(output)
+  def encode(%{} = output), do: output |> to_rlp() |> ExRLP.encode()
+
+  @doc """
+
   ## Example
 
   iex> encoded_position = << 59, 154, 202, 0>>
