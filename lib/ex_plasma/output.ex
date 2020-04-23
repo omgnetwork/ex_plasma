@@ -29,7 +29,7 @@ defmodule ExPlasma.Output do
   #
   # Currently there is only 1 type.
   @output_types %{
-    # FIXME: work-around the TypeData using a "zeroed-out" output to hash the eip712 struct with.
+    # NB: work-around the TypeData using a "zeroed-out" output to hash the eip712 struct with.
     0 => ExPlasma.Output.Type.PaymentV1,
     1 => ExPlasma.Output.Type.PaymentV1
   }
