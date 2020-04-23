@@ -131,7 +131,7 @@ defmodule ExPlasma.Output do
   """
   @spec to_rlp(t()) :: binary()
   def to_rlp(%{output_type: nil}), do: nil
-  def to_rlp(%{output_type: type} = output), do: output |> get_output_type(type).to_rlp()
+  def to_rlp(%{output_type: type} = output), do: get_output_type(type).to_rlp(output)
 
   @doc """
   Encodes an Output identifer into RLP bytes. This is to generate

@@ -4,14 +4,11 @@ defmodule Conformance.SignaturesTest do
   """
 
   use ExUnit.Case, async: false
+  import ExPlasma.Encoding, only: [to_binary: 1]
 
+  alias ExPlasma.Output
   alias ExPlasma.Transaction
   alias ExPlasma.TypedData
-
-  alias ExPlasma.Transaction, as: Transaction
-  alias ExPlasma.Output
-
-  import ExPlasma.Encoding, only: [to_binary: 1]
 
   @moduletag :conformance
 

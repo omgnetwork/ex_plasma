@@ -6,15 +6,15 @@ defmodule ExPlasma.Block do
     * transactions - the list of Transactions associated with this given block
   """
 
+  alias ExPlasma.Encoding
+  alias ExPlasma.Transaction
+
   @type t() :: %__MODULE__{
           hash: binary(),
           transactions: maybe_improper_list()
         }
 
   defstruct(hash: nil, transactions: [])
-
-  alias ExPlasma.Encoding
-  alias ExPlasma.Transaction, as: Transaction
 
   # TODO
   #

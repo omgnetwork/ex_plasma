@@ -5,8 +5,8 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
 
   @behaviour ExPlasma.Output
 
-  alias ExPlasma.Output
   import ExPlasma.Encoding, only: [to_int: 1]
+  alias ExPlasma.Output
 
   @type address() :: <<_::160>>
   @type output_guard() :: address()

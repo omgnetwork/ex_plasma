@@ -5,7 +5,7 @@ defmodule ExPlasma do
 
   alias ExPlasma.Transaction
 
-  # constants that identify payment types, make sure that 
+  # constants that identify payment types, make sure that
   # when we introduce a new payment type, you name it `paymentV2`
   # https://github.com/omisego/plasma-contracts/blob/6ab35256b805e25cfc30d85f95f0616415220b20/plasma_framework/docs/design/tx-types-dependencies.md
   @payment_v1 <<1>>
