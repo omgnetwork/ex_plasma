@@ -21,10 +21,6 @@ defmodule Conformance.SignaturesTest do
   @authority "0x22d491bde2303f2f43325b2108d26f1eaba1e32b"
   @verifying "0xd17e1233a03affb9092d5109179b43d6a8828607"
 
-  test "signs empty transactions" do
-    assert_signs_conform(%Transaction{tx_type: 1})
-  end
-
   test "signs without inputs" do
     output = %Output{
       output_type: 1,
@@ -32,12 +28,6 @@ defmodule Conformance.SignaturesTest do
     }
 
     assert_signs_conform(%Transaction{tx_type: 1, outputs: [output]})
-  end
-
-  test "signs without outputs" do
-    input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
-
-    assert_signs_conform(%Transaction{tx_type: 1, inputs: [input]})
   end
 
   test "signs with metadata" do
