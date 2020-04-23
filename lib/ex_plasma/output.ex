@@ -179,18 +179,22 @@ defmodule ExPlasma.Output do
   # exist in the output body.
   defp do_validate_data(%{output_type: nil} = output), do: {:ok, output}
 
-  defp do_validate_data(%{output_type: type} = output) when is_integer(type),
-    do: get_output_type(type).validate(output)
+  defp do_validate_data(%{output_type: type} = output) when is_integer(type) do
+    get_output_type(type).validate(output)
+  end
 
-  defp do_validate_data(%{output_type: <<type>>} = output),
-    do: get_output_type(type).validate(output)
+  defp do_validate_data(%{output_type: <<type>>} = output) do
+    get_output_type(type).validate(output)
+  end
 
   # Generate our decoded output data based on the output type.
-  defp do_decode([<<type>>, _data] = rlp),
-    do: struct(__MODULE__, get_output_type(type).to_map(rlp))
+  defp do_decode([<<type>>, _data] = rlp) do
+    struct(__MODULE__, get_output_type(type).to_map(rlp))
+  end
 
-  defp do_decode(pos) when is_integer(pos),
-    do: %__MODULE__{output_id: ExPlasma.Output.Position.to_map(pos)}
+  defp do_decode(pos) when is_integer(pos) do
+    %__MODULE__{output_id: ExPlasma.Output.Position.to_map(pos)}
+  end
 
   # Grabs the matching Output type by id. If it doesn't exist, use the empty type.
   defp get_output_type(type), do: Map.get(@output_types, type, ExPlasma.Output.Type.Empty)
