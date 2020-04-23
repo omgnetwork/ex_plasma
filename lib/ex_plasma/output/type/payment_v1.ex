@@ -59,7 +59,10 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   }
   """
   @impl Output
-  @spec to_map(Output.rlp()) :: Output.t()
+  @spec to_map([<<_::8>> | [any(), ...], ...]) :: %{
+    :output_data => %{:amount => non_neg_integer(), :output_guard => any(), :token => any()},
+    :output_type => byte()
+  }
   def to_map([<<output_type>>, [output_guard, token, amount]]) do
     %{
       output_type: output_type,

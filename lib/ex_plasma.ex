@@ -68,7 +68,7 @@ defmodule ExPlasma do
       241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0>>
   """
-  @spec encode(Transaction.t() | Transaction.rlp()) :: <<_::632>>
+  @spec encode(Transaction.t()) :: binary()
   def encode(txn), do: Transaction.encode(txn)
 
   @doc """

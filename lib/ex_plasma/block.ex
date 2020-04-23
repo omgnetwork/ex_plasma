@@ -6,7 +6,7 @@ defmodule ExPlasma.Block do
     * transactions - the list of Transactions associated with this given block
   """
 
-  @type t() :: %{
+  @type t() :: %__MODULE__{
           hash: binary(),
           transactions: maybe_improper_list()
         }
