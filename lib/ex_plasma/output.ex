@@ -62,6 +62,25 @@ defmodule ExPlasma.Output do
 
   @doc """
 
+  ## Example
+
+  iex> encoded_position = << 59, 154, 202, 0>>
+  iex> ExPlasma.Output.decode_id(encoded_position)
+  %ExPlasma.Output{
+    output_data: nil,
+    output_id: %{
+      blknum: 1,
+      oindex: 0,
+      position: 1000000000,
+      txindex: 0
+    },
+    output_type: nil
+  }
+  """
+  def decode_id(data), do: data |> :binary.decode_unsigned(:big) |> do_decode()
+
+  @doc """
+
   ## Examples
 
   # Encode as an Output
@@ -96,25 +115,6 @@ defmodule ExPlasma.Output do
   """
   def encode(%{} = output, as: :input), do: to_rlp_id(output)
   def encode(%{} = output), do: output |> to_rlp() |> ExRLP.encode()
-
-  @doc """
-
-  ## Example
-
-  iex> encoded_position = << 59, 154, 202, 0>>
-  iex> ExPlasma.Output.decode_id(encoded_position)
-  %ExPlasma.Output{
-    output_data: nil,
-    output_id: %{
-      blknum: 1,
-      oindex: 0,
-      position: 1000000000,
-      txindex: 0
-    },
-    output_type: nil
-  }
-  """
-  def decode_id(data), do: data |> :binary.decode_unsigned(:big) |> do_decode()
 
   @doc """
   Encode an Output into RLP bytes

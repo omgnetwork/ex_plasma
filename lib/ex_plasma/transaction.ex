@@ -230,4 +230,23 @@ defmodule ExPlasma.Transaction do
     sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
     %{transaction | sigs: sigs}
   end
+
+  @doc """
+  Keccak hash the Transaction. This is used in the contracts and events to to reference transactions.
+
+
+  ## Example
+
+  iex> rlp = <<248, 74, 192, 1, 193, 128, 239, 174, 237, 1, 235, 148, 29, 246, 47, 41, 27,
+  ...> 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46,
+  ...> 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
+  ...> 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ...> 0>>
+  iex> ExPlasma.Transaction.hash(rlp)
+  <<87, 132, 239, 36, 144, 239, 129, 88, 63, 88, 116, 147, 164, 200, 113, 191,
+    124, 14, 55, 131, 119, 96, 112, 13, 28, 178, 251, 49, 16, 127, 58, 96>>
+  """
+  @spec hash(t() | binary()) :: <<_::256>>
+  def hash(txn) when is_map(txn), do: txn |> encode() |> hash()
+  def hash(txn) when is_binary(txn), do: ExPlasma.Encoding.keccak_hash(txn)
 end
