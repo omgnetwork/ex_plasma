@@ -6,15 +6,15 @@ defmodule ExPlasma.Block do
     * transactions - the list of Transactions associated with this given block
   """
 
+  alias ExPlasma.Encoding
+  alias ExPlasma.Transaction
+
   @type t() :: %__MODULE__{
           hash: binary(),
           transactions: maybe_improper_list()
         }
 
   defstruct(hash: nil, transactions: [])
-
-  alias ExPlasma.Encoding
-  alias ExPlasma.Transaction
 
   # TODO
   #
@@ -24,13 +24,23 @@ defmodule ExPlasma.Block do
 
   ## Example
 
-    iex> %ExPlasma.Transaction{} |> List.wrap() |> ExPlasma.Block.new
-    %ExPlasma.Block{
-      hash: <<162, 30, 56, 202, 121, 64, 48, 158, 182, 172, 255, 172, 103, 46, 193, 151, 236, 162, 92, 242, 78, 195, 132, 176, 200, 239, 249, 20, 160, 176, 63, 29>>,
-      transactions: [
-        %ExPlasma.Transaction{inputs: [], metadata: nil, outputs: [], sigs: []}
-      ]
-    }
+  iex> %ExPlasma.Transaction{tx_type: 1} |> List.wrap() |> ExPlasma.Block.new()
+  %ExPlasma.Block{
+    hash: <<168, 54, 172, 201, 1, 212, 18, 167, 34, 57, 232, 89, 151, 225, 172,
+      150, 208, 77, 194, 12, 174, 250, 146, 254, 93, 42, 28, 253, 203, 237, 247,
+      62>>,
+    transactions: [
+      %ExPlasma.Transaction{
+        inputs: [],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: [],
+        tx_data: 0,
+        tx_type: 1
+      }
+    ]
+  }
   """
   @spec new(maybe_improper_list()) :: t()
   def new(transactions) when is_list(transactions),
