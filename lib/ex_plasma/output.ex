@@ -197,5 +197,13 @@ defmodule ExPlasma.Output do
   end
 
   # Grabs the matching Output type by id. If it doesn't exist, use the empty type.
-  defp get_output_type(type), do: Map.get(@output_types, type, ExPlasma.Output.Type.Empty)
+  defp get_output_type(type) do
+    case Map.fetch(@output_types, type) do
+      {:ok, output_type} ->
+        output_type
+
+      :error ->
+        raise ArgumentError, message: "output type #{type} does not exist."
+    end
+  end
 end

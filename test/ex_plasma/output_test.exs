@@ -3,14 +3,16 @@ defmodule ExPlasma.OutputTest do
   doctest ExPlasma.Output
   alias ExPlasma.Output
 
-  test "to_rlp/1 returns an empty list for an invalid output type" do
+  test "to_rlp/1 returns an error for an invalid output type" do
     output = %{
       output_id: nil,
       output_type: 100,
       output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
     }
 
-    assert [<<0>>, []] == ExPlasma.Output.to_rlp(output)
+    assert_raise ArgumentError, "output type 100 does not exist.", fn ->
+      ExPlasma.Output.to_rlp(output)
+    end
   end
 
   test "decode/1 returns an empty map for an invalid output type" do
