@@ -12,7 +12,7 @@ jobs:
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
       - run:
-          command: mix do deps.get, compile --warnings-as-errors --ignore-module-conflict --force
+          command: mix do deps.get, compile --warnings-as-errors --force
           no_output_timeout: 20m
       - save_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
