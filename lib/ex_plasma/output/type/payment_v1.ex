@@ -85,7 +85,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
       {field, value} ->
         {:error, {field, value}}
 
-      nil ->
+      :ok ->
         {:ok, data}
     end
   end
@@ -99,7 +99,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   defp do_validate([nil, _token, _amount]), do: {:output_guard, :cannot_be_nil}
   defp do_validate([@zero_address, _token, _amount]), do: {:output_guard, :cannot_be_zero}
 
-  defp do_validate([_, _, _]), do: nil
+  defp do_validate([_, _, _]), do: :ok
 
   defp truncate_leading_zero(<<0>>), do: <<0>>
   defp truncate_leading_zero(<<0>> <> binary), do: truncate_leading_zero(binary)
