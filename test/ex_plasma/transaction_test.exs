@@ -53,6 +53,21 @@ defmodule ExPlasma.TransactionTest do
 
       assert_field(txn, :amount, :cannot_be_zero)
     end
+
+    test "raises an error if given an invalid transaction type" do
+      txn = %{
+        inputs: [],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: [],
+        tx_data: <<0>>,
+        tx_type: 100
+      }
+
+      assert_raise ArgumentError, "transaction type 100 does not exist.", fn ->
+        Transaction.validate(txn)
+      end
+    end
   end
 
   defp assert_field(data, field, message) do

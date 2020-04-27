@@ -110,11 +110,13 @@ defmodule ExPlasma.Transaction do
   @spec decode(binary()) :: t()
   def decode(data), do: data |> ExRLP.decode() |> do_decode()
 
-  defp do_decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = rlp),
-    do: do_decode([[] | rlp])
+  defp do_decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = rlp) do
+    do_decode([[] | rlp])
+  end
 
-  defp do_decode([_sigs, <<tx_type>>, _inputs, _outputs, _tx_data, _metadata] = rlp),
-    do: @transaction_types[tx_type].to_map(rlp)
+  defp do_decode([_sigs, <<tx_type>>, _inputs, _outputs, _tx_data, _metadata] = rlp) do
+    get_transaction_type(tx_type).to_map(rlp)
+  end
 
   @doc """
   Encode the given Transaction into an RLP encodeable list.
@@ -167,7 +169,7 @@ defmodule ExPlasma.Transaction do
   ]
   """
   def to_rlp(%{tx_type: tx_type} = transaction),
-    do: transaction |> @transaction_types[tx_type].to_rlp() |> remove_empty_sigs()
+    do: transaction |> get_transaction_type(tx_type).to_rlp() |> remove_empty_sigs()
 
   # NB: We need to standardize on this. Currently, if there is no sig, we strip the empty list.
   defp remove_empty_sigs([[] | raw_transaction_rlp]), do: raw_transaction_rlp
@@ -197,7 +199,7 @@ defmodule ExPlasma.Transaction do
   defp validate_output([]), do: {:ok, []}
 
   defp do_validate(%{tx_type: type} = transaction),
-    do: @transaction_types[type].validate(transaction)
+    do: get_transaction_type(type).validate(transaction)
 
   @doc """
   Sign the inputs of the transaction with the given keys in the corresponding order.
@@ -249,4 +251,14 @@ defmodule ExPlasma.Transaction do
   @spec hash(t() | binary()) :: <<_::256>>
   def hash(txn) when is_map(txn), do: txn |> encode() |> hash()
   def hash(txn) when is_binary(txn), do: ExPlasma.Encoding.keccak_hash(txn)
+
+  defp get_transaction_type(type) do
+    case Map.fetch(@transaction_types, type) do
+      {:ok, type} ->
+        type
+
+      :error ->
+        raise ArgumentError, "transaction type #{type} does not exist."
+    end
+  end
 end
