@@ -113,6 +113,7 @@ defmodule ExPlasma.Output do
   iex> ExPlasma.Output.encode(output, as: :input)
   <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
+  @spec encode(t()) :: binary()
   def encode(%{} = output, as: :input), do: to_rlp_id(output)
   def encode(%{} = output), do: output |> to_rlp() |> ExRLP.encode()
 
