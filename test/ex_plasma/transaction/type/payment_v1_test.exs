@@ -3,21 +3,22 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
   use ExUnit.Case, async: true
   doctest ExPlasma.Transaction.Type.PaymentV1
 
+  alias ExPlasma.Output
   alias ExPlasma.Transaction.Type.PaymentV1
 
   describe "validate/1" do
     test "that inputs cannot be greater than 4" do
-      input = %{
+      input = %Output{
         output_data: [],
         output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
         output_type: nil
       }
 
-      txn = %{
+      txn = %ExPlasma.Transaction{
         inputs: [input, input, input, input, input],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [
-          %{
+          %Output{
             output_data: %{
               amount: <<0, 0, 0, 0, 0, 0, 0, 1>>,
               output_guard:
@@ -40,7 +41,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
     end
 
     test "that outputs cannot be greater than 4" do
-      output = %{
+      output = %Output{
         output_data: %{
           amount: <<0, 0, 0, 0, 0, 0, 0, 1>>,
           output_guard:
@@ -56,7 +57,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
 
       txn = %{
         inputs: [
-          %{
+          %Output{
             output_data: [],
             output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
             output_type: nil
@@ -75,7 +76,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
     test "that outputs cannot be less than 1" do
       txn = %{
         inputs: [
-          %{
+          %Output{
             output_data: [],
             output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
             output_type: nil

@@ -34,7 +34,7 @@ defmodule ExPlasma.Transaction do
     iex> txn =
     ...>  %{
     ...>    inputs: [
-    ...>      %{
+    ...>      %ExPlasma.Output{
     ...>        output_data: nil,
     ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
     ...>        output_type: nil
@@ -42,7 +42,7 @@ defmodule ExPlasma.Transaction do
     ...>    ],
     ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
     ...>    outputs: [
-    ...>      %{
+    ...>      %ExPlasma.Output{
     ...>        output_data: %{
     ...>          amount: 1,
     ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
@@ -127,7 +127,7 @@ defmodule ExPlasma.Transaction do
   iex> txn =
   ...>  %{
   ...>    inputs: [
-  ...>      %{
+  ...>      %ExPlasma.Output{
   ...>        output_data: nil,
   ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
   ...>        output_type: nil
@@ -135,7 +135,7 @@ defmodule ExPlasma.Transaction do
   ...>    ],
   ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
   ...>    outputs: [
-  ...>      %{
+  ...>      %ExPlasma.Output{
   ...>        output_data: %{
   ...>          amount: 1,
   ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
@@ -184,7 +184,30 @@ defmodule ExPlasma.Transaction do
 
   ## Example
 
-  iex> txn = %{inputs: [%{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: 1}
+  iex> txn = %{
+  ...>  inputs: [
+  ...>    %ExPlasma.Output{
+  ...>      output_data: nil,
+  ...>      output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+  ...>      output_type: nil
+  ...>    }
+  ...>  ], 
+  ...>  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  ...>  outputs: [
+  ...>    %ExPlasma.Output{
+  ...>      output_data: %{
+  ...>        amount: <<0, 0, 0, 0, 0, 0, 0, 1>>,
+  ...>        output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
+  ...>        token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>
+  ...>      }, 
+  ...>      output_id: nil,
+  ...>      output_type: 1
+  ...>    }
+  ...>  ],
+  ...>  sigs: [],
+  ...>  tx_data: <<0>>,
+  ...>  tx_type: 1
+  ...>}
   iex> {:ok, ^txn} = ExPlasma.Transaction.validate(txn)
   """
   @spec validate(t()) :: tuple()

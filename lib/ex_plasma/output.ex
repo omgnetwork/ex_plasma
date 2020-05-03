@@ -6,6 +6,9 @@ defmodule ExPlasma.Output do
   `output_type` - An integer value of what type of output data is associated.
   `output_data` - The main data for the output. This can be decode by the different output types.
   """
+
+  alias ExPlasma.Output.Position
+
   @type output_id() :: map() | nil
   @type output_type() :: non_neg_integer()
   @type output_data() :: map() | nil
@@ -114,15 +117,15 @@ defmodule ExPlasma.Output do
   <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
   @spec encode(t()) :: binary()
-  def encode(%{} = output, as: :input), do: to_rlp_id(output)
-  def encode(%{} = output), do: output |> to_rlp() |> ExRLP.encode()
+  def encode(%__MODULE__{} = output, as: :input), do: to_rlp_id(output)
+  def encode(%__MODULE__{} = output), do: output |> to_rlp() |> ExRLP.encode()
 
   @doc """
   Encode an Output into RLP bytes
 
   ## Example
 
-  iex> output = %{
+  iex> output = %ExPlasma.Output{
   ...>      output_id: nil,
   ...>      output_type: 1,
   ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
@@ -131,8 +134,8 @@ defmodule ExPlasma.Output do
   [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<1>>]]
   """
   @spec to_rlp(t()) :: binary()
-  def to_rlp(%{output_type: nil}), do: nil
-  def to_rlp(%{output_type: type} = output), do: get_output_type(type).to_rlp(output)
+  def to_rlp(%__MODULE__{output_type: nil}), do: nil
+  def to_rlp(%__MODULE__{output_type: type} = output), do: get_output_type(type).to_rlp(output)
 
   @doc """
   Encodes an Output identifer into RLP bytes. This is to generate
@@ -141,8 +144,8 @@ defmodule ExPlasma.Output do
   ## Example
   """
   @spec to_rlp_id(t()) :: binary()
-  def to_rlp_id(%{output_id: nil}), do: nil
-  def to_rlp_id(%{output_id: id}), do: ExPlasma.Output.Position.to_rlp(id)
+  def to_rlp_id(%__MODULE__{output_id: nil}), do: nil
+  def to_rlp_id(%__MODULE__{output_id: id}), do: Position.to_rlp(id)
 
   @doc """
   Validates the Output
@@ -162,7 +165,7 @@ defmodule ExPlasma.Output do
   iex> {:ok, id} = encoded_position |> ExPlasma.Output.decode_id() |> ExPlasma.Output.validate()
   """
   @spec validate(t()) :: validation_responses()
-  def validate(%{} = output) do
+  def validate(%__MODULE__{} = output) do
     with {:ok, _data} <- do_validate_data(output),
          {:ok, _id} <- do_validate_id(output) do
       {:ok, output}
@@ -171,20 +174,20 @@ defmodule ExPlasma.Output do
 
   # Validate the output ID. Bypass the validation if it doesn't
   # exist in the output body.
-  defp do_validate_id(%{output_id: nil} = output), do: {:ok, output}
+  defp do_validate_id(%__MODULE__{output_id: nil} = output), do: {:ok, output}
 
-  defp do_validate_id(%{output_id: %{} = output_id}),
-    do: ExPlasma.Output.Position.validate(output_id)
+  defp do_validate_id(%__MODULE__{output_id: %{} = output_id}),
+    do: Position.validate(output_id)
 
   # Validate the output type and data. Bypass the validation if it doesn't
   # exist in the output body.
-  defp do_validate_data(%{output_type: nil} = output), do: {:ok, output}
+  defp do_validate_data(%__MODULE__{output_type: nil} = output), do: {:ok, output}
 
-  defp do_validate_data(%{output_type: type} = output) when is_integer(type) do
+  defp do_validate_data(%__MODULE__{output_type: type} = output) when is_integer(type) do
     get_output_type(type).validate(output)
   end
 
-  defp do_validate_data(%{output_type: <<type>>} = output) do
+  defp do_validate_data(%__MODULE__{output_type: <<type>>} = output) do
     get_output_type(type).validate(output)
   end
 
@@ -194,7 +197,7 @@ defmodule ExPlasma.Output do
   end
 
   defp do_decode(pos) when is_integer(pos) do
-    %__MODULE__{output_id: ExPlasma.Output.Position.to_map(pos)}
+    %__MODULE__{output_id: Position.to_map(pos)}
   end
 
   # Grabs the matching Output type by id. If it doesn't exist, use the empty type.

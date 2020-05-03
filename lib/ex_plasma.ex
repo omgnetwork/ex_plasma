@@ -36,7 +36,7 @@ defmodule ExPlasma do
     iex> txn =
     ...>  %{
     ...>    inputs: [
-    ...>      %{
+    ...>      %ExPlasma.Output{
     ...>        output_data: nil,
     ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
     ...>        output_type: nil
@@ -44,7 +44,7 @@ defmodule ExPlasma do
     ...>    ],
     ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
     ...>    outputs: [
-    ...>      %{
+    ...>      %ExPlasma.Output{
     ...>        output_data: %{
     ...>          amount: 1,
     ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
