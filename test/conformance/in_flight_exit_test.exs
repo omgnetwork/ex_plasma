@@ -21,11 +21,11 @@ defmodule Conformance.InFlightExitTest do
     "0xffffffffffffffffffffffffffffffff"
   ]
 
-  describe "txbytes_to_id/1" do
+  describe "tx_bytes_to_id/1" do
     test "matches PaymentExitGame.getInFlightExitId(bytes)" do
       Enum.each(@ife_tx_hexes, fn hex ->
-        txbytes = ExPlasma.Encoding.to_binary(hex)
-        assert InFlightExit.txbytes_to_id(txbytes) == contract_get_in_flight_exit_id(txbytes)
+        tx_bytes = ExPlasma.Encoding.to_binary(hex)
+        assert InFlightExit.tx_bytes_to_id(tx_bytes) == contract_get_in_flight_exit_id(tx_bytes)
       end)
     end
   end
