@@ -25,7 +25,19 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
 
   ## Example
 
-  iex> txn = %{inputs: [%{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: 1, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: 1}
+  iex> txn = %ExPlasma.Transaction{
+  ...>  inputs: [%ExPlasma.Output{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}],
+  ...>  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  ...>  outputs: [
+  ...>    %ExPlasma.Output{
+  ...>      output_data: %{amount: 1, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
+  ...>        token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1
+  ...>    }
+  ...>  ],
+  ...>  sigs: [],
+  ...>  tx_data: <<0>>,
+  ...>  tx_type: 1
+  ...>}
   iex> ExPlasma.Transaction.Type.PaymentV1.to_rlp(txn)
   [[], <<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>], [[<<1>>, [<<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<1>>]]], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
@@ -61,7 +73,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   ...>]
   iex> ExPlasma.Transaction.Type.PaymentV1.to_map(rlp)
-  %{
+  %ExPlasma.Transaction{
   	inputs: [
   		%ExPlasma.Output{
   			output_data: nil,
@@ -90,7 +102,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   """
   @impl Transaction
   @spec to_map(list()) :: Transaction.t()
-  def to_map(rlp), do: do_to_map(rlp)
+  def to_map(rlp) when is_list(rlp), do: do_to_map(rlp)
 
   defp do_to_map([sigs, tx_type, inputs, outputs, "", metadata]),
     do: do_to_map([sigs, tx_type, inputs, outputs, 0, metadata])
@@ -99,7 +111,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
     do: do_to_map([sigs, tx_type, inputs, outputs, tx_data, metadata])
 
   defp do_to_map([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
-    %{
+    %ExPlasma.Transaction{
       sigs: sigs,
       tx_type: tx_type,
       inputs: Enum.map(inputs, &ExPlasma.Output.decode_id/1),

@@ -34,9 +34,9 @@ defmodule ExPlasma do
   ## Example
 
     iex> txn =
-    ...>  %{
+    ...>  %ExPlasma.Transaction{
     ...>    inputs: [
-    ...>      %{
+    ...>      %ExPlasma.Output{
     ...>        output_data: nil,
     ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
     ...>        output_type: nil
@@ -44,7 +44,7 @@ defmodule ExPlasma do
     ...>    ],
     ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
     ...>    outputs: [
-    ...>      %{
+    ...>      %ExPlasma.Output{
     ...>        output_data: %{
     ...>          amount: 1,
     ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
@@ -69,7 +69,7 @@ defmodule ExPlasma do
       0, 0, 0, 0>>
   """
   @spec encode(Transaction.t()) :: binary()
-  def encode(txn), do: Transaction.encode(txn)
+  def encode(%ExPlasma.Transaction{} = txn), do: Transaction.encode(txn)
 
   @doc """
   Decode the given RLP list into a Transaction.
@@ -82,7 +82,7 @@ defmodule ExPlasma do
   ...>   0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ...>   0>>
   iex> ExPlasma.decode(rlp)
-  %{
+  %ExPlasma.Transaction{
     inputs: [
       %ExPlasma.Output{
         output_data: nil,
