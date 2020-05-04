@@ -5,7 +5,7 @@ defmodule ExPlasma.Transaction do
 
   @type sigs() :: list(binary()) | []
   @type outputs() :: list(Output.t()) | []
-  @type metadata :: <<_::160>> | nil
+  @type metadata :: <<_::256>> | nil
 
   @type t() :: %__MODULE__{
           sigs: sigs(),
