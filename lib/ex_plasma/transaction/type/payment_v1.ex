@@ -73,7 +73,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   ...>]
   iex> ExPlasma.Transaction.Type.PaymentV1.to_map(rlp)
-  %{
+  %ExPlasma.Transaction{
   	inputs: [
   		%ExPlasma.Output{
   			output_data: nil,
@@ -102,7 +102,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   """
   @impl Transaction
   @spec to_map(list()) :: Transaction.t()
-  def to_map(rlp), do: do_to_map(rlp)
+  def to_map(rlp) when is_list(rlp), do: do_to_map(rlp)
 
   defp do_to_map([sigs, tx_type, inputs, outputs, "", metadata]),
     do: do_to_map([sigs, tx_type, inputs, outputs, 0, metadata])
@@ -111,7 +111,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
     do: do_to_map([sigs, tx_type, inputs, outputs, tx_data, metadata])
 
   defp do_to_map([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
-    %{
+    %ExPlasma.Transaction{
       sigs: sigs,
       tx_type: tx_type,
       inputs: Enum.map(inputs, &ExPlasma.Output.decode_id/1),

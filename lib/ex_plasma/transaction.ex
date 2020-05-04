@@ -7,7 +7,7 @@ defmodule ExPlasma.Transaction do
   @type outputs() :: list(Output.t()) | []
   @type metadata :: <<_::160>> | nil
 
-  @type t() :: %{
+  @type t() :: %__MODULE__{
           sigs: sigs(),
           tx_type: pos_integer(),
           inputs: outputs(),
@@ -32,7 +32,7 @@ defmodule ExPlasma.Transaction do
   ## Example
 
     iex> txn =
-    ...>  %{
+    ...>  %ExPlasma.Transaction{
     ...>    inputs: [
     ...>      %ExPlasma.Output{
     ...>        output_data: nil,
@@ -67,7 +67,7 @@ defmodule ExPlasma.Transaction do
       0, 0, 0, 0>>
   """
   @spec encode(t()) :: binary()
-  def encode(%{} = transaction), do: transaction |> to_rlp() |> ExRLP.encode()
+  def encode(%__MODULE__{} = transaction), do: transaction |> to_rlp() |> ExRLP.encode()
   def encode(transaction) when is_list(transaction), do: ExRLP.encode(transaction)
 
   @doc """
@@ -81,7 +81,7 @@ defmodule ExPlasma.Transaction do
   ...>   0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ...>   0>>
   iex> ExPlasma.Transaction.decode(rlp)
-  %{
+  %ExPlasma.Transaction{
     inputs: [
       %ExPlasma.Output{
         output_data: nil,
@@ -125,7 +125,7 @@ defmodule ExPlasma.Transaction do
   ## Example
 
   iex> txn =
-  ...>  %{
+  ...>  %ExPlasma.Transaction{
   ...>    inputs: [
   ...>      %ExPlasma.Output{
   ...>        output_data: nil,
@@ -170,7 +170,7 @@ defmodule ExPlasma.Transaction do
   ]
   """
   @spec to_rlp(t()) :: list()
-  def to_rlp(%{tx_type: tx_type} = transaction) do
+  def to_rlp(%__MODULE__{tx_type: tx_type} = transaction) do
     transaction |> get_transaction_type(tx_type).to_rlp() |> remove_empty_sigs()
   end
 
@@ -184,7 +184,7 @@ defmodule ExPlasma.Transaction do
 
   ## Example
 
-  iex> txn = %{
+  iex> txn = %ExPlasma.Transaction{
   ...>  inputs: [
   ...>    %ExPlasma.Output{
   ...>      output_data: nil,
@@ -211,7 +211,7 @@ defmodule ExPlasma.Transaction do
   iex> {:ok, ^txn} = ExPlasma.Transaction.validate(txn)
   """
   @spec validate(t()) :: tuple()
-  def validate(%{} = transaction) do
+  def validate(%__MODULE__{} = transaction) do
     with {:ok, _inputs} <- validate_output(transaction.inputs),
          {:ok, _outputs} <- validate_output(transaction.outputs),
          {:ok, _transaaction} <- do_validate(transaction) do

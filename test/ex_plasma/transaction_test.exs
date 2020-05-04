@@ -12,7 +12,7 @@ defmodule ExPlasma.TransactionTest do
         |> :binary.encode_unsigned(:big)
         |> ExPlasma.Output.decode_id()
 
-      txn = %{
+      txn = %Transaction{
         inputs: [bad_position],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [
@@ -42,7 +42,7 @@ defmodule ExPlasma.TransactionTest do
       # zero amount output
       bad_output = ExPlasma.Output.decode([<<1>>, [<<1::160>>, <<0::160>>, <<0>>]])
 
-      txn = %{
+      txn = %Transaction{
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [bad_output],
@@ -55,7 +55,7 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "raises an error if given an invalid transaction type" do
-      txn = %{
+      txn = %Transaction{
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [],
