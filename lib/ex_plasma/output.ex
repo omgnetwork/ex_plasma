@@ -177,7 +177,6 @@ defmodule ExPlasma.Output do
   defp do_validate_id(%__MODULE__{output_id: nil} = output), do: {:ok, output}
 
   defp do_validate_id(%__MODULE__{output_id: %{} = output_id}), do: Position.validate(output_id)
-    do: Position.validate(output_id)
 
   # Validate the output type and data. Bypass the validation if it doesn't
   # exist in the output body.
