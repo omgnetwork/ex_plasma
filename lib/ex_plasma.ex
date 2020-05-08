@@ -110,7 +110,7 @@ defmodule ExPlasma do
   }
   """
   @spec decode(binary()) :: Transaction.t()
-  def decode(txbytes), do: Transaction.decode(txbytes)
+  def decode(tx_bytes), do: Transaction.decode(tx_bytes)
 
   @doc """
   Keccak hash the Transaction. This is used in the contracts and events to to reference transactions.
