@@ -7,7 +7,7 @@ defmodule ExPlasma.ConfigurationTest do
 
   @app :ex_plasma
 
-  describe "eip_712_domain/1" do
+  describe "eip_712_domain/0" do
     @valid_domain %{
       name: "OMG Network",
       salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
@@ -31,17 +31,11 @@ defmodule ExPlasma.ConfigurationTest do
     end
 
     test "raises when given invalid data" do
-      invalid_values = %{name: 123, salt: "invalid", verifying_contract: "invalid", version: 1}
+      set_domain(%{invalid: "domain"})
 
-      Enum.map(invalid_values, fn {key, invalid_value} ->
-        @valid_domain
-        |> Map.put(key, invalid_value)
-        |> set_domain()
-
-        assert_raise RuntimeError, ~r"eip_712_domain config is invalid.", fn ->
-          Configuration.eip_712_domain()
-        end
-      end)
+      assert_raise RuntimeError, ~r"eip_712_domain config is invalid.", fn ->
+        Configuration.eip_712_domain()
+      end
     end
 
     defp set_domain(domain), do: Application.put_env(@app, :eip_712_domain, domain)
