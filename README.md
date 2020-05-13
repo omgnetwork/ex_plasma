@@ -23,12 +23,12 @@ You will also need to specify some configurations in your [config/config.exs]():
 
 ```elixir
 config :ex_plasma,
-  eip_712_domain: [
+  eip_712_domain: %{
     name: "ExPlasma",
     salt: "some-salt",
     verifying_contract: "contract_address",
     version: "1"
-  ]
+  }
 ```
 
 ## Setup (Mac OS)
