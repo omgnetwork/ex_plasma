@@ -19,7 +19,7 @@ defmodule ExPlasma.Configuration.ValidatorTest do
     test "raises when given an invalid domain" do
       invalid_values = %{name: 123, salt: "invalid", verifying_contract: "invalid", version: 1}
 
-      Enum.map(invalid_values, fn {key, invalid_value} ->
+      Enum.each(invalid_values, fn {key, invalid_value} ->
         invalid_domain = Map.put(@valid_domain, key, invalid_value)
 
         assert_raise RuntimeError, ~r"eip_712_domain config is invalid.", fn ->
