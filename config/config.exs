@@ -3,12 +3,12 @@
 use Mix.Config
 
 config :ex_plasma,
-  eip_712_domain: [
+  eip_712_domain: %{
     name: "OMG Network",
     salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
     verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
     version: "1"
-  ]
+  }
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this

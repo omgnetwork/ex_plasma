@@ -2,6 +2,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction do
   import ExPlasma.Encoding, only: [to_binary: 1, keccak_hash: 1]
   import ABI.TypeEncoder, only: [encode_raw: 2]
 
+  alias ExPlasma.Configuration
   alias ExPlasma.Output
   alias ExPlasma.TypedData
 
@@ -54,14 +55,14 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction do
   end
 
   defp domain_separator() do
-    domain = Application.get_env(:ex_plasma, :eip_712_domain)
+    domain = Configuration.eip_712_domain()
 
     [
       @domain_signature,
-      domain[:name],
-      domain[:version],
-      domain[:verifying_contract],
-      domain[:salt]
+      domain.name,
+      domain.version,
+      domain.verifying_contract,
+      domain.salt
     ]
   end
 
