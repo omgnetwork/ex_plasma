@@ -6,7 +6,7 @@
   "dialyxir": {:hex, :dialyxir, "1.0.0-rc.7", "6287f8f2cb45df8584317a4be1075b8c9b8a69de8eeb82b4d9e6c761cf2664cd", [:mix], [{:erlex, ">= 0.2.5", [hex: :erlex, repo: "hexpm", optional: false]}], "hexpm"},
   "erlex": {:hex, :erlex, "0.2.5", "e51132f2f472e13d606d808f0574508eeea2030d487fc002b46ad97e738b0510", [:mix], [], "hexpm"},
   "ethereumex": {:hex, :ethereumex, "0.6.0", "6c3a8f7ac09aa390db5c7d79678c1833948725c4c157946e86a7f4a1a6d03ce2", [:mix], [{:httpoison, "~> 1.4.0", [hex: :httpoison, repo: "hexpm", optional: false]}, {:jason, "~> 1.1", [hex: :jason, repo: "hexpm", optional: false]}, {:poolboy, "~> 1.5.1", [hex: :poolboy, repo: "hexpm", optional: false]}, {:telemetry, "~> 0.4", [hex: :telemetry, repo: "hexpm", optional: true]}], "hexpm", "b221e989962a3a9e9d8d40af212ca86d3ee72800493a432a54426c807517f237"},
-  "ex_abi": {:git, "https://github.com/ayrat555/ex_abi-1", "363f5f813b12fddd838d18e7ce1437e165045387", [branch: "ayrat555/re-write-encoder"]},
+  "ex_abi": {:git, "https://github.com/ayrat555/ex_abi-1", "523c24552cfffff90308987c8d0e723765a88c77", [branch: "ayrat555/re-write-encoder"]},
   "ex_rlp": {:hex, :ex_rlp, "0.5.3", "9055bddade545ee3e734aaad62c4b4d08211834da3beb43ae269b75785909e5e", [:mix], [], "hexpm", "a755a5f8f9f66079f3ecbe021536b949077fac0df963d9e59a20321bab28722d"},
   "exactor": {:hex, :exactor, "2.2.4", "5efb4ddeb2c48d9a1d7c9b465a6fffdd82300eb9618ece5d34c3334d5d7245b1", [:mix], [], "hexpm", "1222419f706e01bfa1095aec9acf6421367dcfab798a6f67c54cf784733cd6b5"},
   "excoveralls": {:hex, :excoveralls, "0.12.2", "a513defac45c59e310ac42fcf2b8ae96f1f85746410f30b1ff2b710a4b6cd44b", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm"},
