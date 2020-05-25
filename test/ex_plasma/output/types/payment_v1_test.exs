@@ -5,6 +5,15 @@ defmodule ExPlasma.Output.Type.PaymentV1Test do
 
   alias ExPlasma.Output.Type.PaymentV1
 
+  describe "to_map/1" do
+    test "can decode amounts" do
+      output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 12_408}}
+      rlp = PaymentV1.to_rlp(output)
+
+      assert %{output_data: %{amount: 12_408}} = PaymentV1.to_map(rlp)
+    end
+  end
+
   describe "validate/1" do
     test "that amount cannot be nil" do
       output = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: nil}}

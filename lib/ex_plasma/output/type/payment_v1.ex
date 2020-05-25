@@ -5,7 +5,6 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
 
   @behaviour ExPlasma.Output
 
-  import ExPlasma.Encoding, only: [to_int: 1]
   alias ExPlasma.Output
 
   @type address() :: <<_::160>>
@@ -66,7 +65,7 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   def to_map([<<output_type>>, [output_guard, token, amount]]) do
     %{
       output_type: output_type,
-      output_data: %{output_guard: output_guard, token: token, amount: to_int(amount)}
+      output_data: %{output_guard: output_guard, token: token, amount: :binary.decode_unsigned(amount, :big)}
     }
   end
 
