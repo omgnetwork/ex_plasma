@@ -7,10 +7,10 @@ defmodule ExPlasma.Output.Type.PaymentV1Test do
 
   describe "to_map/1" do
     test "can decode amounts" do
-      output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 12_408}}
-      rlp = PaymentV1.to_rlp(output)
-
-      assert %{output_data: %{amount: 12_408}} = PaymentV1.to_map(rlp)
+      Enum.map(1..65_000, fn amount ->
+        rlp = [<<1>>, [<<0::160>>, <<0::160>>, :binary.encode_unsigned(amount, :big)]]
+        assert %{output_data: %{amount: amount}} = PaymentV1.to_map(rlp)
+      end)
     end
   end
 
