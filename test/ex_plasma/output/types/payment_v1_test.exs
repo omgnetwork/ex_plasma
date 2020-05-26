@@ -14,6 +14,16 @@ defmodule ExPlasma.Output.Type.PaymentV1Test do
     end
   end
 
+  describe "to_rlp/1" do
+    test "can encode amounts" do
+      Enum.map(1..65_000, fn amount ->
+        output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: amount}}
+        encoded_amount = :binary.encode_unsigned(amount, :big)
+        assert [_, [_, _, ^encoded_amount]] = PaymentV1.to_rlp(output)
+      end)
+    end
+  end
+
   describe "validate/1" do
     test "that amount cannot be nil" do
       output = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: nil}}
