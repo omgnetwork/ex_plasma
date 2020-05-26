@@ -5,6 +5,25 @@ defmodule ExPlasma.Output.Type.PaymentV1Test do
 
   alias ExPlasma.Output.Type.PaymentV1
 
+  describe "to_map/1" do
+    test "can decode amounts" do
+      Enum.map(1..65_000, fn amount ->
+        rlp = [<<1>>, [<<0::160>>, <<0::160>>, :binary.encode_unsigned(amount, :big)]]
+        assert %{output_data: %{amount: amount}} = PaymentV1.to_map(rlp)
+      end)
+    end
+  end
+
+  describe "to_rlp/1" do
+    test "can encode amounts" do
+      Enum.map(1..65_000, fn amount ->
+        output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: amount}}
+        encoded_amount = :binary.encode_unsigned(amount, :big)
+        assert [_, [_, _, ^encoded_amount]] = PaymentV1.to_rlp(output)
+      end)
+    end
+  end
+
   describe "validate/1" do
     test "that amount cannot be nil" do
       output = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: nil}}
