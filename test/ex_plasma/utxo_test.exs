@@ -72,6 +72,14 @@ defmodule ExPlasma.UtxoTest do
       assert Utxo.new(%Utxo{blknum: 1, txindex: 65_536, oindex: 0}) ==
                {:error, {:txindex, :exceeds_maximum}}
     end
+
+    test "decodes amount properly" do
+      Enum.map(1..65_000, fn amount ->
+        rlp = [1, [<<1::160>>, <<0::160>>, :binary.encode_unsigned(amount, :big)]]
+
+        assert {:ok, %Utxo{amount: amount}} = Utxo.new(rlp)
+      end)
+    end
   end
 
   describe "to_rlp/1" do

@@ -28,7 +28,7 @@ defmodule ExPlasma.Utxo do
       - oindex:  The offset index for the given utxo. TODO
   """
 
-  import ExPlasma.Encoding, only: [to_binary: 1, to_int: 1]
+  import ExPlasma.Encoding, only: [to_binary: 1]
 
   # Currently this is the only output type available
   @payment_output_type 1
@@ -271,7 +271,7 @@ defmodule ExPlasma.Utxo do
       })
 
   defp do_new([output_type, [owner, currency, amount]]),
-    do: do_new([output_type, [owner, currency, to_int(amount)]])
+    do: do_new([output_type, [owner, currency, :binary.decode_unsigned(amount, :big)]])
 
   defp do_new(encoded_pos) when is_binary(encoded_pos) and byte_size(encoded_pos) <= 32,
     do: encoded_pos |> :binary.decode_unsigned(:big) |> do_new()
