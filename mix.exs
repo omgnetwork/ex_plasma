@@ -33,7 +33,7 @@ defmodule ExPlasma.MixProject do
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.6.0", only: [:test]},
-      {:ex_abi, "~> 0.2.0"},
+      {:ex_abi, "~> 0.4.0"},
       {:ex_rlp, "~> 0.5.3"},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:exth_crypto, "~> 0.1.6"},
