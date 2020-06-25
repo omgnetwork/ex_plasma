@@ -25,3 +25,4 @@ ex_plasma-*.tar
 # Elixirls data directory
 .elixir_ls
 
+.history
