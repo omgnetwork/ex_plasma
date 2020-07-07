@@ -34,7 +34,8 @@ defmodule ExPlasma.Output do
   @output_types %{
     # NB: work-around the TypeData using a "zeroed-out" output to hash the eip712 struct with.
     0 => ExPlasma.Output.Type.PaymentV1,
-    1 => ExPlasma.Output.Type.PaymentV1
+    1 => ExPlasma.Output.Type.PaymentV1,
+    2 => ExPlasma.Output.Type.Fee
   }
 
   defstruct output_id: nil, output_type: nil, output_data: nil

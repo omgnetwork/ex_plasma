@@ -1,46 +1,39 @@
-defmodule ExPlasma.Transaction.Type.PaymentV1 do
+defmodule ExPlasma.Transaction.Type.Fee do
   @moduledoc false
 
   @behaviour ExPlasma.Transaction
 
-  alias ExPlasma.Output
+  import ABI.TypeEncoder, only: [encode_raw: 2]
+
+  alias ExPlasma.Encoding
   alias ExPlasma.Transaction
 
-  @type validation_responses() ::
-          Output.Type.PaymentV1.validation_responses()
-          | {:error, {:inputs, :cannot_exceed_maximum_value}}
-          | {:error, {:outputs, :cannot_exceed_maximum_value}}
+  @type address() :: <<_::160>>
+  @type token() :: address()
 
-  @type t() :: %__MODULE__{
-          sigs: sigs(),
-          inputs: outputs(),
-          outputs: outputs(),
-          tx_data: any(),
-          metadata: metadata()
+  @type t() :: %{
+          outputs: list(ExPlasma.Output),
+          nonce: Encoding.hash_t()
         }
 
-  @type sigs() :: list(binary()) | []
-  @type outputs() :: list(Output.t()) | []
-  @type metadata :: <<_::256>> | nil
+  @type validation_responses() ::
+          {:ok, __MODULE__.t()}
+          | {:error, {:outputs, :wrong_number_of_fee_outputs}}
+          | {:error, {:outputs, :fee_output_amount_has_to_be_positive}}
 
-  # The maximum input and outputs the Transaction can have.
-  @output_limit 4
+  @tx_type 3
 
-  @tx_type 1
+  defstruct outputs: [], nonce: nil
 
-  # Currently, the plasma-contracts don't have these
-  # values set, so we mark them explicitly empty.
-  @empty_tx_data 0
-  @empty_metadata <<0::256>>
-
-  defstruct sigs: [], inputs: [], outputs: [], tx_data: 0, metadata: <<0::256>>
+  @impl Transaction
+  def new(), do: %__MODULE__{}
 
   @doc """
   Encode the given Transaction into an RLP encodeable list.
 
   ## Example
 
-  iex> txn = %ExPlasma.Transaction.Type.PaymentV1{
+  iex> txn = %ExPlasma.Transaction{
   ...>  inputs: [%ExPlasma.Output{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}],
   ...>  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
   ...>  outputs: [
@@ -51,28 +44,28 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   ...>  ],
   ...>  sigs: [],
   ...>  tx_data: <<0>>,
+  ...>  tx_type: 1
   ...>}
   iex> ExPlasma.Transaction.Type.PaymentV1.to_rlp(txn)
   [[], <<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>], [[<<1>>, [<<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<1>>]]], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
   """
   @impl Transaction
   @spec to_rlp(__MODULE__.t()) :: list()
-  def to_rlp(%{} = transaction) do
-    rlp = [
-      transaction.sigs,
+  def to_rlp(transaction) do
+    [
       <<@tx_type>>,
-      Enum.map(transaction.inputs, &Output.to_rlp_id/1),
-      Enum.map(transaction.outputs, &Output.to_rlp/1),
-      @empty_tx_data,
-      transaction.metadata || @empty_metadata
+      Enum.each(transaction.outputs, &ExPlasma.Output.to_rlp(&1)),
+      transaction.nonce
     ]
-
-    remove_empty_sigs(rlp)
   end
 
-  # NB: We need to standardize on this. Currently, if there is no sig, we strip the empty list.
-  defp remove_empty_sigs([[] | raw_transaction_rlp]), do: raw_transaction_rlp
-  defp remove_empty_sigs(raw_transaction_rlp), do: raw_transaction_rlp
+  @spec build_nonce(non_neg_integer(), token()) :: Encoding.hash_t()
+  def build_nonce(blknum, token) do
+    blknum_bytes = encode_raw([blknum], [{:uint, 256}])
+    token_bytes = encode_raw([token], [:address])
+
+    Encoding.keccak_hash(blknum_bytes <> token_bytes)
+  end
 
   @doc """
   Decodes an RLP list into a Payment V1 Transaction.
@@ -93,7 +86,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   ...>]
   iex> ExPlasma.Transaction.Type.PaymentV1.to_map(rlp)
-  %ExPlasma.Transaction.Type.PaymentV1{
+  %ExPlasma.Transaction{
   	inputs: [
   		%ExPlasma.Output{
   			output_data: nil,
@@ -122,27 +115,10 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   """
   @impl Transaction
   @spec to_map(list()) :: __MODULE__.t()
-  def to_map(rlp) when is_list(rlp), do: do_to_map(rlp)
-
-  defp do_to_map([_tx_type, _inputs, _outputs, _tx_data, _metadata] = rlp) do
-    do_to_map([[] | rlp])
-  end
-
-  defp do_to_map([sigs, tx_type, inputs, outputs, "", metadata]) do
-    do_to_map([sigs, tx_type, inputs, outputs, 0, metadata])
-  end
-
-  defp do_to_map([sigs, <<tx_type>>, inputs, outputs, tx_data, metadata]) do
-    do_to_map([sigs, tx_type, inputs, outputs, tx_data, metadata])
-  end
-
-  defp do_to_map([sigs, _tx_type, inputs, outputs, tx_data, metadata]) do
+  defp to_map([_tx_type, outputs, nonce]) do
     %__MODULE__{
-      sigs: sigs,
-      inputs: Enum.map(inputs, &Output.decode_id/1),
-      outputs: Enum.map(outputs, &Output.decode/1),
-      tx_data: tx_data,
-      metadata: metadata
+      outputs: Enum.each(outputs, &ExPlasma.Output.decode(&1)),
+      nonce: nonce
     }
   end
 
@@ -156,28 +132,14 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   """
   @impl Transaction
   @spec validate(map()) :: validation_responses()
-  def validate(%{} = transaction) do
-    with {:ok, inputs} <- validate_output(transaction.inputs),
-         {:ok, outputs} <- validate_output(transaction.outputs),
-         {:ok, _inputs} <- do_validate_total(:inputs, inputs, 0),
-         {:ok, _outputs} <- do_validate_total(:outputs, outputs, 1) do
+  def validate(%__MODULE__{} = transaction) do
+    with true <- length(transaction.outputs) == 1 || {:error, {:outputs, :wrong_number_of_fee_outputs}},
+         [output] <- outputs,
+         :ok <- do_validate_amount(output) do
       {:ok, transaction}
     end
   end
 
-  defp validate_output([output | rest]) do
-    with {:ok, _whatever} <- Output.validate(output), do: validate_output(rest)
-  end
-
-  defp validate_output([]), do: {:ok, []}
-
-  defp do_validate_total(field, list, _min_limit) when length(list) > @output_limit do
-    {:error, {field, :cannot_exceed_maximum_value}}
-  end
-
-  defp do_validate_total(field, list, min_limit) when length(list) < min_limit do
-    {:error, {field, :cannot_subceed_minimum_value}}
-  end
-
-  defp do_validate_total(_field, list, _min_limit), do: {:ok, list}
+  defp do_validate_amount(%{amount: amount}) when amount > 0, do: :ok
+  defp do_validate_amount(_output), do: {:error, {:outputs, :fee_output_amount_has_to_be_positive}}
 end
