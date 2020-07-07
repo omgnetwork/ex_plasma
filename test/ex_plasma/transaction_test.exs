@@ -67,6 +67,51 @@ defmodule ExPlasma.TransactionTest do
     end
   end
 
+  describe "recover_signatures/1" do
+    test "returns {:ok, addresses} when signatures are valid" do
+      key_1 = "0x0C79EF4FEEA6232854ABFE4006161FC517F4071E5384DBDEF72718B4A4AF016E"
+      key_2 = "0x33B41524C9E74DE1F440107E05EEE78754F92F237D23A2655E0370B99EB86568"
+      addr_1 = ExPlasma.Encoding.to_binary("0xD2d7369Cdb7EE58cccccd9129f92B0c49Be7CCa3")
+      addr_2 = ExPlasma.Encoding.to_binary("0x93E804B024573e18B6Ee6e36E2864548AcA72240")
+
+      i_1 =
+        1_000_000
+        |> :binary.encode_unsigned(:big)
+        |> ExPlasma.Output.decode_id()
+
+      i_2 =
+        1_000_001
+        |> :binary.encode_unsigned(:big)
+        |> ExPlasma.Output.decode_id()
+
+      txn = %Transaction{
+        inputs: [i_1, i_2],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: [],
+        tx_data: <<0>>,
+        tx_type: <<1>>
+      }
+
+      signed_txn = Transaction.sign(txn, keys: [key_1, key_2])
+
+      assert Transaction.recover_signatures(signed_txn) == {:ok, [addr_1, addr_2]}
+    end
+
+    test "returns {:error, :invalid_signature} when the signature is invalid" do
+      txn = %Transaction{
+        inputs: [],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: [<<1>>],
+        tx_data: <<0>>,
+        tx_type: <<1>>
+      }
+
+      assert Transaction.recover_signatures(txn) == {:error, :invalid_signature}
+    end
+  end
+
   defp assert_field(data, field, message) do
     assert {:error, {^field, ^message}} = Transaction.validate(data)
   end

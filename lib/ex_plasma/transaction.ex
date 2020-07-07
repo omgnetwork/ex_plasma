@@ -176,6 +176,7 @@ defmodule ExPlasma.Transaction do
 
   # NB: We need to standardize on this. Currently, if there is no sig, we strip the empty list.
   defp remove_empty_sigs([[] | raw_transaction_rlp]), do: raw_transaction_rlp
+  defp remove_empty_sigs(raw_transaction_rlp), do: raw_transaction_rlp
 
   @doc """
   Validate a Transation. This will check the inputs, outputs, and run
@@ -191,7 +192,7 @@ defmodule ExPlasma.Transaction do
   ...>      output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
   ...>      output_type: nil
   ...>    }
-  ...>  ], 
+  ...>  ],
   ...>  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
   ...>  outputs: [
   ...>    %ExPlasma.Output{
@@ -199,7 +200,7 @@ defmodule ExPlasma.Transaction do
   ...>        amount: <<0, 0, 0, 0, 0, 0, 0, 1>>,
   ...>        output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
   ...>        token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>
-  ...>      }, 
+  ...>      },
   ...>      output_id: nil,
   ...>      output_type: 1
   ...>    }
@@ -214,7 +215,7 @@ defmodule ExPlasma.Transaction do
   def validate(%__MODULE__{} = transaction) do
     with {:ok, _inputs} <- validate_output(transaction.inputs),
          {:ok, _outputs} <- validate_output(transaction.outputs),
-         {:ok, _transaaction} <- do_validate(transaction) do
+         {:ok, _transaction} <- do_validate(transaction) do
       {:ok, transaction}
     end
   end
@@ -227,6 +228,22 @@ defmodule ExPlasma.Transaction do
 
   defp do_validate(%{tx_type: type} = transaction),
     do: get_transaction_type(type).validate(transaction)
+
+  def recover_signatures(transaction) do
+    hash = ExPlasma.TypedData.hash(transaction)
+
+    transaction.sigs
+    |> Enum.reverse()
+    |> Enum.reduce_while({:ok, []}, fn signature, {:ok, addresses} ->
+      case ExPlasma.Crypto.recover_address(hash, signature) do
+        {:ok, address} ->
+          {:cont, {:ok, [address | addresses]}}
+
+        error ->
+          {:halt, error}
+      end
+    end)
+  end
 
   @doc """
   Sign the inputs of the transaction with the given keys in the corresponding order.
@@ -256,7 +273,7 @@ defmodule ExPlasma.Transaction do
 
   def sign(%{} = transaction, keys: keys) when is_list(keys) do
     eip712_hash = ExPlasma.TypedData.hash(transaction)
-    sigs = Enum.map(keys, fn key -> ExPlasma.Encoding.signature_digest(eip712_hash, key) end)
+    sigs = Enum.map(keys, fn key -> ExPlasma.Signature.signature_digest(eip712_hash, key) end)
     %{transaction | sigs: sigs}
   end
 
