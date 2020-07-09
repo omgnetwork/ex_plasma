@@ -1,145 +1,138 @@
 defmodule ExPlasma.Transaction.Type.Fee do
-  @moduledoc false
-
-  @behaviour ExPlasma.Transaction
+  @moduledoc """
+  Internal representation of a fee claiming transaction in plasma chain.
+  """
 
   import ABI.TypeEncoder, only: [encode_raw: 2]
 
-  alias ExPlasma.Encoding
-  alias ExPlasma.Transaction
+  alias ExPlasma.Crypto
+  alias ExPlasma.Output
+  alias ExPlasma.Transaction.TypeMapper
 
-  @type address() :: <<_::160>>
-  @type token() :: address()
-
-  @type t() :: %{
-          outputs: list(ExPlasma.Output),
-          nonce: Encoding.hash_t()
-        }
-
-  @type validation_responses() ::
-          {:ok, __MODULE__.t()}
-          | {:error, {:outputs, :wrong_number_of_fee_outputs}}
-          | {:error, {:outputs, :fee_output_amount_has_to_be_positive}}
-
-  @tx_type 3
+  @output_type TypeMapper.output_type_for(:output_fee_token_claim)
 
   defstruct outputs: [], nonce: nil
 
-  @impl Transaction
-  def new(), do: %__MODULE__{}
+  @type t() :: %__MODULE__{outputs: [Output.t()], nonce: Crypto.hash_t()}
 
   @doc """
-  Encode the given Transaction into an RLP encodeable list.
-
-  ## Example
-
-  iex> txn = %ExPlasma.Transaction{
-  ...>  inputs: [%ExPlasma.Output{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}],
-  ...>  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-  ...>  outputs: [
-  ...>    %ExPlasma.Output{
-  ...>      output_data: %{amount: 1, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
-  ...>        token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1
-  ...>    }
-  ...>  ],
-  ...>  sigs: [],
-  ...>  tx_data: <<0>>,
-  ...>  tx_type: 1
-  ...>}
-  iex> ExPlasma.Transaction.Type.PaymentV1.to_rlp(txn)
-  [[], <<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>], [[<<1>>, [<<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<1>>]]], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
+  Creates new fee claiming transaction
   """
-  @impl Transaction
-  @spec to_rlp(__MODULE__.t()) :: list()
-  def to_rlp(transaction) do
-    [
-      <<@tx_type>>,
-      Enum.each(transaction.outputs, &ExPlasma.Output.to_rlp(&1)),
-      transaction.nonce
-    ]
-  end
-
-  @spec build_nonce(non_neg_integer(), token()) :: Encoding.hash_t()
-  def build_nonce(blknum, token) do
-    blknum_bytes = encode_raw([blknum], [{:uint, 256}])
-    token_bytes = encode_raw([token], [:address])
-
-    Encoding.keccak_hash(blknum_bytes <> token_bytes)
-  end
-
-  @doc """
-  Decodes an RLP list into a Payment V1 Transaction.
-
-  ## Example
-
-  iex> rlp = [
-  ...>  [],
-  ...>  <<1>>,
-  ...>  [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>],
-  ...>  [
-  ...>    [
-  ...>      <<1>>,
-  ...>      [<<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<1>>]
-  ...>    ]
-  ...>  ],
-  ...>  0,
-  ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
-  ...>]
-  iex> ExPlasma.Transaction.Type.PaymentV1.to_map(rlp)
-  %ExPlasma.Transaction{
-  	inputs: [
-  		%ExPlasma.Output{
-  			output_data: nil,
-  			output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-  			output_type: nil
-  		}
-  	],
-  	metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-  	outputs: [
-  		%ExPlasma.Output{
-  			output_data: %{
-  				amount: 1,
-  				output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-  					217, 206, 65, 226, 241, 55, 0, 110>>,
-  				token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-  					65, 226, 241, 55, 0, 110>>
-  			},
-  			output_id: nil,
-  			output_type: 1
-  		}
-  	],
-  	sigs: [],
-  	tx_data: 0,
-  	tx_type: 1
-  }
-  """
-  @impl Transaction
-  @spec to_map(list()) :: __MODULE__.t()
-  defp to_map([_tx_type, outputs, nonce]) do
+  @spec new(
+          blknum :: non_neg_integer(),
+          {Crypto.address_t(), Crypto.address_t(), pos_integer}
+        ) :: t()
+  def new(blknum, {fee_claimer, token, amount}) do
     %__MODULE__{
-      outputs: Enum.each(outputs, &ExPlasma.Output.decode(&1)),
-      nonce: nonce
+      outputs: [new_output(fee_claimer, token, amount)],
+      nonce: build_nonce(blknum, token)
     }
   end
 
   @doc """
-  Validates the Transaction.
-
-  ## Example
-
-  iex> txn = %{inputs: [%{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: <<1>>}
-  iex> {:ok, ^txn} = ExPlasma.Transaction.Type.PaymentV1.validate(txn)
+  Creates output for fee transaction
   """
-  @impl Transaction
-  @spec validate(map()) :: validation_responses()
-  def validate(%__MODULE__{} = transaction) do
-    with true <- length(transaction.outputs) == 1 || {:error, {:outputs, :wrong_number_of_fee_outputs}},
-         [output] <- outputs,
-         :ok <- do_validate_amount(output) do
+  @spec new_output(Crypto.address_t(), Crypto.address_t(), pos_integer()) :: Output.t()
+  def new_output(fee_claimer, token, amount) do
+    %Output{
+      output_type: @output_type,
+      output_data: %{
+        amount: amount,
+        output_guard: fee_claimer,
+        token: token
+      }
+    }
+  end
+
+  @spec build_nonce(non_neg_integer(), Crypto.address_t()) :: Crypto.hash_t()
+  defp build_nonce(blknum, token) do
+    blknum_bytes = encode_raw([blknum], [{:uint, 256}])
+    token_bytes = encode_raw([token], [:address])
+
+    Crypto.keccak_hash(blknum_bytes <> token_bytes)
+  end
+end
+
+defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
+  alias ExPlasma.Output
+  alias ExPlasma.Transaction.Type.Fee
+  alias ExPlasma.Transaction.TypeMapper
+
+  @tx_type TypeMapper.tx_type_for(:tx_fee_token_claim)
+  @output_type TypeMapper.output_type_for(:output_fee_token_claim)
+
+  @doc """
+  Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
+  """
+  @spec to_rlp(Fee.t()) :: list(any())
+  def to_rlp(%Fee{} = transaction) do
+    %Fee{outputs: outputs, nonce: nonce} = transaction
+
+    [
+      <<@tx_type>>,
+      Enum.each(outputs, &Output.to_rlp(&1)),
+      nonce
+    ]
+  end
+
+  @doc """
+  Decodes an RLP list into a Fee Transaction.
+
+  Only validates that the RLP is structurally correct.
+  Does not perform any other kind of validation, use validate/1 for that.
+  """
+  def to_map([_tx_type, outputs_rlp, nonce_rlp]) do
+    {:ok,
+     %Fee{
+       outputs: Enum.map(outputs_rlp, &Output.decode(&1)),
+       nonce: nonce_rlp
+     }}
+  end
+
+  def to_map(_), do: {:error, :malformed_transaction}
+
+  # @spec validate(map()) :: validation_responses()
+  def validate(%Fee{} = transaction) do
+    with :ok <- validate_outputs(transaction.outputs),
+         :ok <- validate_nonce(transaction.nonce) do
       {:ok, transaction}
     end
   end
 
-  defp do_validate_amount(%{amount: amount}) when amount > 0, do: :ok
-  defp do_validate_amount(_output), do: {:error, {:outputs, :fee_output_amount_has_to_be_positive}}
+  defp validate_outputs(outputs) do
+    with {:ok, output} <- validate_outputs_count(outputs),
+         :ok <- validate_generic_output(output),
+         :ok <- validate_output_type(output),
+         :ok <- validate_output_amount(output) do
+      :ok
+    end
+  end
+
+  defp validate_generic_output(output) do
+    with {:ok, _} <- Output.validate(output), do: :ok
+  end
+
+  defp validate_outputs_count([output]), do: {:ok, output}
+  defp validate_outputs_count(_outputs), do: {:error, {:outputs, :wrong_number_of_fee_outputs}}
+
+  defp validate_output_type(%Output{output_type: @output_type}), do: :ok
+  defp validate_output_type(_output), do: {:error, :tx_cannot_create_output_type}
+
+  defp validate_output_amount(%Output{output_data: %{amount: amount}}) when amount > 0, do: :ok
+  defp validate_output_amount(_output), do: {:error, {:outputs, :fee_output_amount_has_to_be_positive}}
+
+  defp validate_nonce(nonce) when is_binary(nonce) and byte_size(nonce) == 32, do: :ok
+  defp validate_nonce(_nonce), do: {:error, :malformed_nonce}
+
+  @doc """
+  Fee claiming transaction does not contain any inputs.
+  """
+  @spec get_inputs(Fee.t()) :: list(Output.t())
+  def get_inputs(%Fee{}), do: []
+
+  @doc """
+  Fee claiming transaction spends single pseudo-output from collected fees.
+  """
+  @spec get_outputs(Fee.t()) :: list(Output.t())
+  def get_outputs(%Fee{} = transaction), do: transaction.outputs
 end

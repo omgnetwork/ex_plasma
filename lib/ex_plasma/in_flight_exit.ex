@@ -4,6 +4,8 @@ defmodule ExPlasma.InFlightExit do
   """
   use Bitwise, only_operators: true
 
+  alias ExPlasma.Crypto
+
   @doc """
   Derive the in-flight exit ID from its transaction bytes.
 
@@ -12,7 +14,7 @@ defmodule ExPlasma.InFlightExit do
   @spec tx_bytes_to_id(binary()) :: pos_integer()
   def tx_bytes_to_id(tx_bytes) do
     tx_bytes
-    |> ExPlasma.Encoding.keccak_hash()
+    |> Crypto.keccak_hash()
     |> :binary.decode_unsigned()
     |> Bitwise.>>>(105)
     |> set_bit(151)

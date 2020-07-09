@@ -1,10 +1,11 @@
-defmodule ExPlasma.Builder do
+defmodule ExPlasma.PaymentV1Builder do
   @moduledoc """
   Helper module to make crafting plasma transactions much simplier.
   """
 
   alias ExPlasma.Output
   alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.Type.PaymentV1
 
   @doc """
   Create a new Transaction
@@ -19,8 +20,8 @@ defmodule ExPlasma.Builder do
   iex> new(metadata: <<1::160>>, tx_type: 1)
   %ExPlasma.Transaction{tx_type: 1, metadata: <<1::160>>}
   """
-  @spec new(list()) :: Transaction.t()
-  def new(opts \\ []), do: struct(%Transaction{}, opts)
+  @spec new(list()) :: PaymentV1.t()
+  def new(opts \\ []), do: struct(%PaymentV1{}, opts)
 
   @doc """
   Adds an input to the Transaction
@@ -38,7 +39,7 @@ defmodule ExPlasma.Builder do
     ]
   }
   """
-  @spec add_input(Transaction.t(), list()) :: Transaction.t()
+  @spec add_input(PaymentV1.t(), list()) :: PaymentV1.t()
   def add_input(txn, opts \\ []) do
     input = %Output{output_id: Enum.into(opts, %{})}
     %{txn | inputs: txn.inputs ++ [input]}
@@ -60,7 +61,7 @@ defmodule ExPlasma.Builder do
     ]
   }
   """
-  @spec add_output(Transaction.t(), list()) :: Transaction.t()
+  @spec add_output(PaymentV1.t(), list()) :: PaymentV1.t()
   def add_output(txn, output_type: type, output_data: data) do
     output = %Output{output_type: type, output_data: data}
     %{txn | outputs: txn.outputs ++ [output]}
@@ -95,8 +96,5 @@ defmodule ExPlasma.Builder do
         tx_type: 1
     }
   """
-  @spec sign(Transaction.t(), list()) :: Transaction.t()
-  def sign(txn, sigs) when is_list(sigs) do
-    Transaction.sign(txn, keys: sigs)
-  end
+  defdelegate sign(txn, sigs), to: Transaction
 end

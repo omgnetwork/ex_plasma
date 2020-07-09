@@ -4,25 +4,26 @@ defmodule ExPlasma do
   """
 
   alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.TypeMapper
 
   # constants that identify payment types, make sure that
   # when we introduce a new payment type, you name it `paymentV2`
   # https://github.com/omisego/plasma-contracts/blob/6ab35256b805e25cfc30d85f95f0616415220b20/plasma_framework/docs/design/tx-types-dependencies.md
-  @payment_v1 <<1>>
-  @fee <<3>>
+  @payment_v1 <<TypeMapper.tx_type_for(:tx_payment_v1)>>
+  @fee <<TypeMapper.tx_type_for(:tx_fee_token_claim)>>
 
-  @type payment :: <<_::8>>
+  @type transaction_type :: <<_::8>>
 
   @doc """
     Simple payment type V1
   """
-  @spec payment_v1() :: payment()
+  @spec payment_v1() :: transaction_type()
   def payment_v1(), do: @payment_v1
 
   @doc """
     Transaction fee claim V1
   """
-  @spec fee() :: payment()
+  @spec fee() :: transaction_type()
   def fee(), do: @fee
 
   @spec transaction_types :: [<<_::8>>, ...]
@@ -68,8 +69,7 @@ defmodule ExPlasma do
       241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0>>
   """
-  @spec encode(Transaction.t()) :: binary()
-  def encode(%ExPlasma.Transaction{} = txn), do: Transaction.encode(txn)
+  defdelegate encode(transaction), to: Transaction
 
   @doc """
   Decode the given RLP list into a Transaction.
@@ -109,8 +109,7 @@ defmodule ExPlasma do
     tx_type: 1
   }
   """
-  @spec decode(binary()) :: Transaction.t()
-  def decode(tx_bytes), do: Transaction.decode(tx_bytes)
+  defdelegate decode(tx_bytes), to: Transaction
 
   @doc """
   Keccak hash the Transaction. This is used in the contracts and events to to reference transactions.
@@ -127,6 +126,5 @@ defmodule ExPlasma do
   <<87, 132, 239, 36, 144, 239, 129, 88, 63, 88, 116, 147, 164, 200, 113, 191,
     124, 14, 55, 131, 119, 96, 112, 13, 28, 178, 251, 49, 16, 127, 58, 96>>
   """
-  @spec hash(Transaction.t() | binary()) :: <<_::256>>
-  def hash(txn), do: Transaction.hash(txn)
+  defdelegate hash(transaction), to: Transaction
 end

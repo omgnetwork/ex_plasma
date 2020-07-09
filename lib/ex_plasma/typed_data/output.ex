@@ -1,8 +1,8 @@
 defimpl ExPlasma.TypedData, for: ExPlasma.Output do
-  alias ExPlasma.Encoding
-  alias ExPlasma.Output
-
+  import ExPlasma.Crypto, only: [keccak_hash: 1]
   import ABI.TypeEncoder, only: [encode_raw: 2]
+
+  alias ExPlasma.Output
 
   @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
   @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
@@ -34,10 +34,10 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Output do
   end
 
   defp do_hash([signature | encoded_list], _options) do
-    data = [Encoding.keccak_hash(signature) | encoded_list]
+    data = [keccak_hash(signature) | encoded_list]
 
     data
     |> Enum.join()
-    |> Encoding.keccak_hash()
+    |> keccak_hash()
   end
 end

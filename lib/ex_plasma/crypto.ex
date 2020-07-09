@@ -3,13 +3,26 @@ defmodule ExPlasma.Crypto do
   Signs and validates signatures. Constructed signatures can be used directly
   in Ethereum with `ecrecover` call.
   """
-  alias ExPlasma.Encoding
   alias ExPlasma.Signature
 
   @type sig_t() :: <<_::520>>
   @type pub_key_t() :: <<_::512>>
   @type address_t() :: <<_::160>>
   @type hash_t() :: <<_::256>>
+
+  @doc """
+  Produces a KECCAK digest for the message.
+
+  see https://hexdocs.pm/exth_crypto/ExthCrypto.Hash.html#kec/0
+
+  ## Example
+
+    iex> ExPlasma.Crypto.keccak_hash("omg!")
+    <<241, 85, 204, 147, 187, 239, 139, 133, 69, 248, 239, 233, 219, 51, 189, 54,
+      171, 76, 106, 229, 69, 102, 203, 7, 21, 134, 230, 92, 23, 209, 187, 12>>
+  """
+  @spec keccak_hash(binary()) :: hash_t()
+  def keccak_hash(message), do: ExthCrypto.Hash.hash(message, ExthCrypto.Hash.kec())
 
   @doc """
   Recovers the address of the signer from a binary-encoded signature.
@@ -37,7 +50,7 @@ defmodule ExPlasma.Crypto do
   """
   @spec generate_address(pub_key_t()) :: {:ok, address_t()}
   def generate_address(<<pub::binary-size(64)>>) do
-    <<_::binary-size(12), address::binary-size(20)>> = Encoding.keccak_hash(pub)
+    <<_::binary-size(12), address::binary-size(20)>> = keccak_hash(pub)
     {:ok, address}
   end
 end

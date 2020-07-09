@@ -1,5 +1,6 @@
 defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Type.PaymentV1 do
-  import ExPlasma.Encoding, only: [to_binary: 1, keccak_hash: 1]
+  import ExPlasma.Crypto, only: [keccak_hash: 1]
+  import ExPlasma.Encoding, only: [to_binary: 1]
   import ABI.TypeEncoder, only: [encode_raw: 2]
 
   alias ExPlasma.Configuration
