@@ -8,6 +8,7 @@ defmodule ExPlasma.Output do
   """
 
   alias ExPlasma.Output.Position
+  alias ExPlasma.Transaction.TypeMapper
 
   @type output_id() :: map() | nil
   @type output_type() :: non_neg_integer()
@@ -22,21 +23,12 @@ defmodule ExPlasma.Output do
 
   @type validation_responses() :: {:ok, map}
 
-  # Output Types and Identifiers can implement these.
+  # Output Types and Identifiers should implement these.
   @callback to_map(any()) :: map()
   @callback to_rlp(map()) :: any()
   @callback validate(any()) :: {:ok, map()} | {:error, {atom(), atom()}}
 
-  # This maps to the various types of outputs
-  # that we can have.
-  #
-  # Currently there is only 1 type.
-  @output_types %{
-    # NB: work-around the TypeData using a "zeroed-out" output to hash the eip712 struct with.
-    0 => ExPlasma.Output.Type.PaymentV1,
-    1 => ExPlasma.Output.Type.PaymentV1,
-    2 => ExPlasma.Output.Type.Fee
-  }
+  @output_types_modules TypeMapper.output_type_modules()
 
   defstruct output_id: nil, output_type: nil, output_data: nil
 
@@ -202,7 +194,7 @@ defmodule ExPlasma.Output do
 
   # Grabs the matching Output type by id. If it doesn't exist, use the empty type.
   defp get_output_type(type) do
-    case Map.fetch(@output_types, type) do
+    case Map.fetch(@output_types_modules, type) do
       {:ok, output_type} ->
         output_type
 

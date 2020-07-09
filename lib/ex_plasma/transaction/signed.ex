@@ -90,13 +90,14 @@ defmodule ExPlasma.Transaction.Signed do
           {:ok, list(Witness.t())} | {:error, atom}
   def get_witnesses(%__MODULE__{sigs: []}), do: {:ok, %{}}
 
-  def get_witnesses(%__MODULE__{raw_tx: raw_tx, sigs: sigs}) do
-    raw_tx_hash = TypedData.hash(raw_tx)
+  def get_witnesses(%__MODULE__{} = signed) do
+    %__MODULE__{raw_tx: raw_tx, sigs: sigs} = signed
+    hash = TypedData.hash(raw_tx)
 
     sigs
     |> Enum.reverse()
     |> Enum.reduce_while({:ok, []}, fn signature, {:ok, addresses} ->
-      case Witness.recover(raw_tx_hash, signature) do
+      case Witness.recover(hash, signature) do
         {:ok, address} ->
           {:cont, {:ok, [address | addresses]}}
 

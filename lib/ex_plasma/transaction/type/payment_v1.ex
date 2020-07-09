@@ -5,9 +5,11 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   This module holds the representation of a "raw" transaction, i.e. without signatures nor recovered input spenders
   """
   alias ExPlasma.Output
+  alias ExPlasma.Transaction.TypeMapper
 
   @empty_metadata <<0::256>>
   @empty_tx_data 0
+  @output_type TypeMapper.output_type_for(:output_payment_v1)
 
   defstruct inputs: [], outputs: [], tx_data: @empty_tx_data, metadata: @empty_metadata
 
@@ -37,6 +39,21 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
 
   @spec new(outputs(), outputs()) :: t()
   def new(inputs, outputs), do: new(inputs, outputs, @empty_metadata)
+
+  @doc """
+  Creates output for a payment v1 transaction
+  """
+  @spec new_output(Crypto.address_t(), Crypto.address_t(), pos_integer()) :: Output.t()
+  def new_output(owner, token, amount) do
+    %Output{
+      output_type: @output_type,
+      output_data: %{
+        amount: :binary.encode_unsigned(amount),
+        output_guard: owner,
+        token: token
+      }
+    }
+  end
 end
 
 defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 do
@@ -74,8 +91,8 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec to_map(list()) :: {:ok, PaymentV1.t()} | {:error, atom}
-  def to_map([_tx_type, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
+  @spec to_map(PaymentV1.t(), list()) :: {:ok, PaymentV1.t()} | {:error, atom}
+  def to_map(%PaymentV1{}, [_tx_type, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
     with inputs <- Enum.map(inputs_rlp, &Output.decode_id/1),
          outputs <- Enum.map(outputs_rlp, &Output.decode/1),
          {:ok, tx_data} <- decode_tx_data(tx_data_rlp) do

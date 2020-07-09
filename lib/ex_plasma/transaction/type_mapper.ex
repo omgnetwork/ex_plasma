@@ -3,6 +3,9 @@ defmodule ExPlasma.Transaction.TypeMapper do
   Provides wire format's tx/output type values and mapping to modules which decodes them.
   """
 
+  alias ExPlasma.Transaction
+  alias ExPlasma.Output
+
   @type tx_type_to_module_map() :: %{non_neg_integer() => atom()}
 
   @tx_type_values %{
@@ -11,23 +14,26 @@ defmodule ExPlasma.Transaction.TypeMapper do
   }
 
   @tx_type_modules %{
-    1 => ExPlasma.Transaction.Type.PaymentV1,
-    3 => ExPlasma.Transaction.Type.Fee
+    1 => Transaction.Type.PaymentV1,
+    3 => Transaction.Type.Fee
   }
 
   @module_tx_types %{
-    ExPlasma.Transaction.Type.PaymentV1 => 1,
-    ExPlasma.Transaction.Type.Fee => 3
+    Transaction.Type.PaymentV1 => 1,
+    Transaction.Type.Fee => 3
   }
 
   @output_type_values %{
+    generic_payment: 0,
     output_payment_v1: 1,
     output_fee_token_claim: 2
   }
 
   @output_type_modules %{
-    1 => ExPlasma.Output,
-    2 => ExPlasma.Output
+    # NB: work-around the TypeData using a "zeroed-out" output to hash the eip712 struct with.
+    0 => Output.Type.PaymentV1,
+    1 => Output.Type.PaymentV1,
+    2 => Output.Type.Fee
   }
 
   @known_tx_types Map.keys(@tx_type_values)

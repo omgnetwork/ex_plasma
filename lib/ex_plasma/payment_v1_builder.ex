@@ -5,7 +5,10 @@ defmodule ExPlasma.PaymentV1Builder do
 
   alias ExPlasma.Output
   alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.TypeMapper
   alias ExPlasma.Transaction.Type.PaymentV1
+
+  @output_type TypeMapper.output_type_for(:output_payment_v1)
 
   @doc """
   Create a new Transaction
@@ -51,7 +54,7 @@ defmodule ExPlasma.PaymentV1Builder do
   ## Example
 
   iex> new(tx_type: 1)
-  ...> |> add_output(output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
+  ...> |> add_output(output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
   ...> |> add_output(output_guard: <<1::160>>, token: <<0::160>>, amount: 2)
   %ExPlasma.Transaction{
     tx_type: 1,
@@ -62,13 +65,13 @@ defmodule ExPlasma.PaymentV1Builder do
   }
   """
   @spec add_output(PaymentV1.t(), list()) :: PaymentV1.t()
-  def add_output(txn, output_type: type, output_data: data) do
-    output = %Output{output_type: type, output_data: data}
+  def add_output(txn, output_data: data) do
+    output = %Output{output_type: @output_type, output_data: data}
     %{txn | outputs: txn.outputs ++ [output]}
   end
 
   def add_output(txn, opts) when is_list(opts) do
-    output = %Output{output_type: 1, output_data: Enum.into(opts, %{})}
+    output = %Output{output_type: @output_type, output_data: Enum.into(opts, %{})}
     %{txn | outputs: txn.outputs ++ [output]}
   end
 

@@ -30,7 +30,7 @@ defmodule ExPlasma.Transaction.Type.Fee do
   end
 
   @doc """
-  Creates output for fee transaction
+  Creates output for a fee transaction
   """
   @spec new_output(Crypto.address_t(), Crypto.address_t(), pos_integer()) :: Output.t()
   def new_output(fee_claimer, token, amount) do
@@ -70,7 +70,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
 
     [
       <<@tx_type>>,
-      Enum.each(outputs, &Output.to_rlp(&1)),
+      Enum.map(outputs, &Output.to_rlp(&1)),
       nonce
     ]
   end
@@ -81,7 +81,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  def to_map([_tx_type, outputs_rlp, nonce_rlp]) do
+  def to_map(%Fee{}, [_tx_type, outputs_rlp, nonce_rlp]) do
     {:ok,
      %Fee{
        outputs: Enum.map(outputs_rlp, &Output.decode(&1)),

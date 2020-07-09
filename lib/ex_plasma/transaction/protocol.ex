@@ -17,8 +17,8 @@ defprotocol ExPlasma.Transaction.Protocol do
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec to_map(list(any())) :: {:ok, t()} | {:error, atom}
-  def to_map(rlp)
+  # @spec to_map(list(any())) :: {:ok, t()} | {:error, atom}
+  def to_map(module, rlp)
 
   @doc """
   List of inputs this transaction intends to spend

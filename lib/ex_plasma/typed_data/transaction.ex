@@ -5,6 +5,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Type.PaymentV1 do
 
   alias ExPlasma.Configuration
   alias ExPlasma.Output
+  alias ExPlasma.Transaction.TypeMapper
   alias ExPlasma.TypedData
 
   # Prefix and version byte motivated by http://eips.ethereum.org/EIPS/eip-191
@@ -24,6 +25,8 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Type.PaymentV1 do
   @empty_input Output.decode_id(<<0>>)
   @empty_input_hash TypedData.hash(@empty_input, as: :input)
 
+  @tx_type TypeMapper.tx_type_for(:tx_payment_v1)
+
   @empty_output %Output{
     output_type: 0,
     output_data: %{output_guard: <<0::160>>, token: <<0::160>>, amount: 0}
@@ -33,7 +36,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction.Type.PaymentV1 do
   def encode(%{} = transaction, _options) do
     encoded_inputs = Enum.map(transaction.inputs, &encode_as_input/1)
     encoded_outputs = Enum.map(transaction.outputs, &encode_as_output/1)
-    encoded_transaction_type = encode_raw([transaction.tx_type], [{:uint, 256}])
+    encoded_transaction_type = encode_raw([@tx_type], [{:uint, 256}])
     encoded_transaction_data = encode_raw([transaction.tx_data], [{:uint, 256}])
     encoded_metadata = encode_raw([transaction.metadata], [{:bytes, 32}])
 

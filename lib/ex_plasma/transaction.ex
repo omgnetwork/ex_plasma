@@ -53,7 +53,7 @@ defmodule ExPlasma.Transaction do
   def to_map([raw_tx_type | raw_tx_rlp_decoded_chunks]) do
     with {:ok, tx_type} <- parse_tx_type(raw_tx_type) do
       protocol_module = @tx_types_modules[tx_type]
-      protocol_module.to_map(raw_tx_rlp_decoded_chunks)
+      Protocol.to_map(protocol_module.__struct__, [tx_type | raw_tx_rlp_decoded_chunks])
     end
   end
 
@@ -98,13 +98,13 @@ defmodule ExPlasma.Transaction do
   """
   def sign(%{} = raw_tx, keys: keys) when is_list(keys) do
     case TypedData.impl_for(raw_tx) do
-      true ->
+      nil ->
+        {:error, :not_signable}
+
+      _ ->
         eip712_hash = TypedData.hash(raw_tx)
         sigs = Enum.map(keys, fn key -> Signature.signature_digest(eip712_hash, key) end)
         {:ok, %Signed{raw_tx: raw_tx, sigs: sigs}}
-
-      false ->
-        {:error, :not_signable}
     end
   end
 
@@ -139,4 +139,14 @@ defmodule ExPlasma.Transaction do
   def hash(%Recovered{} = recovered), do: recovered.tx_hash
   def hash(%Signed{} = signed), do: hash(signed.raw_tx)
   def hash(%{} = raw_tx), do: raw_tx |> encode() |> Crypto.keccak_hash()
+
+  @doc """
+  Validates the raw transaction.
+
+  Returns {:ok, raw_tx} if valid or {:error, atom} otherwise
+  """
+  @spec validate(any_flavor_t()) :: {:ok, Protocol.t()} | {:error, atom}
+  def validate(%Recovered{} = recovered), do: validate(recovered.signed_tx)
+  def validate(%Signed{} = signed), do: validate(signed.raw_tx)
+  def validate(%{} = raw_tx), do: Protocol.validate(raw_tx)
 end
