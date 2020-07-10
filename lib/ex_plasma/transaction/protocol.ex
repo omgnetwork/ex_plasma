@@ -33,6 +33,12 @@ defprotocol ExPlasma.Transaction.Protocol do
   def get_outputs(tx)
 
   @doc """
+  Returns the tx type of the transaction
+  """
+  @spec get_tx_type(t()) :: pos_integer()
+  def get_tx_type(tx)
+
+  @doc """
   Statelessly validate the transaction
   """
   @spec validate(t()) :: {:ok, t()} | {:error, atom}

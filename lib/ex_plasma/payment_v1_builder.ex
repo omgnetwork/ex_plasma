@@ -98,4 +98,9 @@ defmodule ExPlasma.PaymentV1Builder do
     }}
   """
   defdelegate sign(txn, sigs), to: Transaction
+
+  def sign!(txn, sigs) do
+    {:ok, signed} = Transaction.sign(txn, sigs)
+    signed
+  end
 end

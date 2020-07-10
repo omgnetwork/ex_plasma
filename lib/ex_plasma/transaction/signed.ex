@@ -88,7 +88,7 @@ defmodule ExPlasma.Transaction.Signed do
   """
   @spec get_witnesses(t()) ::
           {:ok, list(Witness.t())} | {:error, atom}
-  def get_witnesses(%__MODULE__{sigs: []}), do: {:ok, %{}}
+  def get_witnesses(%__MODULE__{sigs: []}), do: {:ok, []}
 
   def get_witnesses(%__MODULE__{} = signed) do
     %__MODULE__{raw_tx: raw_tx, sigs: sigs} = signed

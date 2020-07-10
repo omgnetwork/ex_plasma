@@ -9,9 +9,10 @@ defmodule ExPlasma.Transaction.Type.Fee do
   alias ExPlasma.Output
   alias ExPlasma.Transaction.TypeMapper
 
+  @tx_type TypeMapper.tx_type_for(:tx_fee_token_claim)
   @output_type TypeMapper.output_type_for(:output_fee_token_claim)
 
-  defstruct outputs: [], nonce: nil
+  defstruct tx_type: @tx_type, outputs: [], nonce: nil
 
   @type t() :: %__MODULE__{outputs: [Output.t()], nonce: Crypto.hash_t()}
 
@@ -24,6 +25,7 @@ defmodule ExPlasma.Transaction.Type.Fee do
         ) :: t()
   def new(blknum, {fee_claimer, token, amount}) do
     %__MODULE__{
+      tx_type: @tx_type,
       outputs: [new_output(fee_claimer, token, amount)],
       nonce: build_nonce(blknum, token)
     }
@@ -84,6 +86,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   def to_map(%Fee{}, [_tx_type, outputs_rlp, nonce_rlp]) do
     {:ok,
      %Fee{
+       tx_type: @tx_type,
        outputs: Enum.map(outputs_rlp, &Output.decode(&1)),
        nonce: nonce_rlp
      }}
@@ -135,4 +138,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   """
   @spec get_outputs(Fee.t()) :: list(Output.t())
   def get_outputs(%Fee{} = transaction), do: transaction.outputs
+
+  @spec get_tx_type(Fee.t()) :: pos_integer()
+  def get_tx_type(%Fee{} = transaction), do: transaction.tx_type
 end

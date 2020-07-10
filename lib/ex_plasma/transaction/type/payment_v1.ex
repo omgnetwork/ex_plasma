@@ -9,11 +9,13 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
 
   @empty_metadata <<0::256>>
   @empty_tx_data 0
+  @tx_type TypeMapper.tx_type_for(:tx_payment_v1)
   @output_type TypeMapper.output_type_for(:output_payment_v1)
 
-  defstruct inputs: [], outputs: [], tx_data: @empty_tx_data, metadata: @empty_metadata
+  defstruct tx_type: @tx_type, inputs: [], outputs: [], tx_data: @empty_tx_data, metadata: @empty_metadata
 
   @type t() :: %__MODULE__{
+          tx_type: pos_integer(),
           inputs: outputs(),
           outputs: outputs(),
           tx_data: any(),
@@ -34,7 +36,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   """
   @spec new(outputs(), outputs(), metadata()) :: t()
   def new(inputs, outputs, metadata) do
-    %__MODULE__{inputs: inputs, outputs: outputs, tx_data: @empty_tx_data, metadata: metadata}
+    %__MODULE__{tx_type: @tx_type, inputs: inputs, outputs: outputs, tx_data: @empty_tx_data, metadata: metadata}
   end
 
   @spec new(outputs(), outputs()) :: t()
@@ -98,6 +100,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
          {:ok, tx_data} <- decode_tx_data(tx_data_rlp) do
       {:ok,
        %PaymentV1{
+         tx_type: @tx_type,
          inputs: inputs,
          outputs: outputs,
          tx_data: tx_data,
@@ -120,6 +123,9 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
 
   @spec get_outputs(PaymentV1.t()) :: list(Output.t())
   def get_outputs(%PaymentV1{} = transaction), do: transaction.outputs
+
+  @spec get_tx_type(PaymentV1.t()) :: pos_integer()
+  def get_tx_type(%PaymentV1{} = transaction), do: transaction.tx_type
 
   @doc """
   Validates the Transaction.

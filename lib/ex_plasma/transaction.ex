@@ -125,6 +125,14 @@ defmodule ExPlasma.Transaction do
   def get_outputs(%{} = raw_tx), do: Protocol.get_outputs(raw_tx)
 
   @doc """
+  Returns the type of the raw transaction involved
+  """
+  @spec get_tx_type(any_flavor_t()) :: pos_integer()
+  def get_tx_type(%Recovered{} = recovered), do: get_tx_type(recovered.signed_tx)
+  def get_tx_type(%Signed{} = signed), do: get_tx_type(signed.raw_tx)
+  def get_tx_type(%{} = raw_tx), do: Protocol.get_tx_type(raw_tx)
+
+  @doc """
   Returns the encoded bytes of the raw transaction involved, i.e. without the signatures
   """
   @spec encode(any_flavor_t()) :: tx_bytes()
@@ -138,7 +146,8 @@ defmodule ExPlasma.Transaction do
   @spec hash(any_flavor_t()) :: tx_hash()
   def hash(%Recovered{} = recovered), do: recovered.tx_hash
   def hash(%Signed{} = signed), do: hash(signed.raw_tx)
-  def hash(%{} = raw_tx), do: raw_tx |> encode() |> Crypto.keccak_hash()
+  def hash(%{} = raw_tx), do: raw_tx |> encode() |> hash()
+  def hash(tx) when is_binary(tx), do: Crypto.keccak_hash(tx)
 
   @doc """
   Validates the raw transaction.
