@@ -24,9 +24,12 @@ defmodule ExPlasma.Transaction.Signed do
   Produce a binary form of a signed transaction - coerces into RLP-encodeable structure and RLP encodes
   """
   @spec encode(t()) :: tx_bytes()
-  def encode(%__MODULE__{raw_tx: %{} = raw_tx, sigs: sigs}) do
-    rlp = [sigs | Protocol.to_rlp(raw_tx)]
-    ExRLP.encode(rlp)
+  def encode(%__MODULE__{} = signed) do
+    signed |> to_rlp() |> ExRLP.encode()
+  end
+
+  def to_rlp(%__MODULE__{} = signed) do
+    [signed.sigs | Protocol.to_rlp(signed.raw_tx)]
   end
 
   @doc """

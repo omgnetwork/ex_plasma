@@ -31,6 +31,15 @@ defmodule ExPlasma.Transaction do
           | :unrecognized_transaction_type
           | :malformed_transaction
 
+  @doc """
+  Attempts to decode an RLP list into a transaction structure.
+  If the decoded rlp items start with a list, will assume that it represents
+  a signed transaction.
+  If it starts with an integer, will assume that it represents a raw transaction.
+
+  Only validates that the RLP is structurally correct and that the tx type is supported.
+  Does not perform any other kind of validation, use validate/1 for that.
+  """
   @spec decode(tx_bytes()) :: {:ok, Protocol.t()} | {:error, decode_error()}
   def decode(tx_bytes) do
     with {:ok, raw_tx_rlp_decoded_chunks} <- try_generic_decode(tx_bytes) do
@@ -44,12 +53,10 @@ defmodule ExPlasma.Transaction do
     _ -> {:error, :malformed_transaction_rlp}
   end
 
-  @doc """
-  Decodes an RLP list into a transaction structure matching the type provided.
+  def to_map([sigs | _] = maybe_signed) when is_list(sigs) do
+    Signed.to_map(maybe_signed)
+  end
 
-  Only validates that the RLP is structurally correct and that the tx type is supported.
-  Does not perform any other kind of validation, use validate/1 for that.
-  """
   def to_map([raw_tx_type | raw_tx_rlp_decoded_chunks]) do
     with {:ok, tx_type} <- parse_tx_type(raw_tx_type) do
       protocol_module = @tx_types_modules[tx_type]
@@ -133,11 +140,13 @@ defmodule ExPlasma.Transaction do
   def get_tx_type(%{} = raw_tx), do: Protocol.get_tx_type(raw_tx)
 
   @doc """
-  Returns the encoded bytes of the raw transaction involved, i.e. without the signatures
+  Returns the encoded bytes of the transaction
+  If it's a `Signed` or `Recovered` transaction, encode with the signatures
+  If it's a raw transaction, encodes it without the signatures
   """
   @spec encode(any_flavor_t()) :: tx_bytes()
   def encode(%Recovered{} = recovered), do: encode(recovered.signed_tx)
-  def encode(%Signed{} = signed), do: encode(signed.raw_tx)
+  def encode(%Signed{} = signed), do: Signed.encode(signed)
   def encode(%{} = raw_tx), do: raw_tx |> Protocol.to_rlp() |> ExRLP.encode()
 
   @doc """
