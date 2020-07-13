@@ -22,25 +22,26 @@ defmodule ExPlasma.Transaction do
   @type tx_bytes() :: binary()
   @type tx_hash() :: Crypto.hash_t()
 
-  @type decode_error() ::
+  @type decoding_error() ::
           :malformed_transaction_rlp
-          | :malformed_inputs
-          | :malformed_outputs
-          | :malformed_address
-          | :malformed_metadata
+          | mapping_error()
+
+  @type mapping_error() ::
+          :malformed_transaction
           | :unrecognized_transaction_type
-          | :malformed_transaction
+          | atom()
 
   @doc """
-  Attempts to decode an RLP list into a transaction structure.
-  If the decoded rlp items start with a list, will assume that it represents
-  a signed transaction.
-  If it starts with an integer, will assume that it represents a raw transaction.
+  Produces a struct from the binary encoded form of a transactions (signed or not)
+  RLP decodes to structure of RLP-items and then produces an Elixir struct.
+
+  Assume that it represents a signed transaction if the decoded rlp items start with a list.
+  Assume that it represents a raw transaction if it starts with an integer.
 
   Only validates that the RLP is structurally correct and that the tx type is supported.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec decode(tx_bytes()) :: {:ok, Protocol.t()} | {:error, decode_error()}
+  @spec decode(tx_bytes()) :: {:ok, Protocol.t()} | {:error, decoding_error()}
   def decode(tx_bytes) do
     with {:ok, raw_tx_rlp_decoded_chunks} <- try_generic_decode(tx_bytes) do
       to_map(raw_tx_rlp_decoded_chunks)
@@ -53,6 +54,16 @@ defmodule ExPlasma.Transaction do
     _ -> {:error, :malformed_transaction_rlp}
   end
 
+  @doc """
+  RLP decodes to structure of RLP-items and then produces an Elixir struct.
+
+  Assume that it represents a signed transaction if the decoded rlp items start with a list.
+  Assume that it represents a raw transaction if it starts with an integer.
+
+  Only validates that the RLP is structurally correct.
+  Does not perform any other kind of validation, use validate/1 for that.
+  """
+  @spec to_map(list()) :: {:ok, Signed.t() | Protocol.t()} | {:error, mapping_error()}
   def to_map([sigs | _] = maybe_signed) when is_list(sigs) do
     Signed.to_map(maybe_signed)
   end
@@ -103,6 +114,7 @@ defmodule ExPlasma.Transaction do
     }
   }
   """
+  @spec sign(TypedData.t(), keys: list(String.t())) :: {:ok, Signed.t()} | {:error, :not_signable}
   def sign(%{} = raw_tx, keys: keys) when is_list(keys) do
     case TypedData.impl_for(raw_tx) do
       nil ->
@@ -159,12 +171,16 @@ defmodule ExPlasma.Transaction do
   def hash(tx) when is_binary(tx), do: Crypto.keccak_hash(tx)
 
   @doc """
-  Validates the raw transaction.
+  Validates the transaction in its flavor context.
 
-  Returns {:ok, raw_tx} if valid or {:error, atom} otherwise
+  For a Recovered transaction: validates the signed transaction
+  For a Signed transaction: validates the signed transaction
+  For a Raw transaction: validates the raw transaction
+
+  Returns :ok if valid or {:error, atom} otherwise
   """
-  @spec validate(any_flavor_t()) :: {:ok, Protocol.t()} | {:error, atom}
-  def validate(%Recovered{} = recovered), do: validate(recovered.signed_tx)
-  def validate(%Signed{} = signed), do: validate(signed.raw_tx)
+  @spec validate(any_flavor_t()) :: :ok | {:error, {atom(), atom()}}
+  def validate(%Recovered{} = recovered), do: Recovered.validate(recovered)
+  def validate(%Signed{} = signed), do: Signed.validate(signed)
   def validate(%{} = raw_tx), do: Protocol.validate(raw_tx)
 end

@@ -8,7 +8,7 @@ defprotocol ExPlasma.Transaction.Protocol do
   @doc """
   Transforms structured data into RLP-structured (encodable) list of fields
   """
-  @spec to_rlp(t()) :: list(any())
+  @spec to_rlp(t()) :: list()
   def to_rlp(tx)
 
   @doc """
@@ -17,8 +17,8 @@ defprotocol ExPlasma.Transaction.Protocol do
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  # @spec to_map(list(any())) :: {:ok, t()} | {:error, atom}
-  def to_map(module, rlp)
+  @spec to_map(t(), list()) :: {:ok, t()} | {:error, atom}
+  def to_map(tx, rlp)
 
   @doc """
   List of inputs this transaction intends to spend
@@ -41,6 +41,6 @@ defprotocol ExPlasma.Transaction.Protocol do
   @doc """
   Statelessly validate the transaction
   """
-  @spec validate(t()) :: {:ok, t()} | {:error, atom}
+  @spec validate(t()) :: :ok | {:error, atom(), atom()}
   def validate(tx)
 end

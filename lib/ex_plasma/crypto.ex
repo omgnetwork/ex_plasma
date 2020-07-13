@@ -10,6 +10,11 @@ defmodule ExPlasma.Crypto do
   @type address_t() :: <<_::160>>
   @type hash_t() :: <<_::256>>
 
+  @type recover_address_error() ::
+          :corrupted_signature
+          | :invalid_signature
+          | :invalid_message
+
   @doc """
   Produces a KECCAK digest for the message.
 
@@ -27,17 +32,14 @@ defmodule ExPlasma.Crypto do
   @doc """
   Recovers the address of the signer from a binary-encoded signature.
   """
-  @spec recover_address(hash_t(), sig_t()) :: {:ok, address_t()} | {:error, :signature_corrupt | binary}
+  @spec recover_address(hash_t(), sig_t()) :: {:ok, address_t()} | {:error, recover_address_error()}
   def recover_address(<<digest::binary-size(32)>>, <<packed_signature::binary-size(65)>>) do
     case Signature.recover_public(digest, packed_signature) do
       {:ok, pub} ->
         generate_address(pub)
 
-      {:error, "Recovery id invalid 0-3"} ->
-        {:error, :signature_corrupt}
-
-      other ->
-        other
+      {:error, _} ->
+        {:error, :corrupted_signature}
     end
   end
 

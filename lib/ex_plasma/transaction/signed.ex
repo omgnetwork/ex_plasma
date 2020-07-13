@@ -12,13 +12,21 @@ defmodule ExPlasma.Transaction.Signed do
   alias ExPlasma.TypedData
 
   @type tx_bytes() :: binary()
+  @type decoding_error() :: :malformed_transaction_rlp | mapping_error()
 
-  defstruct [:raw_tx, :sigs]
+  @type mapping_error() ::
+          :malformed_transaction
+          | :malformed_witnesses
+          | atom()
+
+  @type validation_error() :: {:witnesses, :malformed_witnesses} | {atom(), atom()}
 
   @type t() :: %__MODULE__{
           raw_tx: Protocol.t(),
           sigs: [Crypto.sig_t()]
         }
+
+  defstruct [:raw_tx, :sigs]
 
   @doc """
   Produce a binary form of a signed transaction - coerces into RLP-encodeable structure and RLP encodes
@@ -28,6 +36,10 @@ defmodule ExPlasma.Transaction.Signed do
     signed |> to_rlp() |> ExRLP.encode()
   end
 
+  @doc """
+  RLP encodes the signed transaction.
+  """
+  @spec to_rlp(t()) :: list()
   def to_rlp(%__MODULE__{} = signed) do
     [signed.sigs | Protocol.to_rlp(signed.raw_tx)]
   end
@@ -39,7 +51,7 @@ defmodule ExPlasma.Transaction.Signed do
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec decode(tx_bytes()) :: {:ok, t()} | {:error, atom}
+  @spec decode(tx_bytes()) :: {:ok, t()} | {:error, decoding_error()}
   def decode(signed_tx_bytes) do
     with {:ok, tx_rlp_decoded_chunks} <- try_generic_decode(signed_tx_bytes) do
       to_map(tx_rlp_decoded_chunks)
@@ -58,6 +70,7 @@ defmodule ExPlasma.Transaction.Signed do
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
+  @spec to_map(list()) :: {:ok, t()} | {:error, mapping_error()}
   def to_map([sigs | typed_tx_rlp_decoded_chunks]) do
     with :ok <- validate_sigs_list(sigs),
          {:ok, raw_tx} <- Transaction.to_map(typed_tx_rlp_decoded_chunks),
@@ -71,26 +84,30 @@ defmodule ExPlasma.Transaction.Signed do
 
   @doc """
   Validate a signed transaction.
+
+  Returns :ok if valid or {:error, atom()} otherwise.
   """
-  @spec validate(t()) :: {:ok, t()} | {:error, atom()}
+  @spec validate(t()) :: :ok | {:error, validation_error()}
   def validate(%__MODULE__{} = transaction) do
     with :ok <- validate_sigs(transaction.sigs),
-         {:ok, _} <- Protocol.validate(transaction.raw_tx) do
-      {:ok, transaction}
+         :ok <- Protocol.validate(transaction.raw_tx) do
+      :ok
     end
   end
 
   defp validate_sigs([sig | rest]) do
-    with true <- Witness.valid?(sig) || {:error, :malformed_witnesses}, do: validate_sigs(rest)
+    with true <- Witness.valid?(sig) || {:error, {:witnesses, :malformed_witnesses}}, do: validate_sigs(rest)
   end
 
   defp validate_sigs([]), do: :ok
 
   @doc """
-  Recovers the witnesses for non-empty signatures, in the order they appear in transaction's signatures
+  Recovers the witnesses for non-empty signatures, in the order they appear in transaction's signatures.
+
+  Returns {:ok, witness_list} if witnesses are recoverable,
+  or {:error, :corrupted_signature} otherwise.
   """
-  @spec get_witnesses(t()) ::
-          {:ok, list(Witness.t())} | {:error, atom}
+  @spec get_witnesses(t()) :: {:ok, list(Witness.t())} | {:error, Witness.recovery_error()}
   def get_witnesses(%__MODULE__{sigs: []}), do: {:ok, []}
 
   def get_witnesses(%__MODULE__{} = signed) do

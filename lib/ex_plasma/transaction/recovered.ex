@@ -10,15 +10,8 @@ defmodule ExPlasma.Transaction.Recovered do
 
   @type tx_bytes() :: binary()
   @type tx_hash() :: Crypto.hash_t()
-
-  @type recover_tx_error() ::
-          :duplicate_inputs
-          | :malformed_transaction
-          | :malformed_transaction_rlp
-          | :signature_corrupt
-          | :missing_signature
-
-  defstruct [:signed_tx, :tx_hash, :signed_tx_bytes, :witnesses]
+  @type decoding_error() :: Signed.decoding_error()
+  @type validation_error() :: Signed.validation_error()
 
   @type t() :: %__MODULE__{
           tx_hash: tx_hash(),
@@ -27,13 +20,15 @@ defmodule ExPlasma.Transaction.Recovered do
           signed_tx_bytes: tx_bytes()
         }
 
+  defstruct [:signed_tx, :tx_hash, :signed_tx_bytes, :witnesses]
+
   @doc """
   Similar to Signed.decode/1 but also recovers the witnesses and transaction hash.
 
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec decode(tx_bytes()) :: {:ok, t()} | {:error, recover_tx_error()}
+  @spec decode(tx_bytes()) :: {:ok, t()} | {:error, decoding_error()}
   def decode(encoded_signed_tx) do
     with {:ok, signed_tx} <- Signed.decode(encoded_signed_tx),
          {:ok, witnesses} <- Signed.get_witnesses(signed_tx) do
@@ -47,5 +42,6 @@ defmodule ExPlasma.Transaction.Recovered do
     end
   end
 
+  @spec validate(t()) :: :ok | {:error, validation_error()}
   def validate(%__MODULE__{} = recovered), do: Signed.validate(recovered.signed_tx)
 end

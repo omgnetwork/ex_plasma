@@ -19,7 +19,6 @@ defmodule ExPlasma.Signature do
 
   @type keccak_hash :: binary()
   @type public_key :: <<_::512>>
-  @type private_key :: <<_::256>>
   @type hash_v :: integer()
   @type hash_r :: integer()
   @type hash_s :: integer()
@@ -28,9 +27,9 @@ defmodule ExPlasma.Signature do
   @doc """
   Produces a stand-alone, 65 bytes long, signature for message hash.
   """
-  @spec signature_digest(keccak_hash(), private_key()) :: <<_::520>>
+  @spec signature_digest(keccak_hash(), String.t()) :: <<_::520>>
   def signature_digest(hash_digest, private_key_hash) do
-    private_key_binary = Encoding.to_binary(private_key_hash)
+    private_key_binary = Encoding.to_binary!(private_key_hash)
 
     {:ok, <<r::size(256), s::size(256)>>, recovery_id} =
       :libsecp256k1.ecdsa_sign_compact(

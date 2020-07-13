@@ -14,7 +14,11 @@ defmodule ExPlasma.Transaction.Type.Fee do
 
   defstruct tx_type: @tx_type, outputs: [], nonce: nil
 
-  @type t() :: %__MODULE__{outputs: [Output.t()], nonce: Crypto.hash_t()}
+  @type t() :: %__MODULE__{
+          tx_type: pos_integer(),
+          outputs: [Output.t()],
+          nonce: Crypto.hash_t()
+        }
 
   @doc """
   Creates new fee claiming transaction
@@ -63,10 +67,19 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   @tx_type TypeMapper.tx_type_for(:tx_fee_token_claim)
   @output_type TypeMapper.output_type_for(:output_fee_token_claim)
 
+  @type validation_error() ::
+          {:output_type, :invalid_output_type_for_transaction}
+          | {:outputs, :wrong_number_of_fee_outputs}
+          | {:outputs, :fee_output_amount_has_to_be_positive}
+          | {:nonce, :malformed_nonce}
+          | {atom(), atom()}
+
+  @type mapping_error() :: :malformed_transaction
+
   @doc """
   Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
   """
-  @spec to_rlp(Fee.t()) :: list(any())
+  @spec to_rlp(Fee.t()) :: list()
   def to_rlp(%Fee{} = transaction) do
     %Fee{outputs: outputs, nonce: nonce} = transaction
 
@@ -83,6 +96,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
+  @spec to_map(Fee.t(), list()) :: {:ok, Fee.t()} | {:error, mapping_error()}
   def to_map(%Fee{}, [_tx_type, outputs_rlp, nonce_rlp]) do
     {:ok,
      %Fee{
@@ -92,13 +106,13 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
      }}
   end
 
-  def to_map(_), do: {:error, :malformed_transaction}
+  def to_map(_, _), do: {:error, :malformed_transaction}
 
-  # @spec validate(map()) :: validation_responses()
+  @spec validate(Fee.t()) :: :ok | {:error, validation_error()}
   def validate(%Fee{} = transaction) do
     with :ok <- validate_outputs(transaction.outputs),
          :ok <- validate_nonce(transaction.nonce) do
-      {:ok, transaction}
+      :ok
     end
   end
 
@@ -119,13 +133,13 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   defp validate_outputs_count(_outputs), do: {:error, {:outputs, :wrong_number_of_fee_outputs}}
 
   defp validate_output_type(%Output{output_type: @output_type}), do: :ok
-  defp validate_output_type(_output), do: {:error, :tx_cannot_create_output_type}
+  defp validate_output_type(_output), do: {:error, {:output_type, :invalid_output_type_for_transaction}}
 
   defp validate_output_amount(%Output{output_data: %{amount: amount}}) when amount > 0, do: :ok
   defp validate_output_amount(_output), do: {:error, {:outputs, :fee_output_amount_has_to_be_positive}}
 
   defp validate_nonce(nonce) when is_binary(nonce) and byte_size(nonce) == 32, do: :ok
-  defp validate_nonce(_nonce), do: {:error, :malformed_nonce}
+  defp validate_nonce(_nonce), do: {:error, {:nonce, :malformed_nonce}}
 
   @doc """
   Fee claiming transaction does not contain any inputs.
