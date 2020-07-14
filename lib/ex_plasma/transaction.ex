@@ -177,7 +177,7 @@ defmodule ExPlasma.Transaction do
   For a Signed transaction: validates the signed transaction
   For a Raw transaction: validates the raw transaction
 
-  Returns :ok if valid or {:error, atom} otherwise
+  Returns :ok if valid or {:error, {atom, atom}} otherwise
   """
   @spec validate(any_flavor_t()) :: :ok | {:error, {atom(), atom()}}
   def validate(%Recovered{} = recovered), do: Recovered.validate(recovered)

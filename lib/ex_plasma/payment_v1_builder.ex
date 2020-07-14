@@ -5,8 +5,8 @@ defmodule ExPlasma.PaymentV1Builder do
 
   alias ExPlasma.Output
   alias ExPlasma.Transaction
-  alias ExPlasma.Transaction.TypeMapper
   alias ExPlasma.Transaction.Type.PaymentV1
+  alias ExPlasma.Transaction.TypeMapper
 
   @output_type TypeMapper.output_type_for(:output_payment_v1)
 

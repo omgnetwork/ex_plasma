@@ -3,8 +3,8 @@ defmodule ExPlasma.Transaction.TypeMapper do
   Provides wire format's tx/output type values and mapping to modules which decodes them.
   """
 
-  alias ExPlasma.Transaction
   alias ExPlasma.Output
+  alias ExPlasma.Transaction
 
   @type tx_type_to_tx_module_map() :: %{1 => ExPlasma.Transaction.Type.PaymentV1, 3 => ExPlasma.Transaction.Type.Fee}
   @type tx_type_to_output_module_map() :: %{

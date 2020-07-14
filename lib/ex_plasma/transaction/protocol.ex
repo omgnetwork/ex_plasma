@@ -41,6 +41,6 @@ defprotocol ExPlasma.Transaction.Protocol do
   @doc """
   Statelessly validate the transaction
   """
-  @spec validate(t()) :: :ok | {:error, atom(), atom()}
+  @spec validate(t()) :: :ok | {:error, {atom(), atom()}}
   def validate(tx)
 end
