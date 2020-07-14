@@ -97,7 +97,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   Does not perform any other kind of validation, use validate/1 for that.
   """
   @spec to_map(Fee.t(), list()) :: {:ok, Fee.t()} | {:error, mapping_error()}
-  def to_map(%Fee{}, [_tx_type, outputs_rlp, nonce_rlp]) do
+  def to_map(%Fee{}, [<<@tx_type>>, outputs_rlp, nonce_rlp]) do
     {:ok,
      %Fee{
        tx_type: @tx_type,

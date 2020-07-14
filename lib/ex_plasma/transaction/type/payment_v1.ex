@@ -29,11 +29,16 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   @doc """
   Creates a new raw transaction structure from a list of inputs and a list of outputs, given in a succinct tuple form.
 
-  assumptions:
-  ```
-    length(inputs) <= @max_inputs
-    length(outputs) <= @max_outputs
-  ```
+  ## Example
+
+  iex> input = %ExPlasma.Output{
+  ...>   output_data: nil,
+  ...>   output_id: %{blknum: 1, oindex: 2, position: 1_000_030_002, txindex: 3},
+  ...>   output_type: nil
+  ...> }
+  iex> output = new_output(<<1::160>>, <<0::160>>, 1)
+  iex> tx = new([input], [output])
+  iex> %ExPlasma.Transaction.Type.PaymentV1{inputs: [input], outputs: [output], tx_type: 1, metadata: <<0::256>>, tx_data: 0} = tx
   """
   @spec new(outputs(), outputs(), metadata()) :: t()
   def new(inputs, outputs, metadata) do
@@ -45,13 +50,22 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
 
   @doc """
   Creates output for a payment v1 transaction
+
+  ## Example
+
+  iex> output = new_output(<<1::160>>, <<0::160>>, 1)
+  iex> %ExPlasma.Output{
+  ...>   output_data: %{amount: 1, output_guard: <<1::160>>, token: <<0::160>>},
+  ...>   output_id: nil,
+  ...>   output_type: 1
+  ...> } = output
   """
   @spec new_output(Crypto.address_t(), Crypto.address_t(), pos_integer()) :: Output.t()
   def new_output(owner, token, amount) do
     %Output{
       output_type: @output_type,
       output_data: %{
-        amount: :binary.encode_unsigned(amount),
+        amount: amount,
         output_guard: owner,
         token: token
       }
@@ -76,7 +90,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
           {:inputs, :duplicate_inputs}
           | {:inputs | :outputs, :cannot_exceed_maximum_value}
           | {:inputs | :outputs, :cannot_subceed_minimum_value}
-          | {:output_type, :invalid_output_type_for_transaction}
+          | {:outputs, :invalid_output_type_for_transaction}
           | {:tx_data, :malformed_tx_data}
           | {:metadata, :malformed_metadata}
           | {atom(), atom()}
@@ -94,7 +108,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
       <<@tx_type>>,
       Enum.map(inputs, &Output.to_rlp_id/1),
       Enum.map(outputs, &Output.to_rlp/1),
-      @empty_tx_data,
+      <<@empty_tx_data>>,
       metadata || @empty_metadata
     ]
   end
@@ -106,7 +120,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   Does not perform any other kind of validation, use validate/1 for that.
   """
   @spec to_map(PaymentV1.t(), list()) :: {:ok, PaymentV1.t()} | {:error, mapping_error()}
-  def to_map(%PaymentV1{}, [_tx_type, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
+  def to_map(%PaymentV1{}, [<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
     with inputs <- Enum.map(inputs_rlp, &Output.decode_id/1),
          outputs <- Enum.map(outputs_rlp, &Output.decode/1),
          {:ok, tx_data} <- decode_tx_data(tx_data_rlp) do
@@ -121,7 +135,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
     end
   end
 
-  def to_map(_), do: {:error, :malformed_transaction}
+  def to_map(_, _), do: {:error, :malformed_transaction}
 
   defp decode_tx_data(tx_data_rlp) do
     case RlpDecoder.parse_uint256(tx_data_rlp) do
@@ -141,11 +155,6 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
 
   @doc """
   Validates the Transaction.
-
-  ## Example
-
-  iex> txn = %{inputs: [%{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: <<1>>}
-  iex> :ok = ExPlasma.Transaction.Type.PaymentV1.validate(txn)
   """
   @spec validate(PaymentV1.t()) :: :ok | {:error, validation_error()}
   def validate(%PaymentV1{} = transaction) do
@@ -199,7 +208,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   defp validate_outputs_type(outputs) do
     case Enum.all?(outputs, &(&1.output_type == @output_type)) do
       true -> :ok
-      false -> {:error, {:output_type, :invalid_output_type_for_transaction}}
+      false -> {:error, {:outputs, :invalid_output_type_for_transaction}}
     end
   end
 

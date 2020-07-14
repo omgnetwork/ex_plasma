@@ -19,6 +19,7 @@ defmodule ExPlasma.Utils.RlpDecoder do
   """
   @spec parse_uint256(binary()) ::
           {:ok, non_neg_integer()} | {:error, :encoded_uint_too_big | :leading_zeros_in_encoded_uint}
+  def parse_uint256(<<0>>), do: {:ok, 0}
   def parse_uint256(<<0>> <> _binary), do: {:error, :leading_zeros_in_encoded_uint}
   def parse_uint256(binary) when byte_size(binary) <= 32, do: {:ok, :binary.decode_unsigned(binary, :big)}
   def parse_uint256(binary) when byte_size(binary) > 32, do: {:error, :encoded_uint_too_big}
