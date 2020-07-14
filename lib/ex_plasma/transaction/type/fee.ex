@@ -22,6 +22,23 @@ defmodule ExPlasma.Transaction.Type.Fee do
 
   @doc """
   Creates new fee claiming transaction
+
+  ## Example
+
+  iex> tx = new(1000, {<<1::160>>, <<0::160>>, 1})
+  iex> %ExPlasma.Transaction.Type.Fee{
+  ...>    outputs: [
+  ...>      %ExPlasma.Output{
+  ...>        output_data: %{amount: 1, output_guard: <<1::160>>, token: <<0::160>>},
+  ...>        output_id: nil,
+  ...>        output_type: 2
+  ...>      }
+  ...>    ],
+  ...>    tx_type: 3,
+  ...>    nonce:
+  ...>      <<61, 119, 206, 68, 25, 203, 29, 23, 147, 224, 136, 32, 198, 128, 177, 74, 227, 250, 194, 173, 146, 182, 251, 152,
+  ...>        123, 172, 26, 83, 175, 194, 213, 238>>
+  ...> } = tx
   """
   @spec new(
           blknum :: non_neg_integer(),
@@ -37,6 +54,15 @@ defmodule ExPlasma.Transaction.Type.Fee do
 
   @doc """
   Creates output for a fee transaction
+
+  ## Example
+
+  iex> output = new_output(<<1::160>>, <<0::160>>, 1)
+  iex> %ExPlasma.Output{
+  ...>   output_data: %{amount: 1, output_guard: <<1::160>>, token: <<0::160>>},
+  ...>   output_id: nil,
+  ...>   output_type: 2
+  ...> } = output
   """
   @spec new_output(Crypto.address_t(), Crypto.address_t(), pos_integer()) :: Output.t()
   def new_output(fee_claimer, token, amount) do
@@ -68,7 +94,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   @output_type TypeMapper.output_type_for(:output_fee_token_claim)
 
   @type validation_error() ::
-          {:output_type, :invalid_output_type_for_transaction}
+          {:outputs, :invalid_output_type_for_transaction}
           | {:outputs, :wrong_number_of_fee_outputs}
           | {:outputs, :fee_output_amount_has_to_be_positive}
           | {:nonce, :malformed_nonce}
@@ -108,6 +134,21 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
 
   def to_map(_, _), do: {:error, :malformed_transaction}
 
+  @doc """
+  Fee claiming transaction does not contain any inputs.
+  """
+  @spec get_inputs(Fee.t()) :: list(Output.t())
+  def get_inputs(%Fee{}), do: []
+
+  @doc """
+  Fee claiming transaction spends single pseudo-output from collected fees.
+  """
+  @spec get_outputs(Fee.t()) :: list(Output.t())
+  def get_outputs(%Fee{} = transaction), do: transaction.outputs
+
+  @spec get_tx_type(Fee.t()) :: pos_integer()
+  def get_tx_type(%Fee{} = transaction), do: transaction.tx_type
+
   @spec validate(Fee.t()) :: :ok | {:error, validation_error()}
   def validate(%Fee{} = transaction) do
     with :ok <- validate_outputs(transaction.outputs),
@@ -133,26 +174,11 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   defp validate_outputs_count(_outputs), do: {:error, {:outputs, :wrong_number_of_fee_outputs}}
 
   defp validate_output_type(%Output{output_type: @output_type}), do: :ok
-  defp validate_output_type(_output), do: {:error, {:output_type, :invalid_output_type_for_transaction}}
+  defp validate_output_type(_output), do: {:error, {:outputs, :invalid_output_type_for_transaction}}
 
   defp validate_output_amount(%Output{output_data: %{amount: amount}}) when amount > 0, do: :ok
   defp validate_output_amount(_output), do: {:error, {:outputs, :fee_output_amount_has_to_be_positive}}
 
   defp validate_nonce(nonce) when is_binary(nonce) and byte_size(nonce) == 32, do: :ok
   defp validate_nonce(_nonce), do: {:error, {:nonce, :malformed_nonce}}
-
-  @doc """
-  Fee claiming transaction does not contain any inputs.
-  """
-  @spec get_inputs(Fee.t()) :: list(Output.t())
-  def get_inputs(%Fee{}), do: []
-
-  @doc """
-  Fee claiming transaction spends single pseudo-output from collected fees.
-  """
-  @spec get_outputs(Fee.t()) :: list(Output.t())
-  def get_outputs(%Fee{} = transaction), do: transaction.outputs
-
-  @spec get_tx_type(Fee.t()) :: pos_integer()
-  def get_tx_type(%Fee{} = transaction), do: transaction.tx_type
 end
