@@ -109,7 +109,7 @@ defmodule ExPlasma do
     tx_type: 1
   }
   """
-  defdelegate decode(tx_bytes), to: Transaction
+  defdelegate decode(tx_bytes, mode), to: Transaction
 
   @doc """
   Keccak hash the Transaction. This is used in the contracts and events to to reference transactions.

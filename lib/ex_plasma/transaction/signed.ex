@@ -10,9 +10,10 @@ defmodule ExPlasma.Transaction.Signed do
   alias ExPlasma.Transaction.Protocol
   alias ExPlasma.Transaction.Witness
   alias ExPlasma.TypedData
+  alias ExPlasma.Utils.RlpDecoder
 
   @type tx_bytes() :: binary()
-  @type decoding_error() :: :malformed_transaction_rlp | mapping_error()
+  @type decoding_error() :: :malformed_rlp | mapping_error()
 
   @type mapping_error() ::
           :malformed_transaction
@@ -53,15 +54,9 @@ defmodule ExPlasma.Transaction.Signed do
   """
   @spec decode(tx_bytes()) :: {:ok, t()} | {:error, decoding_error()}
   def decode(signed_tx_bytes) do
-    with {:ok, tx_rlp_decoded_chunks} <- try_generic_decode(signed_tx_bytes) do
+    with {:ok, tx_rlp_decoded_chunks} <- RlpDecoder.decode(signed_tx_bytes) do
       to_map(tx_rlp_decoded_chunks)
     end
-  end
-
-  defp try_generic_decode(signed_tx_bytes) do
-    {:ok, ExRLP.decode(signed_tx_bytes)}
-  rescue
-    _ -> {:error, :malformed_transaction_rlp}
   end
 
   @doc """

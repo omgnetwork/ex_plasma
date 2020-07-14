@@ -23,7 +23,7 @@ defmodule ExPlasma.Transaction do
   @type tx_hash() :: Crypto.hash_t()
 
   @type decoding_error() ::
-          :malformed_transaction_rlp
+          :malformed_rlp
           | mapping_error()
 
   @type mapping_error() ::
@@ -32,42 +32,40 @@ defmodule ExPlasma.Transaction do
           | atom()
 
   @doc """
-  Produces a struct from the binary encoded form of a transactions (signed or not)
-  RLP decodes to structure of RLP-items and then produces an Elixir struct.
+  Attempt to decode the given transaction bytes into an Elixir structure.
 
-  Assume that it represents a signed transaction if the decoded rlp items start with a list.
-  Assume that it represents a raw transaction if it starts with an integer.
+  First, decodes the bytes into an RLP list of items.
+  Then, depending on the value
+  of the `mode` params, will map the values to one of the following structures:
+
+  - `:recovered` -> Recovered transaction
+  - `:signed` -> Signed transaction
+  - `:raw` or ommited -> Raw transaction
 
   Only validates that the RLP is structurally correct and that the tx type is supported.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec decode(tx_bytes()) :: {:ok, Protocol.t()} | {:error, decoding_error()}
-  def decode(tx_bytes) do
-    with {:ok, raw_tx_rlp_decoded_chunks} <- try_generic_decode(tx_bytes) do
+  @spec decode(tx_bytes(), :recovered | :signed | :raw) :: {:ok, any_flavor_t()} | {:error, decoding_error()}
+  def decode(tx_bytes, mode \\ :raw)
+
+  def decode(tx_bytes, :recovered), do: Recovered.decode(tx_bytes)
+  def decode(tx_bytes, :signed), do: Signed.decode(tx_bytes)
+
+  def decode(tx_bytes, :raw) do
+    with {:ok, raw_tx_rlp_decoded_chunks} <- RlpDecoder.decode(tx_bytes) do
       to_map(raw_tx_rlp_decoded_chunks)
     end
-  end
-
-  defp try_generic_decode(tx_bytes) do
-    {:ok, ExRLP.decode(tx_bytes)}
-  rescue
-    _ -> {:error, :malformed_transaction_rlp}
   end
 
   @doc """
   RLP decodes to structure of RLP-items and then produces an Elixir struct.
 
-  Assume that it represents a signed transaction if the decoded rlp items start with a list.
-  Assume that it represents a raw transaction if it starts with an integer.
+  Assume that it represents a raw transaction if it starts with an integer representing the type.
 
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec to_map(list()) :: {:ok, Signed.t() | Protocol.t()} | {:error, mapping_error()}
-  def to_map([sigs | _] = maybe_signed) when is_list(sigs) do
-    Signed.to_map(maybe_signed)
-  end
-
+  @spec to_map(list()) :: {:ok, Protocol.t()} | {:error, mapping_error()}
   def to_map([raw_tx_type | raw_tx_rlp_decoded_chunks]) do
     with {:ok, tx_type} <- parse_tx_type(raw_tx_type) do
       protocol_module = @tx_types_modules[tx_type]

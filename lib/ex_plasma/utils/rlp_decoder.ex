@@ -5,6 +5,16 @@ defmodule ExPlasma.Utils.RlpDecoder do
   """
 
   @doc """
+  Attempt to decode the given binary to a list of RLP items
+  """
+  @spec decode(binary()) :: {:ok, list()} | {:error, :malformed_rlp}
+  def decode(tx_bytes) do
+    {:ok, ExRLP.decode(tx_bytes)}
+  rescue
+    _ -> {:error, :malformed_rlp}
+  end
+
+  @doc """
   Parses unsigned at-most 32-bytes integer. Leading zeros are disallowed
   """
   @spec parse_uint256(binary()) ::
