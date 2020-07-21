@@ -60,7 +60,7 @@ defmodule ExPlasma do
     ...>    tx_data: <<0>>,
     ...>    tx_type: 1
     ...>  }
-    iex> ExPlasma.Transaction.encode(txn)
+    iex> ExPlasma.encode(txn)
     <<248, 104, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
       41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
@@ -69,7 +69,7 @@ defmodule ExPlasma do
       0, 0, 0, 0>>
   """
   @spec encode(Transaction.t()) :: binary()
-  def encode(%ExPlasma.Transaction{} = txn), do: Transaction.encode(txn)
+  defdelegate encode(txn), to: Transaction
 
   @doc """
   Decode the given RLP list into a Transaction.
@@ -110,7 +110,7 @@ defmodule ExPlasma do
   }
   """
   @spec decode(binary()) :: Transaction.t()
-  def decode(tx_bytes), do: Transaction.decode(tx_bytes)
+  defdelegate decode(tx_bytes), to: Transaction
 
   @doc """
   Keccak hash the Transaction. This is used in the contracts and events to to reference transactions.
@@ -128,5 +128,5 @@ defmodule ExPlasma do
     124, 14, 55, 131, 119, 96, 112, 13, 28, 178, 251, 49, 16, 127, 58, 96>>
   """
   @spec hash(Transaction.t() | binary()) :: <<_::256>>
-  def hash(txn), do: Transaction.hash(txn)
+  defdelegate hash(txn), to: Transaction
 end
