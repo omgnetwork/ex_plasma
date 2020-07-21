@@ -42,8 +42,7 @@ defmodule ExPlasma.Signature do
 
     # EIP-155
     # See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
-    base_recovery_id = 27
-    rid = base_recovery_id + recovery_id
+    rid = @base_recovery_id + recovery_id
 
     <<r::integer-size(256), s::integer-size(256), rid::integer-size(8)>>
   end
