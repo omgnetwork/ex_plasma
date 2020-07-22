@@ -4,6 +4,109 @@ defmodule ExPlasma.BuilderTest do
 
   import ExPlasma.Builder
 
+  describe "new/1" do
+    test "creates new transaction" do
+      inputs = [1, 2]
+      outputs = [3, 4]
+      sigs = [5, 6]
+      tx_type = 1
+      tx_data = <<7>>
+      metadata = <<8>>
+
+      struct = new(inputs: inputs, outputs: outputs, sigs: sigs, tx_type: tx_type, tx_data: tx_data, metadata: metadata)
+
+      assert struct.inputs == inputs
+      assert struct.outputs == outputs
+      assert struct.sigs == sigs
+      assert struct.tx_type == tx_type
+      assert struct.tx_data == tx_data
+      assert struct.metadata == metadata
+    end
+  end
+
+  describe "add_input/2" do
+    test "adds input" do
+      block_number = 99
+      tx_index = 100
+      oindex = 101
+
+      assert %{inputs: [output]} =
+               add_input(%ExPlasma.Transaction{}, blknum: block_number, txindex: tx_index, oindex: oindex)
+
+      assert output.output_id.blknum == block_number
+      assert output.output_id.txindex == tx_index
+      assert output.output_id.oindex == oindex
+    end
+
+    test "appends new input" do
+      block_number = 102
+      tx_index = 103
+      oindex = 104
+
+      transaction = %ExPlasma.Transaction{
+        inputs: [
+          %ExPlasma.Output{
+            output_data: nil,
+            output_id: %{blknum: 99, oindex: 101, txindex: 100},
+            output_type: nil
+          }
+        ],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        sigs: [],
+        tx_data: 0,
+        tx_type: 0
+      }
+
+      assert %{inputs: [_output, output]} =
+               add_input(transaction, blknum: block_number, txindex: tx_index, oindex: oindex)
+
+      assert output.output_id.blknum == block_number
+      assert output.output_id.txindex == tx_index
+      assert output.output_id.oindex == oindex
+    end
+  end
+
+  describe "add_output/2" do
+    test "adds output with custom type" do
+      output_data = %{foo: :bar}
+      output_type = 100
+
+      assert %{outputs: [output]} =
+               add_output(%ExPlasma.Transaction{}, output_type: output_type, output_data: output_data)
+
+      assert output.output_type == output_type
+      assert output.output_data == output_data
+    end
+
+    test "adds output" do
+      assert %{outputs: [output]} = add_output(%ExPlasma.Transaction{}, foo: :bar)
+
+      assert output.output_data == %{foo: :bar}
+    end
+
+    test "appends new output" do
+      output_data = %{foo1: :bar1}
+      output_type = 100
+
+      transaction = %ExPlasma.Transaction{
+        inputs: [],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [
+          %ExPlasma.Output{output_data: %{foo: :bar}, output_id: nil, output_type: 1}
+        ],
+        sigs: [],
+        tx_data: 0,
+        tx_type: 0
+      }
+
+      assert %{outputs: [_output, output]} = add_output(transaction, output_type: output_type, output_data: output_data)
+
+      assert output.output_type == output_type
+      assert output.output_data == output_data
+    end
+  end
+
   test "builds and sign a transaction with both inputs and outputs" do
     key_1 = "0x0C79EF4FEEA6232854ABFE4006161FC517F4071E5384DBDEF72718B4A4AF016E"
     key_2 = "0x33B41524C9E74DE1F440107E05EEE78754F92F237D23A2655E0370B99EB86568"
