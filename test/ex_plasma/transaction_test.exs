@@ -98,7 +98,7 @@ defmodule ExPlasma.TransactionTest do
       assert Transaction.recover_signatures(signed_txn) == {:ok, [addr_1, addr_2]}
     end
 
-    test "returns {:error, :invalid_signature} when the signature is invalid" do
+    test "returns {:error, :corrupted_witness} when the signature is invalid" do
       txn = %Transaction{
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
@@ -108,7 +108,7 @@ defmodule ExPlasma.TransactionTest do
         tx_type: <<1>>
       }
 
-      assert Transaction.recover_signatures(txn) == {:error, :invalid_signature}
+      assert Transaction.recover_signatures(txn) == {:error, :corrupted_witness}
     end
   end
 

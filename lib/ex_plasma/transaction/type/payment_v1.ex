@@ -95,7 +95,17 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
           | {:metadata, :malformed_metadata}
           | {atom(), atom()}
 
-  @type mapping_error() :: :malformed_transaction | :malformed_tx_data
+  @type mapping_error() ::
+          :malformed_transaction
+          | :malformed_tx_data
+          | :malformed_inputs
+          | :malformed_outputs
+
+  defmacro is_metadata(metadata) do
+    quote do
+      is_binary(unquote(metadata)) and byte_size(unquote(metadata)) == 32
+    end
+  end
 
   @doc """
   Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
@@ -121,21 +131,37 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   """
   @spec to_map(PaymentV1.t(), list()) :: {:ok, PaymentV1.t()} | {:error, mapping_error()}
   def to_map(%PaymentV1{}, [<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
-    with inputs <- Enum.map(inputs_rlp, &Output.decode_id/1),
-         outputs <- Enum.map(outputs_rlp, &Output.decode/1),
-         {:ok, tx_data} <- decode_tx_data(tx_data_rlp) do
+    with {:ok, inputs} <- decode_inputs(inputs_rlp),
+         {:ok, outputs} <- decode_outputs(outputs_rlp),
+         {:ok, tx_data} <- decode_tx_data(tx_data_rlp),
+         {:ok, metadata} <- decode_metadata(metadata_rlp) do
       {:ok,
        %PaymentV1{
          tx_type: @tx_type,
          inputs: inputs,
          outputs: outputs,
          tx_data: tx_data,
-         metadata: metadata_rlp
+         metadata: metadata
        }}
     end
   end
 
   def to_map(_, _), do: {:error, :malformed_transaction}
+
+  defp decode_inputs(inputs_rlp) do
+    {:ok, Enum.map(inputs_rlp, &Output.decode_id(&1))}
+  rescue
+    _ -> {:error, :malformed_inputs}
+  end
+
+  defp decode_outputs(outputs_rlp) do
+    {:ok, Enum.map(outputs_rlp, &Output.decode(&1))}
+  rescue
+    _ -> {:error, :malformed_outputs}
+  end
+
+  defp decode_metadata(metadata_rlp) when is_metadata(metadata_rlp), do: {:ok, metadata_rlp}
+  defp decode_metadata(_), do: {:error, :malformed_metadata}
 
   defp decode_tx_data(tx_data_rlp) do
     case RlpDecoder.parse_uint256(tx_data_rlp) do
@@ -216,6 +242,6 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   defp validate_tx_data(@empty_tx_data), do: :ok
   defp validate_tx_data(_), do: {:error, {:tx_data, :malformed_tx_data}}
 
-  defp validate_metadata(metadata) when is_binary(metadata) and byte_size(metadata) == 32, do: :ok
+  defp validate_metadata(metadata) when is_metadata(metadata), do: :ok
   defp validate_metadata(_), do: {:error, {:metadata, :malformed_metadata}}
 end

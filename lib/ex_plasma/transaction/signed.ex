@@ -100,7 +100,7 @@ defmodule ExPlasma.Transaction.Signed do
   Recovers the witnesses for non-empty signatures, in the order they appear in transaction's signatures.
 
   Returns {:ok, witness_list} if witnesses are recoverable,
-  or {:error, :corrupted_signature} otherwise.
+  or {:error, :corrupted_witness} otherwise.
   """
   @spec get_witnesses(t()) :: {:ok, list(Witness.t())} | {:error, Witness.recovery_error()}
   def get_witnesses(%__MODULE__{sigs: []}), do: {:ok, []}

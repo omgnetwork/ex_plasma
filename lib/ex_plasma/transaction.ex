@@ -69,7 +69,7 @@ defmodule ExPlasma.Transaction do
   def to_map([raw_tx_type | raw_tx_rlp_decoded_chunks]) do
     with {:ok, tx_type} <- parse_tx_type(raw_tx_type) do
       protocol_module = @tx_types_modules[tx_type]
-      Protocol.to_map(protocol_module.__struct__, [tx_type | raw_tx_rlp_decoded_chunks])
+      Protocol.to_map(protocol_module.__struct__, [raw_tx_type | raw_tx_rlp_decoded_chunks])
     end
   end
 

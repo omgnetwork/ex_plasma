@@ -120,6 +120,14 @@ defmodule ExPlasma.Transaction.Type.FeeTest do
     test "returns a `malformed_transaction` error when the rlp is invalid" do
       assert Protocol.to_map(%Fee{}, [<<3>>, <<1>>]) == {:error, :malformed_transaction}
     end
+
+    test "returns a `malformed_outputs` error when the outputs are not a list" do
+      assert Protocol.to_map(%Fee{}, [<<3>>, 123, <<1>>]) == {:error, :malformed_outputs}
+    end
+
+    test "returns a `malformed_outputs` error when the outputs are not a valid encoded output" do
+      assert Protocol.to_map(%Fee{}, [<<3>>, [123], <<1>>]) == {:error, :malformed_outputs}
+    end
   end
 
   describe "get_inputs/1" do

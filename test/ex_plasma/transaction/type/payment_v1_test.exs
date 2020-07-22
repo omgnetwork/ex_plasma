@@ -163,6 +163,26 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
     test "returns a `malformed_tx_data` error when the tx data is invalid" do
       assert Protocol.to_map(%PaymentV1{}, [<<1>>, [], [], <<0, 1>>, <<0::256>>]) == {:error, :malformed_tx_data}
     end
+
+    test "returns a `malformed_inputs` error when the inputs are not a list" do
+      assert Protocol.to_map(%PaymentV1{}, [<<1>>, 123, [], <<0>>, <<0::256>>]) == {:error, :malformed_inputs}
+    end
+
+    test "returns a `malformed_inputs` error when the inputs are not an encoded position" do
+      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [123, 123], [], <<0>>, <<0::256>>]) == {:error, :malformed_inputs}
+    end
+
+    test "returns a `malformed_outputs` error when the outputs are not a list" do
+      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [], 123, <<0>>, <<0::256>>]) == {:error, :malformed_outputs}
+    end
+
+    test "returns a `malformed_outputs` error when the outputs are not an encoded output data" do
+      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [], [123], <<0>>, <<0::256>>]) == {:error, :malformed_outputs}
+    end
+
+    test "returns a `malformed_metadata` error when metadata is not a 32 bytes binary" do
+      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [], [], <<0>>, 123]) == {:error, :malformed_metadata}
+    end
   end
 
   describe "get_inputs/1" do

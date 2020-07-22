@@ -11,8 +11,7 @@ defmodule ExPlasma.Crypto do
   @type hash_t() :: <<_::256>>
 
   @type recover_address_error() ::
-          :corrupted_signature
-          | :invalid_signature
+          :corrupted_witness
           | :invalid_message
 
   @doc """
@@ -39,11 +38,11 @@ defmodule ExPlasma.Crypto do
         generate_address(pub)
 
       {:error, _} ->
-        {:error, :corrupted_signature}
+        {:error, :corrupted_witness}
     end
   end
 
-  def recover_address(<<_digest::binary-size(32)>>, _signature), do: {:error, :invalid_signature}
+  def recover_address(<<_digest::binary-size(32)>>, _signature), do: {:error, :corrupted_witness}
 
   def recover_address(_message, _signature), do: {:error, :invalid_message}
 

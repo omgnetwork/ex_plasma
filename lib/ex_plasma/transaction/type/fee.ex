@@ -124,15 +124,23 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
   """
   @spec to_map(Fee.t(), list()) :: {:ok, Fee.t()} | {:error, mapping_error()}
   def to_map(%Fee{}, [<<@tx_type>>, outputs_rlp, nonce_rlp]) do
-    {:ok,
-     %Fee{
-       tx_type: @tx_type,
-       outputs: Enum.map(outputs_rlp, &Output.decode(&1)),
-       nonce: nonce_rlp
-     }}
+    with {:ok, outputs} <- decode_outputs(outputs_rlp) do
+      {:ok,
+       %Fee{
+         tx_type: @tx_type,
+         outputs: outputs,
+         nonce: nonce_rlp
+       }}
+    end
   end
 
   def to_map(_, _), do: {:error, :malformed_transaction}
+
+  defp decode_outputs(outputs_rlp) do
+    {:ok, Enum.map(outputs_rlp, &Output.decode(&1))}
+  rescue
+    _ -> {:error, :malformed_outputs}
+  end
 
   @doc """
   Fee claiming transaction does not contain any inputs.
