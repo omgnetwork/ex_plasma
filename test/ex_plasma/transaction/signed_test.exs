@@ -48,13 +48,12 @@ defmodule ExPlasma.Transaction.SignedTest do
     test "returns the RLP list of a signed transaction", %{signed: signed} do
       rlp = Signed.to_rlp(signed)
 
-      assert [sigs, tx_type, inputs, outputs, tx_data, metadata] = rlp
+      assert [sigs, tx_type, inputs, outputs, 0, metadata] = rlp
 
       assert sigs == signed.sigs
       assert is_binary(tx_type)
       assert is_list(inputs)
       assert is_list(outputs)
-      assert is_binary(tx_data)
       assert is_binary(metadata)
     end
   end

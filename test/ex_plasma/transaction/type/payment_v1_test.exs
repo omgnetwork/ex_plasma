@@ -97,7 +97,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
                  ]
                ],
                # tx data
-               <<0>>,
+               0,
                # metadata
                <<0::256>>
              ]

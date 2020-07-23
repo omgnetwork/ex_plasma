@@ -26,9 +26,9 @@ defmodule ExPlasma.Block do
 
   iex> ExPlasma.Transaction.Type.PaymentV1.new([], []) |> List.wrap() |> ExPlasma.Block.new()
   %ExPlasma.Block{
-    hash: <<184, 207, 88, 197, 184, 17, 244, 111, 210, 35, 71, 65, 116, 192, 87,
-      64, 229, 29, 239, 171, 65, 160, 254, 111, 162, 170, 239, 180, 17, 151, 210,
-      204>>,
+    hash: <<168, 54, 172, 201, 1, 212, 18, 167, 34, 57, 232, 89, 151, 225, 172,
+      150, 208, 77, 194, 12, 174, 250, 146, 254, 93, 42, 28, 253, 203, 237, 247,
+      62>>,
     transactions: [
       %ExPlasma.Transaction.Type.PaymentV1{
         inputs: [],

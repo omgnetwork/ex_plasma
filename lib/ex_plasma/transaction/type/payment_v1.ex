@@ -118,7 +118,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
       <<@tx_type>>,
       Enum.map(inputs, &Output.to_rlp_id/1),
       Enum.map(outputs, &Output.to_rlp/1),
-      <<@empty_tx_data>>,
+      @empty_tx_data,
       metadata || @empty_metadata
     ]
   end
@@ -162,6 +162,8 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
 
   defp decode_metadata(metadata_rlp) when is_metadata(metadata_rlp), do: {:ok, metadata_rlp}
   defp decode_metadata(_), do: {:error, :malformed_metadata}
+
+  defp decode_tx_data(@empty_tx_data), do: {:ok, @empty_tx_data}
 
   defp decode_tx_data(tx_data_rlp) do
     case RlpDecoder.parse_uint256(tx_data_rlp) do

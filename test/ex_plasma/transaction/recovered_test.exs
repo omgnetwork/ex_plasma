@@ -73,8 +73,8 @@ defmodule ExPlasma.Transaction.RecoveredTest do
       assert recovered.witnesses == [alice_addr, alice_addr]
 
       assert recovered.tx_hash ==
-               <<105, 138, 209, 67, 72, 153, 74, 64, 78, 147, 15, 112, 115, 192, 114, 88, 191, 52, 85, 163, 90, 141,
-                 248, 68, 157, 239, 101, 31, 201, 6, 111, 33>>
+               <<105, 141, 249, 154, 54, 160, 13, 35, 161, 231, 99, 13, 206, 227, 150, 12, 97, 25, 184, 143, 201, 55,
+                 30, 48, 19, 54, 34, 199, 95, 115, 237, 56>>
 
       assert recovered.signed_tx_bytes == encoded_signed_tx
 
