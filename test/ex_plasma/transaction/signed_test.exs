@@ -4,10 +4,10 @@ defmodule ExPlasma.Transaction.SignedTest do
   use ExUnit.Case, async: true
 
   alias ExPlasma.PaymentV1Builder
+  alias ExPlasma.Support.TestEntity
   alias ExPlasma.Transaction
   alias ExPlasma.Transaction.Signed
   alias ExPlasma.Transaction.Type.PaymentV1
-  alias ExPlasma.Support.TestEntity
 
   @alice TestEntity.alice()
   @bob TestEntity.bob()
@@ -24,7 +24,7 @@ defmodule ExPlasma.Transaction.SignedTest do
       |> PaymentV1Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
       |> PaymentV1Builder.sign!(keys: [alice_priv, alice_priv])
 
-    encoded_signed_tx = signed |> Transaction.encode()
+    encoded_signed_tx = Transaction.encode(signed)
 
     {:ok,
      %{
@@ -118,8 +118,6 @@ defmodule ExPlasma.Transaction.SignedTest do
         |> PaymentV1Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
         |> PaymentV1Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
         |> PaymentV1Builder.sign!(keys: [alice_priv, alice_priv])
-
-      {:ok, signed} = signed |> Signed.encode() |> Signed.decode()
 
       assert Signed.validate(signed) == {:error, {:inputs, :duplicate_inputs}}
     end

@@ -24,7 +24,7 @@ defmodule ExPlasma.CryptoTest do
       # test vectors below were generated using pyethereum's sha3 and privtoaddr
       py_priv = "7880aec93413f117ef14bd4e6d130875ab2c7d7d55a064fac3c2f7bd51516380"
       py_pub = "c4d178249d840f548b09ad8269e8a3165ce2c170"
-      priv = Encoding.keccak_hash(<<"11">>)
+      priv = Crypto.keccak_hash(<<"11">>)
 
       {:ok, pub} = generate_public_key(priv)
       {:ok, address} = Crypto.generate_address(pub)
@@ -40,8 +40,8 @@ defmodule ExPlasma.CryptoTest do
       py_signature =
         "b8670d619701733e1b4d10149bc90eb4eb276760d2f77a08a5428d4cbf2eadbd656f374c187b1ac80ce31d8c62076af26150e52ef1f33bfc07c6d244da7ca38c1c"
 
-      msg = Encoding.keccak_hash("1234")
-      priv = Encoding.keccak_hash("11")
+      msg = Crypto.keccak_hash("1234")
+      priv = Crypto.keccak_hash("11")
 
       {:ok, pub} = generate_public_key(priv)
       {:ok, _} = Crypto.generate_address(pub)

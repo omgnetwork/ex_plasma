@@ -7,12 +7,12 @@ defmodule ExPlasma.TransactionTest do
   alias ExPlasma.Crypto
   alias ExPlasma.Output
   alias ExPlasma.PaymentV1Builder
+  alias ExPlasma.Support.TestEntity
   alias ExPlasma.Transaction
   alias ExPlasma.Transaction.Protocol
+  alias ExPlasma.Transaction.Recovered
   alias ExPlasma.Transaction.Signed
   alias ExPlasma.Transaction.Type.PaymentV1
-  alias ExPlasma.Transaction.Recovered
-  alias ExPlasma.Support.TestEntity
 
   @alice TestEntity.alice()
   @bob TestEntity.bob()
@@ -28,17 +28,17 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "returns `malformed_rlp` when not given rlp binary" do
-      assert {:error, :malformed_rlp} = Transaction.decode(123, :raw)
+      assert Transaction.decode(123, :raw) == {:error, :malformed_rlp}
     end
 
     test "returns `unrecognized_transaction_type` when the given type is not supported" do
       encoded = ExRLP.encode([<<1337>>, <<0>>])
-      assert {:error, :unrecognized_transaction_type} = Transaction.decode(encoded, :raw)
+      assert Transaction.decode(encoded, :raw) == {:error, :unrecognized_transaction_type}
     end
 
     test "returns `malformed_transaction` when not given a valid raw transaction" do
       encoded = ExRLP.encode(<<0>>)
-      assert {:error, :malformed_transaction} = Transaction.decode(encoded, :raw)
+      assert Transaction.decode(encoded, :raw) == {:error, :malformed_transaction}
     end
   end
 
@@ -61,17 +61,17 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "returns `malformed_rlp` when not given rlp binary" do
-      assert {:error, :malformed_rlp} = Transaction.decode(123, :recovered)
+      assert Transaction.decode(123, :recovered) == {:error, :malformed_rlp}
     end
 
     test "returns `malformed_witnesses` when the given first item is not a list" do
-      encoded = [<<1337>>, <<0>>] |> ExRLP.encode()
-      assert {:error, :malformed_witnesses} = Transaction.decode(encoded, :recovered)
+      encoded = ExRLP.encode([<<1337>>, <<0>>])
+      assert Transaction.decode(encoded, :recovered) == {:error, :malformed_witnesses}
     end
 
     test "returns `malformed_transaction` when not given a valid raw transaction" do
-      encoded = <<0>> |> ExRLP.encode()
-      assert {:error, :malformed_transaction} = Transaction.decode(encoded, :recovered)
+      encoded = ExRLP.encode(<<0>>)
+      assert Transaction.decode(encoded, :recovered) == {:error, :malformed_transaction}
     end
   end
 
@@ -94,17 +94,17 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "returns `malformed_rlp` when not given rlp binary" do
-      assert {:error, :malformed_rlp} = Transaction.decode(123, :signed)
+      assert Transaction.decode(123, :signed) == {:error, :malformed_rlp}
     end
 
     test "returns `malformed_witnesses` when the given first item is not a list" do
-      encoded = [<<1337>>, <<0>>] |> ExRLP.encode()
-      assert {:error, :malformed_witnesses} = Transaction.decode(encoded, :signed)
+      encoded = ExRLP.encode([<<1337>>, <<0>>])
+      assert Transaction.decode(encoded, :signed) == {:error, :malformed_witnesses}
     end
 
     test "returns `malformed_transaction` when not given a valid raw transaction" do
-      encoded = <<0>> |> ExRLP.encode()
-      assert {:error, :malformed_transaction} = Transaction.decode(encoded, :signed)
+      encoded = ExRLP.encode(<<0>>)
+      assert Transaction.decode(encoded, :signed) == {:error, :malformed_transaction}
     end
   end
 
@@ -122,8 +122,7 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "returns `unrecognized_transaction_type` when the given type is not supported" do
-      rlp = [<<1337>>, <<0>>]
-      assert {:error, :unrecognized_transaction_type} = Transaction.to_map(rlp)
+      assert Transaction.to_map([<<1337>>, <<0>>]) == {:error, :unrecognized_transaction_type}
     end
   end
 
@@ -167,7 +166,7 @@ defmodule ExPlasma.TransactionTest do
     test "returns inputs of the underlying raw transaction for a recovered transaction", %{tx: tx, i_1: i_1, i_2: i_2} do
       %Signed{} = signed = PaymentV1Builder.sign!(tx, keys: [])
 
-      {:ok, %Recovered{} = recovered} = Signed.encode(signed) |> Transaction.decode(:recovered)
+      {:ok, %Recovered{} = recovered} = signed |> Signed.encode() |> Transaction.decode(:recovered)
 
       assert Transaction.get_inputs(recovered) == [i_1, i_2]
     end
@@ -196,7 +195,7 @@ defmodule ExPlasma.TransactionTest do
     test "returns outputs of the underlying raw transaction for a recovered transaction", %{tx: tx, o_1: o_1, o_2: o_2} do
       %Signed{} = signed = PaymentV1Builder.sign!(tx, keys: [])
 
-      {:ok, %Recovered{} = recovered} = Signed.encode(signed) |> Transaction.decode(:recovered)
+      {:ok, %Recovered{} = recovered} = signed |> Signed.encode() |> Transaction.decode(:recovered)
 
       assert Transaction.get_outputs(recovered) == [o_1, o_2]
     end
@@ -220,7 +219,7 @@ defmodule ExPlasma.TransactionTest do
     test "returns the tx_type of the underlying raw transaction for a recovered transaction", %{tx: tx} do
       %Signed{} = signed = PaymentV1Builder.sign!(tx, keys: [])
 
-      {:ok, %Recovered{} = recovered} = Signed.encode(signed) |> Transaction.decode(:recovered)
+      {:ok, %Recovered{} = recovered} = signed |> Signed.encode() |> Transaction.decode(:recovered)
 
       assert Transaction.get_tx_type(recovered) == 1
     end
@@ -248,7 +247,7 @@ defmodule ExPlasma.TransactionTest do
     test "returns the encoded signed transaction for a recovered transaction", %{tx: tx} do
       %Signed{} = signed = PaymentV1Builder.sign!(tx, keys: [])
 
-      {:ok, %Recovered{} = recovered} = Signed.encode(signed) |> Transaction.decode(:recovered)
+      {:ok, %Recovered{} = recovered} = signed |> Signed.encode() |> Transaction.decode(:recovered)
 
       encoded = Transaction.encode(recovered)
 
@@ -282,7 +281,7 @@ defmodule ExPlasma.TransactionTest do
     test "returns the tx_hash for a recovered transaction", %{tx: tx} do
       %Signed{} = signed = PaymentV1Builder.sign!(tx, keys: [])
 
-      {:ok, %Recovered{} = recovered} = Signed.encode(signed) |> Transaction.decode(:recovered)
+      {:ok, %Recovered{} = recovered} = signed |> Signed.encode() |> Transaction.decode(:recovered)
 
       assert Transaction.hash(recovered) == recovered.tx_hash
     end

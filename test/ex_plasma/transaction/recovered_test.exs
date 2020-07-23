@@ -5,11 +5,11 @@ defmodule ExPlasma.Transaction.RecoveredTest do
 
   alias ExPlasma.Output
   alias ExPlasma.PaymentV1Builder
+  alias ExPlasma.Support.TestEntity
   alias ExPlasma.Transaction
   alias ExPlasma.Transaction.Recovered
   alias ExPlasma.Transaction.Type.PaymentV1
   alias ExPlasma.Transaction.TypeMapper
-  alias ExPlasma.Support.TestEntity
 
   @alice TestEntity.alice()
   @bob TestEntity.bob()
@@ -30,7 +30,7 @@ defmodule ExPlasma.Transaction.RecoveredTest do
       |> PaymentV1Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
       |> PaymentV1Builder.sign!(keys: [alice_priv, alice_priv])
 
-    encoded_signed_tx = signed |> Transaction.encode()
+    encoded_signed_tx = Transaction.encode(signed)
 
     [sigs, _payment_marker, inputs, outputs, _txdata, _metadata] = ExRLP.decode(encoded_signed_tx)
 

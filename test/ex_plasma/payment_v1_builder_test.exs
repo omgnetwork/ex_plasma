@@ -4,9 +4,9 @@ defmodule ExPlasma.PaymentV1BuilderTest do
 
   alias ExPlasma.Output
   alias ExPlasma.PaymentV1Builder
+  alias ExPlasma.Support.TestEntity
   alias ExPlasma.Transaction.Signed
   alias ExPlasma.Transaction.Type.PaymentV1
-  alias ExPlasma.Support.TestEntity
 
   @alice TestEntity.alice()
   @bob TestEntity.bob()
