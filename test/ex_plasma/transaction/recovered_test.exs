@@ -46,7 +46,7 @@ defmodule ExPlasma.Transaction.RecoveredTest do
      }}
   end
 
-  describe "decode/1`" do
+  describe "decode/1" do
     test "decodes successfuly in various empty input/output combinations" do
       transaction_list = [
         {[], [], [{@alice, @eth, 7}]},
