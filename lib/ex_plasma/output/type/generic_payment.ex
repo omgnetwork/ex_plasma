@@ -97,7 +97,7 @@ defmodule ExPlasma.Output.Type.GenericPayment do
   defp do_validate([_output_guard, nil, _amount]), do: {:token, :cannot_be_nil}
   defp do_validate([nil, _token, _amount]), do: {:output_guard, :cannot_be_nil}
   defp do_validate([@zero_address, _token, _amount]), do: {:output_guard, :cannot_be_zero}
-  defp do_validate([<<_::160>> = output_guard, _token, _amount]), do: :ok
+  defp do_validate([<<_::160>>, _token, _amount]), do: :ok
 
   defp do_validate([_, _, _]), do: {:output_guard, :invalid_length}
 
