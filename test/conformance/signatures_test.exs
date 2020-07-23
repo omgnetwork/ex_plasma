@@ -4,10 +4,11 @@ defmodule Conformance.SignaturesTest do
   """
 
   use ExUnit.Case, async: false
-  import ExPlasma.Encoding, only: [to_binary: 1]
+  import ExPlasma.Encoding, only: [to_binary!: 1]
 
   alias ExPlasma.Output
   alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.Type.PaymentV1
   alias ExPlasma.TypedData
 
   @moduletag :conformance
@@ -21,14 +22,14 @@ defmodule Conformance.SignaturesTest do
   test "signs without inputs" do
     output = %Output{
       output_type: 1,
-      output_data: %{output_guard: to_binary(@authority), token: <<0::160>>, amount: 1}
+      output_data: %{output_guard: to_binary!(@authority), token: <<0::160>>, amount: 1}
     }
 
-    assert_signs_conform(%Transaction{tx_type: 1, outputs: [output]})
+    assert_signs_conform(%PaymentV1{outputs: [output]})
   end
 
   test "signs with metadata" do
-    %Transaction{tx_type: 1, metadata: <<1::160>>}
+    %PaymentV1{metadata: <<1::160>>}
   end
 
   test "signs with a minimal transaction (1x1)" do
@@ -36,10 +37,10 @@ defmodule Conformance.SignaturesTest do
 
     output = %Output{
       output_type: 1,
-      output_data: %{output_guard: to_binary(@authority), token: <<0::160>>, amount: 1}
+      output_data: %{output_guard: to_binary!(@authority), token: <<0::160>>, amount: 1}
     }
 
-    assert_signs_conform(%Transaction{tx_type: 1, inputs: [input], outputs: [output]})
+    assert_signs_conform(%PaymentV1{inputs: [input], outputs: [output]})
   end
 
   test "signs with a minimal transaction (4x4)" do
@@ -47,17 +48,17 @@ defmodule Conformance.SignaturesTest do
 
     output = %Output{
       output_type: 1,
-      output_data: %{output_guard: to_binary(@authority), token: <<0::160>>, amount: 1}
+      output_data: %{output_guard: to_binary!(@authority), token: <<0::160>>, amount: 1}
     }
 
-    assert_signs_conform(%Transaction{
+    assert_signs_conform(%PaymentV1{
       tx_type: 1,
       inputs: List.duplicate(input, 4),
       outputs: List.duplicate(output, 4)
     })
   end
 
-  defp assert_signs_conform(%Transaction{} = transaction) do
+  defp assert_signs_conform(%PaymentV1{} = transaction) do
     tx_bytes = Transaction.encode(transaction)
     typed_data_hash = TypedData.hash(transaction)
 
@@ -65,7 +66,7 @@ defmodule Conformance.SignaturesTest do
   end
 
   defp verify_hash(tx_bytes) do
-    verifying_address = ExPlasma.Encoding.to_binary(@verifying)
+    verifying_address = ExPlasma.Encoding.to_binary!(@verifying)
 
     eth_call("hashTx(address,bytes)", [verifying_address, tx_bytes], [to: @contract], fn resp ->
       resp |> decode_response([{:bytes, 32}]) |> hd()

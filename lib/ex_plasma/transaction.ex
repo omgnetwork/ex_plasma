@@ -126,7 +126,7 @@ defmodule ExPlasma.Transaction do
   end
 
   @doc """
-  Returns all inputs of the raw transaction involved, never returns zero inputs
+  Returns all inputs of the raw transaction involved
   """
   @spec get_inputs(any_flavor_t()) :: list(Output.t())
   def get_inputs(%Recovered{} = recovered), do: get_inputs(recovered.signed_tx)
@@ -134,7 +134,7 @@ defmodule ExPlasma.Transaction do
   def get_inputs(%{} = raw_tx), do: Protocol.get_inputs(raw_tx)
 
   @doc """
-  Returns all outputs of the raw transaction involved, never returns zero outputs
+  Returns all outputs of the raw transaction involved
   """
   @spec get_outputs(any_flavor_t()) :: list(Output.t())
   def get_outputs(%Recovered{} = recovered), do: get_outputs(recovered.signed_tx)

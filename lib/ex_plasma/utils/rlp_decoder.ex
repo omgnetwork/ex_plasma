@@ -1,4 +1,3 @@
-# Copyright 2019-2020 OmiseGO Pte Ltd
 defmodule ExPlasma.Utils.RlpDecoder do
   @moduledoc """
   Provides functions to decode various data types from RLP raw format

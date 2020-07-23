@@ -6,6 +6,10 @@ defmodule ExPlasma.PaymentV1BuilderTest do
   alias ExPlasma.PaymentV1Builder
   alias ExPlasma.Transaction.Signed
   alias ExPlasma.Transaction.Type.PaymentV1
+  alias ExPlasma.Support.TestEntity
+
+  @alice TestEntity.alice()
+  @bob TestEntity.bob()
 
   describe "new/1" do
     test "returns a payment v1 struct with given params" do
@@ -79,32 +83,25 @@ defmodule ExPlasma.PaymentV1BuilderTest do
 
   describe "sign/2" do
     test "returns {:ok, signed} when given valid keys" do
-      key_1 = "0x0C79EF4FEEA6232854ABFE4006161FC517F4071E5384DBDEF72718B4A4AF016E"
-      key_2 = "0x33B41524C9E74DE1F440107E05EEE78754F92F237D23A2655E0370B99EB86568"
+      %{priv_encoded: key_1} = @alice
+      %{priv_encoded: key_2} = @bob
 
-      input_1 = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
-      input_2 = %Output{output_id: %{blknum: 3, txindex: 0, oindex: 1}}
+      tx =
+        PaymentV1Builder.new()
+        |> PaymentV1Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
+        |> PaymentV1Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
+        |> PaymentV1Builder.add_input(blknum: 3, txindex: 0, oindex: 0, position: 3_000_000_000)
 
-      tx = PaymentV1Builder.new(inputs: [input_1, input_2])
-
-      assert {:ok, %Signed{} = signed} = PaymentV1Builder.sign(tx, keys: [key_1, key_2])
+      assert {:ok, %Signed{} = signed} = PaymentV1Builder.sign(tx, keys: [key_1, key_1, key_2])
       assert signed.raw_tx == tx
-
-      assert signed.sigs == [
-               <<171, 176, 24, 83, 58, 83, 237, 134, 126, 22, 76, 122, 112, 110, 87, 221, 116, 79, 32, 73, 153, 195,
-                 133, 156, 85, 9, 197, 204, 76, 63, 201, 185, 39, 165, 208, 158, 81, 112, 70, 44, 191, 75, 70, 5, 175,
-                 208, 153, 9, 76, 158, 117, 11, 3, 233, 117, 77, 101, 77, 142, 127, 83, 98, 155, 7, 27>>,
-               <<211, 0, 125, 100, 221, 58, 14, 178, 84, 220, 97, 236, 3, 90, 95, 165, 186, 166, 106, 173, 207, 82, 146,
-                 84, 30, 5, 98, 18, 15, 244, 62, 24, 43, 122, 160, 203, 214, 172, 69, 62, 58, 33, 227, 54, 184, 51, 92,
-                 80, 116, 222, 129, 87, 125, 220, 64, 84, 242, 229, 58, 156, 205, 73, 134, 191, 28>>
-             ]
+      assert [sig_1, sig_1, sig_2] = signed.sigs
     end
   end
 
   describe "complete flow" do
     test "builds and sign a payment v1 transaction with both inputs and outputs" do
-      key_1 = "0x0C79EF4FEEA6232854ABFE4006161FC517F4071E5384DBDEF72718B4A4AF016E"
-      key_2 = "0x33B41524C9E74DE1F440107E05EEE78754F92F237D23A2655E0370B99EB86568"
+      %{priv_encoded: key_1} = @alice
+      %{priv_encoded: key_2} = @bob
 
       assert {:ok, txn} =
                [metadata: <<1::160>>, tx_data: 0]
@@ -170,15 +167,16 @@ defmodule ExPlasma.PaymentV1BuilderTest do
                    tx_data: 0
                  },
                  sigs: [
-                   <<85, 167, 24, 222, 181, 34, 74, 85, 187, 76, 156, 122, 195, 0, 129, 2, 226, 28, 41, 219, 210, 9,
-                     211, 210, 182, 224, 41, 222, 115, 116, 122, 184, 115, 147, 22, 194, 191, 8, 197, 160, 225, 8, 167,
-                     41, 150, 77, 94, 79, 124, 101, 33, 123, 33, 46, 254, 86, 151, 43, 239, 13, 247, 1, 121, 101, 27>>,
-                   <<85, 167, 24, 222, 181, 34, 74, 85, 187, 76, 156, 122, 195, 0, 129, 2, 226, 28, 41, 219, 210, 9,
-                     211, 210, 182, 224, 41, 222, 115, 116, 122, 184, 115, 147, 22, 194, 191, 8, 197, 160, 225, 8, 167,
-                     41, 150, 77, 94, 79, 124, 101, 33, 123, 33, 46, 254, 86, 151, 43, 239, 13, 247, 1, 121, 101, 27>>,
-                   <<188, 170, 182, 152, 81, 117, 180, 129, 60, 205, 66, 67, 188, 8, 63, 75, 230, 62, 129, 251, 64, 167,
-                     207, 15, 101, 154, 0, 126, 229, 193, 212, 233, 109, 169, 96, 182, 246, 121, 138, 145, 157, 26, 188,
-                     150, 84, 81, 243, 196, 98, 114, 86, 160, 88, 81, 2, 215, 104, 104, 164, 42, 246, 21, 223, 157, 27>>
+                   <<130, 89, 40, 246, 220, 178, 131, 241, 16, 106, 27, 67, 32, 118, 106, 91, 161, 143, 162, 136, 87,
+                     57, 17, 98, 208, 210, 218, 181, 15, 6, 163, 2, 26, 127, 8, 14, 150, 44, 116, 72, 46, 90, 255, 243,
+                     144, 39, 175, 13, 47, 107, 179, 178, 240, 160, 166, 94, 252, 119, 38, 82, 49, 254, 192, 250, 27>>,
+                   <<130, 89, 40, 246, 220, 178, 131, 241, 16, 106, 27, 67, 32, 118, 106, 91, 161, 143, 162, 136, 87,
+                     57, 17, 98, 208, 210, 218, 181, 15, 6, 163, 2, 26, 127, 8, 14, 150, 44, 116, 72, 46, 90, 255, 243,
+                     144, 39, 175, 13, 47, 107, 179, 178, 240, 160, 166, 94, 252, 119, 38, 82, 49, 254, 192, 250, 27>>,
+                   <<50, 96, 3, 234, 168, 162, 52, 142, 174, 145, 201, 159, 24, 143, 251, 111, 1, 26, 48, 243, 140, 215,
+                     21, 137, 161, 128, 184, 139, 183, 28, 161, 146, 22, 132, 29, 228, 34, 241, 196, 53, 155, 142, 69,
+                     183, 16, 105, 65, 14, 185, 194, 147, 143, 146, 218, 206, 63, 233, 66, 151, 171, 32, 212, 234, 25,
+                     28>>
                  ]
                }
     end
