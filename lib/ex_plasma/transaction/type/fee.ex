@@ -98,7 +98,6 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.Fee do
           | {:outputs, :wrong_number_of_fee_outputs}
           | {:outputs, :fee_output_amount_has_to_be_positive}
           | {:nonce, :malformed_nonce}
-          | {atom(), atom()}
 
   @type mapping_error() :: :malformed_transaction
 

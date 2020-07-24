@@ -54,8 +54,12 @@ defmodule ExPlasma.Transaction.Signed do
   """
   @spec decode(tx_bytes()) :: {:ok, t()} | {:error, decoding_error()}
   def decode(signed_tx_bytes) do
-    with {:ok, tx_rlp_decoded_chunks} <- RlpDecoder.decode(signed_tx_bytes) do
-      to_map(tx_rlp_decoded_chunks)
+    case RlpDecoder.decode(signed_tx_bytes) do
+      {:ok, tx_rlp_decoded_chunks} ->
+        to_map(tx_rlp_decoded_chunks)
+
+      error ->
+        error
     end
   end
 
@@ -91,7 +95,10 @@ defmodule ExPlasma.Transaction.Signed do
   end
 
   defp validate_sigs([sig | rest]) do
-    with true <- Witness.valid?(sig) || {:error, {:witnesses, :malformed_witnesses}}, do: validate_sigs(rest)
+    case Witness.valid?(sig) do
+      true -> validate_sigs(rest)
+      false -> {:error, {:witnesses, :malformed_witnesses}}
+    end
   end
 
   defp validate_sigs([]), do: :ok

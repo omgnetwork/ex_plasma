@@ -21,12 +21,13 @@ defmodule ExPlasma.Output do
           output_data: output_data()
         }
 
-  @type validation_responses() :: {:ok, map}
+  @type validation_responses() :: {:ok, map} | validation_errors()
+  @type validation_errors() :: {:error, {atom(), atom()}}
 
   # Output Types and Identifiers should implement these.
   @callback to_map(any()) :: map()
   @callback to_rlp(map()) :: any()
-  @callback validate(any()) :: {:ok, map()} | {:error, {atom(), atom()}}
+  @callback validate(any()) :: validation_responses()
 
   @output_types_modules TypeMapper.output_type_modules()
 

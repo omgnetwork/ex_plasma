@@ -93,7 +93,6 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
           | {:outputs, :invalid_output_type_for_transaction}
           | {:tx_data, :malformed_tx_data}
           | {:metadata, :malformed_metadata}
-          | {atom(), atom()}
 
   @type mapping_error() ::
           :malformed_transaction
@@ -211,7 +210,10 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   end
 
   defp validate_generic_output([output | rest]) do
-    with {:ok, _whatever} <- Output.validate(output), do: validate_generic_output(rest)
+    case Output.validate(output) do
+      {:ok, _} -> validate_generic_output(rest)
+      error -> error
+    end
   end
 
   defp validate_generic_output([]), do: :ok
