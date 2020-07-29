@@ -1,6 +1,6 @@
 defmodule ExPlasma.PaymentV1Builder do
   @moduledoc """
-  Helper module to make crafting plasma transactions much simplier.
+  Helper module to make crafting plasma transactions much simpler.
   """
 
   alias ExPlasma.Output
