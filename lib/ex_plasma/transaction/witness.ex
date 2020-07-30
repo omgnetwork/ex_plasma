@@ -20,8 +20,8 @@ defmodule ExPlasma.Transaction.Witness do
   Prepares the witness to be quickly used in stateful validation
   """
   @spec recover(Crypto.hash_t(), Crypto.sig_t()) :: {:ok, Crypto.address_t()} | {:error, recovery_error()}
-  def recover(raw_txhash, raw_witness) when is_binary(raw_witness) do
-    Crypto.recover_address(raw_txhash, raw_witness)
+  def recover(raw_tx_hash, raw_witness) when is_binary(raw_witness) do
+    Crypto.recover_address(raw_tx_hash, raw_witness)
   end
 
   def recover(_, _), do: {:error, :malformed_witnesses}
