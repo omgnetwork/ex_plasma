@@ -17,6 +17,18 @@ defmodule ExPlasma.CryptoTest do
 
       assert {:ok, ^address} = Crypto.recover_address(msg, sig)
     end
+
+    test "fails to recover address with invalid signature" do
+      assert {:error, :invalid_signature} = Crypto.recover_address(<<2::256>>, <<1::65>>)
+    end
+
+    test "fails to recover address with invalid signature size" do
+      assert {:error, :invalid_signature} = Crypto.recover_address(<<2::256>>, <<1>>)
+    end
+
+    test "fails to recover address with invalid message" do
+      assert {:error, :invalid_message} = Crypto.recover_address(<<2>>, <<1::65>>)
+    end
   end
 
   describe "generate_address/1" do

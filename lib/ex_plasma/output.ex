@@ -140,8 +140,6 @@ defmodule ExPlasma.Output do
   @doc """
   Encodes an Output identifer into RLP bytes. This is to generate
   the `inputs` in a Transaction.
-
-  ## Example
   """
   @spec to_rlp_id(t()) :: binary()
   def to_rlp_id(%__MODULE__{output_id: nil}), do: nil
