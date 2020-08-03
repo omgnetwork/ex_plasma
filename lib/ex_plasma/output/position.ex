@@ -23,10 +23,10 @@ defmodule ExPlasma.Output.Position do
   @type validation_responses() ::
           {:ok, t() | Output.t()}
           | {:error, {:blknum, :cannot_be_nil}}
-          | {:error, {:blknum, :exceeds_maximum_value}}
+          | {:error, {:blknum, :cannot_exceed_maximum_value}}
           | {:error, {:oindex, :cannot_be_nil}}
           | {:error, {:txindex, :cannot_be_nil}}
-          | {:error, {:txindex, :exceeds_maximum_value}}
+          | {:error, {:txindex, :cannot_exceed_maximum_value}}
 
   # Contract settings
   # These are being hard-coded from the same values on the contracts.
@@ -106,10 +106,10 @@ defmodule ExPlasma.Output.Position do
   defp do_validate({_, _, nil}), do: {:oindex, :cannot_be_nil}
 
   defp do_validate({blknum, _, _}) when is_integer(blknum) and blknum > @max_blknum,
-    do: {:blknum, :exceeds_maximum_value}
+    do: {:blknum, :cannot_exceed_maximum_value}
 
   defp do_validate({_, txindex, _}) when is_integer(txindex) and txindex > @max_txindex,
-    do: {:txindex, :exceeds_maximum_value}
+    do: {:txindex, :cannot_exceed_maximum_value}
 
   defp do_validate({_, _, _}), do: nil
 

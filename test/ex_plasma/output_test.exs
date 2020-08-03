@@ -228,7 +228,7 @@ defmodule ExPlasma.OutputTest do
         output_data: nil
       }
 
-      assert {:error, {:blknum, :exceeds_maximum_value}} = ExPlasma.Output.validate(output)
+      assert {:error, {:blknum, :cannot_exceed_maximum_value}} = ExPlasma.Output.validate(output)
     end
 
     test "validates id if type and data are valid" do
@@ -243,7 +243,7 @@ defmodule ExPlasma.OutputTest do
         output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
       }
 
-      assert {:error, {:blknum, :exceeds_maximum_value}} = ExPlasma.Output.validate(output)
+      assert {:error, {:blknum, :cannot_exceed_maximum_value}} = ExPlasma.Output.validate(output)
     end
   end
 end

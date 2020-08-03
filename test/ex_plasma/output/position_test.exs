@@ -13,7 +13,7 @@ defmodule ExPlasma.Output.PositionTest do
 
     test "that blknum cannot exceed maximum value" do
       position = %{blknum: 1_000_000_000_000_000_000, txindex: 0, oindex: 0}
-      assert_field(position, :blknum, :exceeds_maximum_value)
+      assert_field(position, :blknum, :cannot_exceed_maximum_value)
     end
 
     test "that txindex cannot be nil" do
@@ -23,7 +23,7 @@ defmodule ExPlasma.Output.PositionTest do
 
     test "that txindex cannot exceed maximum value" do
       position = %{blknum: 0, txindex: 1_000_000_000_000_000_000, oindex: 0}
-      assert_field(position, :txindex, :exceeds_maximum_value)
+      assert_field(position, :txindex, :cannot_exceed_maximum_value)
     end
   end
 

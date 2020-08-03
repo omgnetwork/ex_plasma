@@ -190,7 +190,7 @@ defmodule ExPlasma.TransactionTest do
         tx_type: <<1>>
       }
 
-      assert_field(txn, :blknum, :exceeds_maximum_value)
+      assert_field(txn, :blknum, :cannot_exceed_maximum_value)
     end
 
     test "that the outputs in a transaction are valid outputs" do
