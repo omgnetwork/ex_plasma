@@ -1,6 +1,6 @@
-defmodule ExPlasma.Output.Type.GenericPayment do
+defmodule ExPlasma.Output.Type.AbstractPayment do
   @moduledoc """
-  Generic payment output type.
+  Abstract payment output type.
   """
 
   @behaviour ExPlasma.Output
@@ -30,7 +30,7 @@ defmodule ExPlasma.Output.Type.GenericPayment do
   ## Example
 
   iex> output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}}
-  iex> ExPlasma.Output.Type.GenericPayment.to_rlp(output)
+  iex> ExPlasma.Output.Type.AbstractPayment.to_rlp(output)
   [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   """
   @impl Output
@@ -47,11 +47,11 @@ defmodule ExPlasma.Output.Type.GenericPayment do
   end
 
   @doc """
-  Decode a map of the output data into the Payment V1 format:
+  Decode a map of the output data into the Abstract Payment format:
 
   ## Example
   iex> data = [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
-  iex> ExPlasma.Output.Type.GenericPayment.to_map(data)
+  iex> ExPlasma.Output.Type.AbstractPayment.to_map(data)
   %{
     output_type: 1,
     output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}
@@ -74,7 +74,7 @@ defmodule ExPlasma.Output.Type.GenericPayment do
 
   ## Example
   iex> data = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
-  iex> {:ok, resp} = ExPlasma.Output.Type.GenericPayment.validate(data)
+  iex> {:ok, resp} = ExPlasma.Output.Type.AbstractPayment.validate(data)
   {:ok, %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
   """
   @impl Output

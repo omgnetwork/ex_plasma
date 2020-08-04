@@ -3,13 +3,13 @@ defmodule ExPlasma.Output.Type.PaymentV1 do
   Payment V1 Output Type.
   """
 
-  alias ExPlasma.Output.Type.GenericPayment
+  alias ExPlasma.Output.Type.AbstractPayment
 
-  @type t() :: GenericPayment.t()
+  @type t() :: AbstractPayment.t()
 
-  defdelegate to_rlp(output), to: GenericPayment
+  defdelegate to_rlp(output), to: AbstractPayment
 
-  defdelegate to_map(rlp), to: GenericPayment
+  defdelegate to_map(rlp), to: AbstractPayment
 
-  defdelegate validate(output), to: GenericPayment
+  defdelegate validate(output), to: AbstractPayment
 end

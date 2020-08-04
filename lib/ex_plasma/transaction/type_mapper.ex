@@ -33,7 +33,7 @@ defmodule ExPlasma.Transaction.TypeMapper do
   }
 
   @output_type_values %{
-    generic_payment: 0,
+    abstract_payment: 0,
     output_payment_v1: 1,
     output_fee_token_claim: 2
   }
