@@ -41,16 +41,44 @@ defmodule ExPlasma.PaymentV1BuilderTest do
   end
 
   describe "add_input/2" do
-    test "adds the given input to the existing transaction" do
-      tx = PaymentV1Builder.new()
+    test "adds input" do
+      block_number = 99
+      tx_index = 100
+      oindex = 101
 
-      assert tx.inputs == []
+      assert %{inputs: [output]} =
+               PaymentV1Builder.add_input(%PaymentV1{}, blknum: block_number, txindex: tx_index, oindex: oindex)
 
-      updated_tx = PaymentV1Builder.add_input(tx, blknum: 1, txindex: 0, oindex: 0)
+      assert output.output_id.blknum == block_number
+      assert output.output_id.txindex == tx_index
+      assert output.output_id.oindex == oindex
+    end
 
-      assert updated_tx.inputs == [
-               %Output{output_data: nil, output_id: %{blknum: 1, oindex: 0, txindex: 0}, output_type: nil}
-             ]
+    test "appends new input" do
+      block_number = 102
+      tx_index = 103
+      oindex = 104
+
+      transaction = %PaymentV1{
+        inputs: [
+          %ExPlasma.Output{
+            output_data: nil,
+            output_id: %{blknum: 99, oindex: 101, txindex: 100},
+            output_type: nil
+          }
+        ],
+        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+        outputs: [],
+        tx_data: 0,
+        tx_type: 0
+      }
+
+      assert %{inputs: [_output, output]} =
+               PaymentV1Builder.add_input(transaction, blknum: block_number, txindex: tx_index, oindex: oindex)
+
+      assert output.output_id.blknum == block_number
+      assert output.output_id.txindex == tx_index
+      assert output.output_id.oindex == oindex
     end
   end
 

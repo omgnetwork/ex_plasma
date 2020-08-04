@@ -15,17 +15,35 @@ defmodule ExPlasma do
   @type transaction_type :: <<_::8>>
 
   @doc """
-    Simple payment type V1
+  Simple payment type V1
+
+  ## Example
+
+    iex> ExPlasma.payment_v1()
+    <<1>>
   """
   @spec payment_v1() :: transaction_type()
   def payment_v1(), do: @payment_v1
 
   @doc """
-    Transaction fee claim V1
+  Transaction fee claim V1
+
+  ## Example
+
+    iex> ExPlasma.fee()
+    <<3>>
   """
   @spec fee() :: transaction_type()
   def fee(), do: @fee
 
+  @doc """
+  Transaction types
+
+  ## Example
+
+    iex> ExPlasma.transaction_types()
+    [<<1>>, <<3>>]
+  """
   @spec transaction_types :: [<<_::8>>, ...]
   def transaction_types(), do: [payment_v1(), fee()]
 

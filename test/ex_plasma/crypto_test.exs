@@ -6,6 +6,20 @@ defmodule ExPlasma.CryptoTest do
   alias ExPlasma.Encoding
   alias ExPlasma.Signature
 
+  describe "keccak_hash/1" do
+    test "calculates keccak hash" do
+      message = "Hello world"
+
+      result = Crypto.keccak_hash(message)
+
+      expected_result =
+        <<237, 108, 17, 176, 181, 184, 8, 150, 13, 242, 111, 91, 252, 71, 29, 4, 193, 153, 91, 15, 253, 32, 85, 146, 90,
+          209, 190, 40, 214, 186, 173, 253>>
+
+      assert result == expected_result
+    end
+  end
+
   describe "recover_address/2" do
     test "recovers address of the signer from a binary-encoded signature" do
       {:ok, priv} = generate_private_key()
@@ -16,6 +30,18 @@ defmodule ExPlasma.CryptoTest do
       sig = Signature.signature_digest(msg, Encoding.to_hex(priv))
 
       assert {:ok, ^address} = Crypto.recover_address(msg, sig)
+    end
+
+    test "fails to recover address with invalid signature" do
+      assert Crypto.recover_address(<<2::256>>, <<1::65>>) == {:error, :corrupted_witness}
+    end
+
+    test "fails to recover address with invalid signature size" do
+      assert Crypto.recover_address(<<2::256>>, <<1>>) == {:error, :corrupted_witness}
+    end
+
+    test "fails to recover address with invalid message" do
+      assert Crypto.recover_address(<<2>>, <<1::65>>) == {:error, :invalid_message}
     end
   end
 
