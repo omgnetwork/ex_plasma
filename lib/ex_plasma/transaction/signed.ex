@@ -78,9 +78,6 @@ defmodule ExPlasma.Transaction.Signed do
 
   def to_map(_), do: {:error, :malformed_transaction}
 
-  defp validate_sigs_list(sigs) when is_list(sigs), do: :ok
-  defp validate_sigs_list(_sigs), do: {:error, :malformed_witnesses}
-
   @doc """
   Validate a signed transaction.
 
@@ -93,15 +90,6 @@ defmodule ExPlasma.Transaction.Signed do
       :ok
     end
   end
-
-  defp validate_sigs([sig | rest]) do
-    case Witness.valid?(sig) do
-      true -> validate_sigs(rest)
-      false -> {:error, {:witnesses, :malformed_witnesses}}
-    end
-  end
-
-  defp validate_sigs([]), do: :ok
 
   @doc """
   Recovers the witnesses for non-empty signatures, in the order they appear in transaction's signatures.
@@ -128,4 +116,16 @@ defmodule ExPlasma.Transaction.Signed do
       end
     end)
   end
+
+  defp validate_sigs_list(sigs) when is_list(sigs), do: :ok
+  defp validate_sigs_list(_sigs), do: {:error, :malformed_witnesses}
+
+  defp validate_sigs([sig | rest]) do
+    case Witness.valid?(sig) do
+      true -> validate_sigs(rest)
+      false -> {:error, {:witnesses, :malformed_witnesses}}
+    end
+  end
+
+  defp validate_sigs([]), do: :ok
 end

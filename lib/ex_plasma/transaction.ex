@@ -52,8 +52,9 @@ defmodule ExPlasma.Transaction do
   def decode(tx_bytes, :signed), do: Signed.decode(tx_bytes)
 
   def decode(tx_bytes, :raw) do
-    with {:ok, raw_tx_rlp_decoded_chunks} <- RlpDecoder.decode(tx_bytes) do
-      to_map(raw_tx_rlp_decoded_chunks)
+    case RlpDecoder.decode(tx_bytes) do
+      {:ok, raw_tx_rlp_decoded_chunks} -> to_map(raw_tx_rlp_decoded_chunks)
+      {:error, :malformed_rlp} = error -> error
     end
   end
 
@@ -67,9 +68,13 @@ defmodule ExPlasma.Transaction do
   """
   @spec to_map(list()) :: {:ok, Protocol.t()} | {:error, mapping_error()}
   def to_map([raw_tx_type | raw_tx_rlp_decoded_chunks]) do
-    with {:ok, tx_type} <- parse_tx_type(raw_tx_type) do
-      protocol_module = @tx_types_modules[tx_type]
-      Protocol.to_map(protocol_module.__struct__, [raw_tx_type | raw_tx_rlp_decoded_chunks])
+    case parse_tx_type(raw_tx_type) do
+      {:ok, tx_type} ->
+        protocol_module = @tx_types_modules[tx_type]
+        Protocol.to_map(protocol_module.__struct__, [raw_tx_type | raw_tx_rlp_decoded_chunks])
+
+      {:error, :unrecognized_transaction_type} = error ->
+        error
     end
   end
 
