@@ -74,23 +74,22 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
 end
 
 defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 do
+  require ExPlasma.Transaction.Type.PaymentV1.Validator
+
   alias ExPlasma.Output
   alias ExPlasma.Transaction.TypeMapper
   alias ExPlasma.Transaction.Type.PaymentV1
+  alias ExPlasma.Transaction.Type.PaymentV1.Validator
   alias ExPlasma.Utils.RlpDecoder
 
   @empty_metadata <<0::256>>
   @empty_tx_data 0
-  @output_limit 4
 
   @tx_type TypeMapper.tx_type_for(:tx_payment_v1)
-  @output_type TypeMapper.output_type_for(:output_payment_v1)
 
   @type validation_error() ::
-          {:inputs, :duplicate_inputs}
-          | {:inputs | :outputs, :cannot_exceed_maximum_value}
-          | {:inputs | :outputs, :cannot_subceed_minimum_value}
-          | {:outputs, :invalid_output_type_for_transaction}
+          Validator.inputs_validation_error()
+          | Validator.outputs_validation_error()
           | {:tx_data, :malformed_tx_data}
           | {:metadata, :malformed_metadata}
 
@@ -100,17 +99,11 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
           | :malformed_inputs
           | :malformed_outputs
 
-  defmacro is_metadata(metadata) do
-    quote do
-      is_binary(unquote(metadata)) and byte_size(unquote(metadata)) == 32
-    end
-  end
-
   @doc """
   Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
   """
   @spec to_rlp(PaymentV1.t()) :: list(any())
-  def to_rlp(%PaymentV1{} = transaction) do
+  def to_rlp(transaction) do
     %PaymentV1{inputs: inputs, outputs: outputs, metadata: metadata} = transaction
 
     [
@@ -129,7 +122,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   Does not perform any other kind of validation, use validate/1 for that.
   """
   @spec to_map(PaymentV1.t(), list()) :: {:ok, PaymentV1.t()} | {:error, mapping_error()}
-  def to_map(%PaymentV1{}, [<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
+  def to_map(_struct, [<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
     with {:ok, inputs} <- decode_inputs(inputs_rlp),
          {:ok, outputs} <- decode_outputs(outputs_rlp),
          {:ok, tx_data} <- decode_tx_data(tx_data_rlp),
@@ -148,23 +141,23 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   def to_map(_, _), do: {:error, :malformed_transaction}
 
   @spec get_inputs(PaymentV1.t()) :: list(Output.t())
-  def get_inputs(%PaymentV1{} = transaction), do: transaction.inputs
+  def get_inputs(transaction), do: transaction.inputs
 
   @spec get_outputs(PaymentV1.t()) :: list(Output.t())
-  def get_outputs(%PaymentV1{} = transaction), do: transaction.outputs
+  def get_outputs(transaction), do: transaction.outputs
 
   @spec get_tx_type(PaymentV1.t()) :: pos_integer()
-  def get_tx_type(%PaymentV1{} = transaction), do: transaction.tx_type
+  def get_tx_type(transaction), do: transaction.tx_type
 
   @doc """
   Validates the Transaction.
   """
   @spec validate(PaymentV1.t()) :: :ok | {:error, validation_error()}
-  def validate(%PaymentV1{} = transaction) do
-    with :ok <- validate_inputs(transaction.inputs),
-         :ok <- validate_outputs(transaction.outputs),
-         :ok <- validate_tx_data(transaction.tx_data),
-         :ok <- validate_metadata(transaction.metadata) do
+  def validate(transaction) do
+    with :ok <- Validator.validate_inputs(transaction.inputs),
+         :ok <- Validator.validate_outputs(transaction.outputs),
+         :ok <- Validator.validate_tx_data(transaction.tx_data),
+         :ok <- Validator.validate_metadata(transaction.metadata) do
       :ok
     end
   end
@@ -181,7 +174,7 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
     _ -> {:error, :malformed_outputs}
   end
 
-  defp decode_metadata(metadata_rlp) when is_metadata(metadata_rlp), do: {:ok, metadata_rlp}
+  defp decode_metadata(metadata_rlp) when Validator.is_metadata(metadata_rlp), do: {:ok, metadata_rlp}
   defp decode_metadata(_), do: {:error, :malformed_metadata}
 
   defp decode_tx_data(@empty_tx_data), do: {:ok, @empty_tx_data}
@@ -192,60 +185,4 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
       _ -> {:error, :malformed_tx_data}
     end
   end
-
-  defp validate_inputs(inputs) do
-    with :ok <- validate_generic_output(inputs),
-         :ok <- validate_unique_inputs(inputs),
-         :ok <- validate_outputs_count(:inputs, inputs, 0) do
-      :ok
-    end
-  end
-
-  defp validate_outputs(outputs) do
-    with :ok <- validate_generic_output(outputs),
-         :ok <- validate_outputs_count(:outputs, outputs, 1),
-         :ok <- validate_outputs_type(outputs) do
-      :ok
-    end
-  end
-
-  defp validate_generic_output([output | rest]) do
-    case Output.validate(output) do
-      {:ok, _} -> validate_generic_output(rest)
-      error -> error
-    end
-  end
-
-  defp validate_generic_output([]), do: :ok
-
-  defp validate_unique_inputs(inputs) do
-    case inputs == Enum.uniq(inputs) do
-      true -> :ok
-      false -> {:error, {:inputs, :duplicate_inputs}}
-    end
-  end
-
-  defp validate_outputs_count(field, list, _min_limit) when length(list) > @output_limit do
-    {:error, {field, :cannot_exceed_maximum_value}}
-  end
-
-  defp validate_outputs_count(field, list, min_limit) when length(list) < min_limit do
-    {:error, {field, :cannot_subceed_minimum_value}}
-  end
-
-  defp validate_outputs_count(_field, _list, _min_limit), do: :ok
-
-  defp validate_outputs_type(outputs) do
-    case Enum.all?(outputs, &(&1.output_type == @output_type)) do
-      true -> :ok
-      false -> {:error, {:outputs, :invalid_output_type_for_transaction}}
-    end
-  end
-
-  # txData is required to be zero in the contract
-  defp validate_tx_data(@empty_tx_data), do: :ok
-  defp validate_tx_data(_), do: {:error, {:tx_data, :malformed_tx_data}}
-
-  defp validate_metadata(metadata) when is_metadata(metadata), do: :ok
-  defp validate_metadata(_), do: {:error, {:metadata, :malformed_metadata}}
 end
