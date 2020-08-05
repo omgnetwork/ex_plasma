@@ -45,5 +45,5 @@ defmodule ExPlasma.Transaction.Recovered do
   end
 
   @spec validate(t()) :: :ok | {:error, validation_error()}
-  def validate(%__MODULE__{} = recovered), do: Signed.validate(recovered.signed_tx)
+  def validate(recovered), do: Signed.validate(recovered.signed_tx)
 end

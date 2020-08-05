@@ -30,7 +30,7 @@ defmodule ExPlasma.Transaction.Signed do
   Produce a binary form of a signed transaction - coerces into RLP-encodeable structure and RLP encodes
   """
   @spec encode(t()) :: tx_bytes()
-  def encode(%__MODULE__{} = signed) do
+  def encode(signed) do
     signed |> to_rlp() |> ExRLP.encode()
   end
 
@@ -38,7 +38,7 @@ defmodule ExPlasma.Transaction.Signed do
   RLP encodes the signed transaction.
   """
   @spec to_rlp(t()) :: list()
-  def to_rlp(%__MODULE__{} = signed) do
+  def to_rlp(signed) do
     [signed.sigs | Protocol.to_rlp(signed.raw_tx)]
   end
 
@@ -82,7 +82,7 @@ defmodule ExPlasma.Transaction.Signed do
   Returns :ok if valid or {:error, atom()} otherwise.
   """
   @spec validate(t()) :: :ok | {:error, validation_error()}
-  def validate(%__MODULE__{} = transaction) do
+  def validate(transaction) do
     with :ok <- validate_sigs(transaction.sigs),
          :ok <- Protocol.validate(transaction.raw_tx) do
       :ok
@@ -96,9 +96,9 @@ defmodule ExPlasma.Transaction.Signed do
   or {:error, :corrupted_witness} otherwise.
   """
   @spec get_witnesses(t()) :: {:ok, list(Witness.t())} | {:error, Witness.recovery_error()}
-  def get_witnesses(%__MODULE__{sigs: []}), do: {:ok, []}
+  def get_witnesses(%{sigs: []}), do: {:ok, []}
 
-  def get_witnesses(%__MODULE__{} = signed) do
+  def get_witnesses(signed) do
     %__MODULE__{raw_tx: raw_tx, sigs: sigs} = signed
     hash = TypedData.hash(raw_tx)
 
