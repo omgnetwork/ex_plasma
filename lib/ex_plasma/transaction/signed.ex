@@ -96,7 +96,7 @@ defmodule ExPlasma.Transaction.Signed do
   or {:error, :corrupted_witness} otherwise.
   """
   @spec get_witnesses(t()) :: {:ok, list(Witness.t())} | {:error, Witness.recovery_error()}
-  def get_witnesses(%{sigs: []}), do: {:ok, []}
+  def get_witnesses(%__MODULE__{sigs: []}), do: {:ok, []}
 
   def get_witnesses(signed) do
     %__MODULE__{raw_tx: raw_tx, sigs: sigs} = signed
