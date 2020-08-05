@@ -6,36 +6,43 @@ defmodule ExPlasma.Transaction.TypeMapper do
   alias ExPlasma.Output
   alias ExPlasma.Transaction
 
-  @type tx_type_to_tx_module_map() :: %{1 => ExPlasma.Transaction.Type.PaymentV1}
+  @type tx_type_to_tx_module_map() :: %{1 => ExPlasma.Transaction.Type.PaymentV1, 3 => ExPlasma.Transaction.Type.Fee}
   @type tx_type_to_output_module_map() :: %{
           0 => Output.Type.PaymentV1,
-          1 => Output.Type.PaymentV1
+          1 => Output.Type.PaymentV1,
+          2 => Output.Type.Fee
         }
   @type module_to_tx_type_map() :: %{
-          Transaction.Type.PaymentV1 => 1
+          Transaction.Type.PaymentV1 => 1,
+          Transaction.Type.Fee => 3
         }
 
   @tx_type_values %{
-    tx_payment_v1: 1
+    tx_payment_v1: 1,
+    tx_fee_token_claim: 3
   }
 
   @tx_type_modules %{
-    1 => Transaction.Type.PaymentV1
+    1 => Transaction.Type.PaymentV1,
+    3 => Transaction.Type.Fee
   }
 
   @module_tx_types %{
-    Transaction.Type.PaymentV1 => 1
+    Transaction.Type.PaymentV1 => 1,
+    Transaction.Type.Fee => 3
   }
 
   @output_type_values %{
     abstract_payment: 0,
-    output_payment_v1: 1
+    output_payment_v1: 1,
+    output_fee_token_claim: 2
   }
 
   @output_type_modules %{
     # NB: work-around the TypeData using a "zeroed-out" output to hash the eip712 struct with.
     0 => Output.Type.PaymentV1,
-    1 => Output.Type.PaymentV1
+    1 => Output.Type.PaymentV1,
+    2 => Output.Type.Fee
   }
 
   @known_tx_types Map.keys(@tx_type_values)

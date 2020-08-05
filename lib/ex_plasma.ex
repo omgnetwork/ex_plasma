@@ -10,6 +10,7 @@ defmodule ExPlasma do
   # when we introduce a new payment type, you name it `paymentV2`
   # https://github.com/omisego/plasma-contracts/blob/6ab35256b805e25cfc30d85f95f0616415220b20/plasma_framework/docs/design/tx-types-dependencies.md
   @payment_v1 <<TypeMapper.tx_type_for(:tx_payment_v1)>>
+  @fee <<TypeMapper.tx_type_for(:tx_fee_token_claim)>>
 
   @type transaction_type :: <<_::8>>
 
@@ -25,15 +26,26 @@ defmodule ExPlasma do
   def payment_v1(), do: @payment_v1
 
   @doc """
+  Transaction fee claim V1
+
+  ## Example
+
+    iex> ExPlasma.fee()
+    <<3>>
+  """
+  @spec fee() :: transaction_type()
+  def fee(), do: @fee
+
+  @doc """
   Transaction types
 
   ## Example
 
     iex> ExPlasma.transaction_types()
-    [<<1>>]
+    [<<1>>, <<3>>]
   """
   @spec transaction_types :: [<<_::8>>, ...]
-  def transaction_types(), do: [payment_v1()]
+  def transaction_types(), do: [payment_v1(), fee()]
 
   @doc """
   Produces a RLP encoded transaction bytes for the given transaction data.
