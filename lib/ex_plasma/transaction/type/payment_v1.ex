@@ -147,6 +147,28 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
 
   def to_map(_, _), do: {:error, :malformed_transaction}
 
+  @spec get_inputs(PaymentV1.t()) :: list(Output.t())
+  def get_inputs(%PaymentV1{} = transaction), do: transaction.inputs
+
+  @spec get_outputs(PaymentV1.t()) :: list(Output.t())
+  def get_outputs(%PaymentV1{} = transaction), do: transaction.outputs
+
+  @spec get_tx_type(PaymentV1.t()) :: pos_integer()
+  def get_tx_type(%PaymentV1{} = transaction), do: transaction.tx_type
+
+  @doc """
+  Validates the Transaction.
+  """
+  @spec validate(PaymentV1.t()) :: :ok | {:error, validation_error()}
+  def validate(%PaymentV1{} = transaction) do
+    with :ok <- validate_inputs(transaction.inputs),
+         :ok <- validate_outputs(transaction.outputs),
+         :ok <- validate_tx_data(transaction.tx_data),
+         :ok <- validate_metadata(transaction.metadata) do
+      :ok
+    end
+  end
+
   defp decode_inputs(inputs_rlp) do
     {:ok, Enum.map(inputs_rlp, &Output.decode_id(&1))}
   rescue
@@ -168,28 +190,6 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
     case RlpDecoder.parse_uint256(tx_data_rlp) do
       {:ok, tx_data} -> {:ok, tx_data}
       _ -> {:error, :malformed_tx_data}
-    end
-  end
-
-  @spec get_inputs(PaymentV1.t()) :: list(Output.t())
-  def get_inputs(%PaymentV1{} = transaction), do: transaction.inputs
-
-  @spec get_outputs(PaymentV1.t()) :: list(Output.t())
-  def get_outputs(%PaymentV1{} = transaction), do: transaction.outputs
-
-  @spec get_tx_type(PaymentV1.t()) :: pos_integer()
-  def get_tx_type(%PaymentV1{} = transaction), do: transaction.tx_type
-
-  @doc """
-  Validates the Transaction.
-  """
-  @spec validate(PaymentV1.t()) :: :ok | {:error, validation_error()}
-  def validate(%PaymentV1{} = transaction) do
-    with :ok <- validate_inputs(transaction.inputs),
-         :ok <- validate_outputs(transaction.outputs),
-         :ok <- validate_tx_data(transaction.tx_data),
-         :ok <- validate_metadata(transaction.metadata) do
-      :ok
     end
   end
 

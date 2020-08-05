@@ -22,10 +22,7 @@ defmodule ExPlasma.Transaction.Signed do
 
   @type validation_error() :: {:witnesses, :malformed_witnesses} | {atom(), atom()}
 
-  @type t() :: %__MODULE__{
-          raw_tx: Protocol.t(),
-          sigs: [Crypto.sig_t()]
-        }
+  @type t() :: %__MODULE__{raw_tx: Protocol.t(), sigs: [Crypto.sig_t()]}
 
   defstruct [:raw_tx, :sigs]
 
@@ -58,7 +55,7 @@ defmodule ExPlasma.Transaction.Signed do
       {:ok, tx_rlp_decoded_chunks} ->
         to_map(tx_rlp_decoded_chunks)
 
-      error ->
+      {:error, :malformed_rlp} = error ->
         error
     end
   end
@@ -72,8 +69,9 @@ defmodule ExPlasma.Transaction.Signed do
   @spec to_map(list()) :: {:ok, t()} | {:error, mapping_error()}
   def to_map([sigs | typed_tx_rlp_decoded_chunks]) do
     with :ok <- validate_sigs_list(sigs),
-         {:ok, raw_tx} <- Transaction.to_map(typed_tx_rlp_decoded_chunks),
-         do: {:ok, %__MODULE__{raw_tx: raw_tx, sigs: sigs}}
+         {:ok, raw_tx} <- Transaction.to_map(typed_tx_rlp_decoded_chunks) do
+      {:ok, %__MODULE__{raw_tx: raw_tx, sigs: sigs}}
+    end
   end
 
   def to_map(_), do: {:error, :malformed_transaction}

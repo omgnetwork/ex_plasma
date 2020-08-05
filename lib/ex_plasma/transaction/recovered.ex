@@ -32,9 +32,11 @@ defmodule ExPlasma.Transaction.Recovered do
   def decode(encoded_signed_tx) do
     with {:ok, signed_tx} <- Signed.decode(encoded_signed_tx),
          {:ok, witnesses} <- Signed.get_witnesses(signed_tx) do
+      tx_hash = Transaction.hash(signed_tx)
+
       {:ok,
        %__MODULE__{
-         tx_hash: Transaction.hash(signed_tx),
+         tx_hash: tx_hash,
          witnesses: witnesses,
          signed_tx: signed_tx,
          signed_tx_bytes: encoded_signed_tx

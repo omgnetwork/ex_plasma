@@ -10,9 +10,7 @@ defmodule ExPlasma.Crypto do
   @type address_t() :: <<_::160>>
   @type hash_t() :: <<_::256>>
 
-  @type recover_address_error() ::
-          :corrupted_witness
-          | :invalid_message
+  @type recover_address_error() :: :corrupted_witness | :invalid_message
 
   @doc """
   Produces a KECCAK digest for the message.
