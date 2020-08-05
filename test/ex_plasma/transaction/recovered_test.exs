@@ -93,16 +93,12 @@ defmodule ExPlasma.Transaction.RecoveredTest do
     end
 
     test "returns a malformed_transaction error when rlp is decodable, but doesn't represent a known transaction format",
-         %{sigs: sigs, inputs: inputs, outputs: outputs} do
+         %{sigs: sigs, outputs: outputs} do
       assert Recovered.decode(<<192>>) == {:error, :malformed_transaction}
       assert Recovered.decode(<<0x80>>) == {:error, :malformed_transaction}
       assert Recovered.decode(<<>>) == {:error, :malformed_transaction}
       assert Recovered.decode(ExRLP.encode(23)) == {:error, :malformed_transaction}
       assert Recovered.decode(ExRLP.encode([sigs, 1])) == {:error, :malformed_transaction}
-      # looks like a payment transaction but type points to a `Transaction.Fee`, hence malformed not unrecognized
-      assert Recovered.decode(ExRLP.encode([sigs, 3, inputs, outputs, 0, @zero_metadata])) ==
-               {:error, :malformed_transaction}
-
       assert Recovered.decode(ExRLP.encode([sigs, 1, outputs, 0, @zero_metadata])) == {:error, :malformed_transaction}
     end
 

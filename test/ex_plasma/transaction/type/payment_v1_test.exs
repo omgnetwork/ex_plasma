@@ -321,7 +321,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       output = %Output{
         output_data: %{amount: 2, output_guard: <<2::160>>, token: <<0::160>>},
         output_id: nil,
-        output_type: 2
+        output_type: 0
       }
 
       tx = PaymentV1.new([], [output])
