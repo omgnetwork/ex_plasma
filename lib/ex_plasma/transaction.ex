@@ -107,7 +107,7 @@ defmodule ExPlasma.Transaction do
   ...>   38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
   ...>   0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ...>   0>>
-  iex> ExPlasma.Transaction.decode(rlp, :signed)
+  iex> ExPlasma.Transaction.decode(rlp)
   %ExPlasma.Transaction{
     inputs: [
       %ExPlasma.Output{

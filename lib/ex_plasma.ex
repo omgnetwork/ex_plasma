@@ -53,7 +53,7 @@ defmodule ExPlasma do
   ## Example
 
   iex> txn =
-  ...>  %ExPlasma.Transaction.Type.PaymentV1{
+  ...>  %ExPlasma.Transaction{
   ...>    inputs: [
   ...>      %ExPlasma.Output{
   ...>        output_data: nil,
@@ -75,16 +75,17 @@ defmodule ExPlasma do
   ...>        output_type: 1
   ...>      }
   ...>    ],
-  ...>    tx_data: 0,
+  ...>    sigs: [],
+  ...>    tx_data: <<0>>,
   ...>    tx_type: 1
   ...>  }
   iex> ExPlasma.encode(txn)
   <<248, 104, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
-  41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
-  148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
-  241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0>>
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
+    41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
+    148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
+    241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0>>
   """
   defdelegate encode(transaction), to: Transaction
 
@@ -101,7 +102,7 @@ defmodule ExPlasma do
   ...>  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   iex> ExPlasma.decode(rlp, :raw)
   {:ok,
-    %ExPlasma.Transaction.Type.PaymentV1{
+    %ExPlasma.Transaction{
       inputs: [
         %ExPlasma.Output{
           output_data: nil,
@@ -123,6 +124,8 @@ defmodule ExPlasma do
           output_type: 1
         }
       ],
+      witnesses: [],
+      sigs: [],
       tx_data: 0,
       tx_type: 1
     }

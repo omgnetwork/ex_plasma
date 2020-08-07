@@ -66,14 +66,12 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   @spec to_rlp(Transaction.t()) :: list()
   @impl Transaction
   def to_rlp(transaction) do
-    %Transaction{inputs: inputs, outputs: outputs, metadata: metadata} = transaction
-
     [
       <<@tx_type>>,
-      Enum.map(inputs, &Output.to_rlp_id/1),
-      Enum.map(outputs, &Output.to_rlp/1),
+      Enum.map(transaction.inputs, &Output.to_rlp_id/1),
+      Enum.map(transaction.outputs, &Output.to_rlp/1),
       @empty_tx_data,
-      metadata || @empty_metadata
+      transaction.metadata || @empty_metadata
     ]
   end
 

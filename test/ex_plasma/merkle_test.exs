@@ -3,13 +3,13 @@ defmodule ExPlasma.MerkleTest do
   doctest ExPlasma.Merkle
 
   alias ExPlasma.Merkle
-  alias ExPlasma.Transaction.Type.PaymentV1
+  alias ExPlasma.Transaction
 
   describe "proof/2" do
     test "calculates merkle proof" do
       transactions =
         Enum.map(1..16, fn _ ->
-          transaction = %PaymentV1{
+          transaction = %Transaction{
             inputs: [
               %ExPlasma.Output{
                 output_data: nil,
@@ -68,7 +68,7 @@ defmodule ExPlasma.MerkleTest do
     test "calculates merkle root hash" do
       transactions =
         Enum.map(1..5, fn _ ->
-          transaction = %PaymentV1{
+          transaction = %Transaction{
             inputs: [
               %ExPlasma.Output{
                 output_data: nil,

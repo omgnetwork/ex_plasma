@@ -22,7 +22,7 @@ defmodule ExPlasma.Transaction.SignedTest do
       |> PaymentV1Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
       |> PaymentV1Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
       |> PaymentV1Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
-      |> PaymentV1Builder.sign!(keys: [alice_priv, alice_priv])
+      |> PaymentV1Builder.sign!([alice_priv, alice_priv])
 
     encoded_signed_tx = Transaction.encode(signed)
 
@@ -32,16 +32,6 @@ defmodule ExPlasma.Transaction.SignedTest do
        signed: signed,
        encoded_signed_tx: encoded_signed_tx
      }}
-  end
-
-  describe "encode/1" do
-    test "encodes a signed transaction into an RLP encoded binary", %{signed: signed} do
-      encoded = Signed.encode(signed)
-
-      assert is_binary(encoded)
-      assert {:ok, decoded} = Signed.decode(encoded)
-      assert decoded == signed
-    end
   end
 
   describe "to_rlp/1" do
@@ -116,7 +106,7 @@ defmodule ExPlasma.Transaction.SignedTest do
         |> PaymentV1Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
         |> PaymentV1Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
         |> PaymentV1Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
-        |> PaymentV1Builder.sign!(keys: [alice_priv, alice_priv])
+        |> PaymentV1Builder.sign!([alice_priv, alice_priv])
 
       assert Signed.validate(signed) == {:error, {:inputs, :duplicate_inputs}}
     end

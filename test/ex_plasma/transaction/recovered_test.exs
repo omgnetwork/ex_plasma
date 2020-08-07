@@ -28,7 +28,7 @@ defmodule ExPlasma.Transaction.RecoveredTest do
       |> PaymentV1Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
       |> PaymentV1Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
       |> PaymentV1Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
-      |> PaymentV1Builder.sign!(keys: [alice_priv, alice_priv])
+      |> PaymentV1Builder.sign!([alice_priv, alice_priv])
 
     encoded_signed_tx = Transaction.encode(signed)
 
@@ -266,7 +266,7 @@ defmodule ExPlasma.Transaction.RecoveredTest do
         |> PaymentV1Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
         |> PaymentV1Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
         |> PaymentV1Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
-        |> PaymentV1Builder.sign!(keys: [alice_priv, alice_priv])
+        |> PaymentV1Builder.sign!([alice_priv, alice_priv])
 
       {:ok, recovered} = signed |> Transaction.encode() |> Recovered.decode()
 
@@ -292,7 +292,7 @@ defmodule ExPlasma.Transaction.RecoveredTest do
     assert {:ok, signed} =
              inputs
              |> PaymentV1.new(outputs)
-             |> Transaction.sign(keys: privs)
+             |> Transaction.sign(privs)
 
     encoded_signed_tx = Transaction.encode(signed)
 

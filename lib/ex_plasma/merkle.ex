@@ -13,7 +13,7 @@ defmodule ExPlasma.Merkle do
 
   ## Examples
 
-    iex> txns = %ExPlasma.Transaction.Type.PaymentV1{} |> ExPlasma.encode() |> List.wrap()
+    iex> txns = %ExPlasma.Transaction{tx_type: 1} |> ExPlasma.encode() |> List.wrap()
     iex> ExPlasma.Merkle.root_hash(txns)
     <<168, 54, 172, 201, 1, 212, 18, 167, 34, 57, 232, 89, 151, 225, 172, 150, 208,
       77, 194, 12, 174, 250, 146, 254, 93, 42, 28, 253, 203, 237, 247, 62>>

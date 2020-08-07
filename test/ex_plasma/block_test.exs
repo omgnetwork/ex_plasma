@@ -3,11 +3,11 @@ defmodule ExPlasma.BlockTest do
   doctest ExPlasma.Block
 
   alias ExPlasma.Block
-  alias ExPlasma.Transaction.Type.PaymentV1
+  alias ExPlasma.Transaction
 
   describe "new/1" do
     test "creates a new block" do
-      transaction = %PaymentV1{
+      transaction = %Transaction{
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         tx_data: 0,
