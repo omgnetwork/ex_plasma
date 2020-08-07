@@ -6,88 +6,42 @@ defmodule ExPlasma.Transaction.Signed do
   """
 
   alias ExPlasma.Crypto
+  alias ExPlasma.Signature
   alias ExPlasma.Transaction
-  alias ExPlasma.Transaction.Protocol
   alias ExPlasma.Transaction.Witness
   alias ExPlasma.TypedData
   alias ExPlasma.Utils.RlpDecoder
 
   @type tx_bytes() :: binary()
-  @type decoding_error() :: :malformed_rlp | mapping_error()
-
-  @type mapping_error() ::
-          :malformed_transaction
-          | :malformed_witnesses
-          | atom()
-
-  @type validation_error() :: {:witnesses, :malformed_witnesses} | {atom(), atom()}
-
-  @type t() :: %__MODULE__{raw_tx: Protocol.t(), sigs: [Crypto.sig_t()]}
-
-  defstruct [:raw_tx, :sigs]
+  @type decoding_error() :: :malformed_rlp | :malformed_witnesses
+  @type validation_error() :: {:witnesses, :malformed_witnesses}
+  @type sigs() :: list(Crypto.sig_t()) | []
 
   @doc """
-  Produce a binary form of a signed transaction - coerces into RLP-encodeable structure and RLP encodes
-  """
-  @spec encode(t()) :: tx_bytes()
-  def encode(signed) do
-    signed |> to_rlp() |> ExRLP.encode()
-  end
+  Decodes a binary expecting it to represent a signed transactions with
+  the signatures being the first element of the decoded RLP list.
 
-  @doc """
-  RLP encodes the signed transaction.
-  """
-  @spec to_rlp(t()) :: list()
-  def to_rlp(signed) do
-    [signed.sigs | Protocol.to_rlp(signed.raw_tx)]
-  end
-
-  @doc """
-  Produces a struct from the binary encoded form of a signed transactions - RLP decodes to structure of RLP-items
-  and then produces an Elixir struct.
+  Returns {:ok, sigs, typed_tx_rlp_items} if the encoded RLP can be decoded,
+  or {:error, atom} otherwise.
 
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec decode(tx_bytes()) :: {:ok, t()} | {:error, decoding_error()}
+  @spec decode(tx_bytes()) :: {:ok, list()} | {:error, decoding_error()}
   def decode(signed_tx_bytes) do
-    case RlpDecoder.decode(signed_tx_bytes) do
-      {:ok, tx_rlp_decoded_chunks} ->
-        to_map(tx_rlp_decoded_chunks)
-
-      {:error, :malformed_rlp} = error ->
-        error
+    with {:ok, tx_rlp_items} <- RlpDecoder.decode(signed_tx_bytes),
+         {:ok, sigs, typed_tx_rlp_items} <- validate_rlp_items(tx_rlp_items) do
+      {:ok, [sigs, typed_tx_rlp_items]}
     end
   end
-
-  @doc """
-  Decodes an RLP list into a Signed Transaction.
-
-  Only validates that the RLP is structurally correct.
-  Does not perform any other kind of validation, use validate/1 for that.
-  """
-  @spec to_map(list()) :: {:ok, t()} | {:error, mapping_error()}
-  def to_map([sigs | typed_tx_rlp_decoded_chunks]) do
-    with :ok <- validate_sigs_list(sigs),
-         {:ok, raw_tx} <- Transaction.to_map(typed_tx_rlp_decoded_chunks) do
-      {:ok, %__MODULE__{raw_tx: raw_tx, sigs: sigs}}
-    end
-  end
-
-  def to_map(_), do: {:error, :malformed_transaction}
 
   @doc """
   Validate a signed transaction.
 
-  Returns :ok if valid or {:error, atom()} otherwise.
+  Returns :ok if valid or {:error, {:witnesses, :malformed_witnesses}} otherwise.
   """
-  @spec validate(t()) :: :ok | {:error, validation_error()}
-  def validate(transaction) do
-    with :ok <- validate_sigs(transaction.sigs),
-         :ok <- Protocol.validate(transaction.raw_tx) do
-      :ok
-    end
-  end
+  @spec validate(Transaction.t()) :: :ok | {:error, validation_error()}
+  def validate(transaction), do: validate_sigs(transaction.sigs)
 
   @doc """
   Recovers the witnesses for non-empty signatures, in the order they appear in transaction's signatures.
@@ -95,14 +49,13 @@ defmodule ExPlasma.Transaction.Signed do
   Returns {:ok, witness_list} if witnesses are recoverable,
   or {:error, :corrupted_witness} otherwise.
   """
-  @spec get_witnesses(t()) :: {:ok, list(Witness.t())} | {:error, Witness.recovery_error()}
-  def get_witnesses(%__MODULE__{sigs: []}), do: {:ok, []}
+  @spec get_witnesses(Transaction.t()) :: {:ok, list(Witness.t())} | {:error, Witness.recovery_error()}
+  def get_witnesses(%Transaction{sigs: []}), do: {:ok, []}
 
-  def get_witnesses(signed) do
-    %__MODULE__{raw_tx: raw_tx, sigs: sigs} = signed
-    hash = TypedData.hash(raw_tx)
+  def get_witnesses(transaction) do
+    hash = TypedData.hash(transaction)
 
-    sigs
+    transaction.sigs
     |> Enum.reverse()
     |> Enum.reduce_while({:ok, []}, fn signature, {:ok, addresses} ->
       case Witness.recover(hash, signature) do
@@ -115,8 +68,22 @@ defmodule ExPlasma.Transaction.Signed do
     end)
   end
 
-  defp validate_sigs_list(sigs) when is_list(sigs), do: :ok
-  defp validate_sigs_list(_sigs), do: {:error, :malformed_witnesses}
+  @spec compute_signatures(Transaction.t(), list(String.t())) :: {:ok, Signed.t()} | {:error, :not_signable}
+  def compute_signatures(transaction, keys) when is_list(keys) do
+    case TypedData.impl_for(transaction) do
+      nil ->
+        {:error, :not_signable}
+
+      _ ->
+        eip712_hash = TypedData.hash(transaction)
+        sigs = Enum.map(keys, fn key -> Signature.signature_digest(eip712_hash, key) end)
+        {:ok, sigs}
+    end
+  end
+
+  defp validate_rlp_items([sigs, typed_tx_rlp_items]) when is_list(sigs), do: {:ok, sigs, typed_tx_rlp_items}
+  defp validate_rlp_items([_sigs, _typed_tx_rlp_items]), do: {:error, :malformed_witnesses}
+  defp validate_rlp_items(_), do: {:error, :malformed_rlp}
 
   defp validate_sigs([sig | rest]) do
     case Witness.valid?(sig) do

@@ -128,7 +128,7 @@ defmodule ExPlasma do
     }
   }
   """
-  defdelegate decode(tx_bytes, mode), to: Transaction
+  defdelegate decode(tx_bytes), to: Transaction
 
   @doc """
   Keccak hash the Transaction. This is used in the contracts and events to to reference transactions.
@@ -146,90 +146,6 @@ defmodule ExPlasma do
     124, 14, 55, 131, 119, 96, 112, 13, 28, 178, 251, 49, 16, 127, 58, 96>>
   """
   defdelegate hash(transaction), to: Transaction
-
-  @doc """
-  Returns all inputs of the raw transaction involved
-
-  iex> txn =
-  ...>  %ExPlasma.Transaction.Type.PaymentV1{
-  ...>    inputs: [
-  ...>      %ExPlasma.Output{
-  ...>        output_data: nil,
-  ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-  ...>        output_type: nil
-  ...>      }
-  ...>    ],
-  ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-  ...>    outputs: [],
-  ...>    tx_data: 0,
-  ...>    tx_type: 1
-  ...>  }
-  iex> ExPlasma.get_inputs(txn)
-  [
-    %ExPlasma.Output{
-      output_data: nil,
-      output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-      output_type: nil
-    }
-  ]
-  """
-  defdelegate get_inputs(transaction), to: Transaction
-
-  @doc """
-  Returns all outputs of the raw transaction involved
-
-  iex> txn =
-  ...>  %ExPlasma.Transaction.Type.PaymentV1{
-  ...>    inputs: [],
-  ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-  ...>    outputs: [
-  ...>      %ExPlasma.Output{
-  ...>        output_data: %{
-  ...>          amount: 1,
-  ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-  ...>            217, 206, 65, 226, 241, 55, 0, 110>>,
-  ...>          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-  ...>            65, 226, 241, 55, 0, 110>>
-  ...>        },
-  ...>        output_id: nil,
-  ...>        output_type: 1
-  ...>      }
-  ...>    ],
-  ...>    tx_data: 0,
-  ...>    tx_type: 1
-  ...>  }
-  iex> ExPlasma.get_outputs(txn)
-  [
-    %ExPlasma.Output{
-      output_data: %{
-        amount: 1,
-        output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-          217, 206, 65, 226, 241, 55, 0, 110>>,
-        token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-          65, 226, 241, 55, 0, 110>>
-      },
-      output_id: nil,
-      output_type: 1
-    }
-  ]
-  """
-  defdelegate get_outputs(transaction), to: Transaction
-
-  @doc """
-  Returns the type of the raw transaction involved
-
-  iex> txn =
-  ...>  %ExPlasma.Transaction.Type.PaymentV1{
-  ...>    inputs: [],
-  ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-  ...>    outputs: [],
-  ...>    tx_data: 0,
-  ...>    tx_type: 1
-  ...>  }
-  iex> ExPlasma.get_tx_type(txn)
-  1
-  """
-  defdelegate get_tx_type(transaction), to: Transaction
 
   @doc """
   Validates the transaction in its flavor context.

@@ -4,49 +4,37 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
 
   This module holds the representation of a "raw" transaction, i.e. without signatures nor recovered input spenders
   """
+  require __MODULE__.Validator
+
   alias ExPlasma.Crypto
-  alias ExPlasma.Output
+  alias ExPlasma.Transaction
   alias ExPlasma.Transaction.TypeMapper
+  alias __MODULE__.Validator
+  alias ExPlasma.Output
+  alias ExPlasma.Utils.RlpDecoder
 
   @empty_metadata <<0::256>>
   @empty_tx_data 0
+
   @tx_type TypeMapper.tx_type_for(:tx_payment_v1)
   @output_type TypeMapper.output_type_for(:output_payment_v1)
-
-  defstruct tx_type: @tx_type, inputs: [], outputs: [], tx_data: @empty_tx_data, metadata: @empty_metadata
-
-  @type t() :: %__MODULE__{
-          tx_type: pos_integer(),
-          inputs: outputs(),
-          outputs: outputs(),
-          tx_data: any(),
-          metadata: metadata()
-        }
 
   @type outputs() :: list(Output.t()) | []
   @type metadata() :: <<_::256>> | nil
 
-  @doc """
-  Creates a new raw transaction structure from a list of inputs and a list of outputs, given in a succinct tuple form.
+  @type validation_error() ::
+          Validator.inputs_validation_error()
+          | Validator.outputs_validation_error()
+          | {:tx_data, :malformed_tx_data}
+          | {:metadata, :malformed_metadata}
 
-  ## Example
+  @type mapping_error() ::
+          :malformed_transaction
+          | :malformed_tx_data
+          | :malformed_inputs
+          | :malformed_outputs
 
-  iex> input = %ExPlasma.Output{
-  ...>   output_data: nil,
-  ...>   output_id: %{blknum: 1, oindex: 2, position: 1_000_030_002, txindex: 3},
-  ...>   output_type: nil
-  ...> }
-  iex> output = new_output(<<1::160>>, <<0::160>>, 1)
-  iex> tx = new([input], [output])
-  iex> %ExPlasma.Transaction.Type.PaymentV1{inputs: [input], outputs: [output], tx_type: 1, metadata: <<0::256>>, tx_data: 0} = tx
-  """
-  @spec new(outputs(), outputs(), metadata()) :: t()
-  def new(inputs, outputs, metadata) do
-    %__MODULE__{tx_type: @tx_type, inputs: inputs, outputs: outputs, tx_data: @empty_tx_data, metadata: metadata}
-  end
-
-  @spec new(outputs(), outputs()) :: t()
-  def new(inputs, outputs), do: new(inputs, outputs, @empty_metadata)
+  @behaviour ExPlasma.Transaction
 
   @doc """
   Creates output for a payment v1 transaction
@@ -71,40 +59,14 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
       }
     }
   end
-end
-
-defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 do
-  require ExPlasma.Transaction.Type.PaymentV1.Validator
-
-  alias ExPlasma.Output
-  alias ExPlasma.Transaction.TypeMapper
-  alias ExPlasma.Transaction.Type.PaymentV1
-  alias ExPlasma.Transaction.Type.PaymentV1.Validator
-  alias ExPlasma.Utils.RlpDecoder
-
-  @empty_metadata <<0::256>>
-  @empty_tx_data 0
-
-  @tx_type TypeMapper.tx_type_for(:tx_payment_v1)
-
-  @type validation_error() ::
-          Validator.inputs_validation_error()
-          | Validator.outputs_validation_error()
-          | {:tx_data, :malformed_tx_data}
-          | {:metadata, :malformed_metadata}
-
-  @type mapping_error() ::
-          :malformed_transaction
-          | :malformed_tx_data
-          | :malformed_inputs
-          | :malformed_outputs
 
   @doc """
   Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
   """
-  @spec to_rlp(PaymentV1.t()) :: list(any())
+  @spec to_rlp(Transaction.t()) :: list()
+  @impl Transaction
   def to_rlp(transaction) do
-    %PaymentV1{inputs: inputs, outputs: outputs, metadata: metadata} = transaction
+    %Transaction{inputs: inputs, outputs: outputs, metadata: metadata} = transaction
 
     [
       <<@tx_type>>,
@@ -121,14 +83,15 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec to_map(PaymentV1.t(), list()) :: {:ok, PaymentV1.t()} | {:error, mapping_error()}
-  def to_map(_struct, [<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
+  @spec to_map(list()) :: {:ok, Transaction.t()} | {:error, mapping_error()}
+  @impl Transaction
+  def to_map([<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
     with {:ok, inputs} <- decode_inputs(inputs_rlp),
          {:ok, outputs} <- decode_outputs(outputs_rlp),
          {:ok, tx_data} <- decode_tx_data(tx_data_rlp),
          {:ok, metadata} <- decode_metadata(metadata_rlp) do
       {:ok,
-       %PaymentV1{
+       %Transaction{
          tx_type: @tx_type,
          inputs: inputs,
          outputs: outputs,
@@ -140,19 +103,11 @@ defimpl ExPlasma.Transaction.Protocol, for: ExPlasma.Transaction.Type.PaymentV1 
 
   def to_map(_, _), do: {:error, :malformed_transaction}
 
-  @spec get_inputs(PaymentV1.t()) :: list(Output.t())
-  def get_inputs(transaction), do: transaction.inputs
-
-  @spec get_outputs(PaymentV1.t()) :: list(Output.t())
-  def get_outputs(transaction), do: transaction.outputs
-
-  @spec get_tx_type(PaymentV1.t()) :: pos_integer()
-  def get_tx_type(transaction), do: transaction.tx_type
-
   @doc """
   Validates the Transaction.
   """
-  @spec validate(PaymentV1.t()) :: :ok | {:error, validation_error()}
+  @spec validate(Transaction.t()) :: :ok | {:error, validation_error()}
+  @impl Transaction
   def validate(transaction) do
     with :ok <- Validator.validate_inputs(transaction.inputs),
          :ok <- Validator.validate_outputs(transaction.outputs),
