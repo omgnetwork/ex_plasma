@@ -1,8 +1,6 @@
 defmodule ExPlasma.Transaction.Signed do
   @moduledoc """
-  Representation of a signed transaction.
-
-  NOTE: before you use this, make sure you shouldn't use `Transaction` or `Transaction.Recovered`
+  Holds functions related to transactions containing signatures.
   """
 
   alias ExPlasma.Crypto
@@ -21,7 +19,7 @@ defmodule ExPlasma.Transaction.Signed do
   Decodes a binary expecting it to represent a signed transactions with
   the signatures being the first element of the decoded RLP list.
 
-  Returns {:ok, sigs, typed_tx_rlp_items} if the encoded RLP can be decoded,
+  Returns {:ok, signed_tx_rlp_items} if the encoded RLP can be decoded,
   or {:error, atom} otherwise.
 
   Only validates that the RLP is structurally correct.

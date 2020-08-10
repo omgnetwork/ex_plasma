@@ -46,7 +46,7 @@ defmodule ExPlasma.TransactionTest do
      }}
   end
 
-  describe "decode/1" do
+  describe "decode/2" do
     test "decodes successfuly in various empty input/output combinations" do
       transaction_list = [
         {[], [], [{@alice, @eth, 7}]},
@@ -61,6 +61,20 @@ defmodule ExPlasma.TransactionTest do
       ]
 
       Enum.map(transaction_list, &decode_tester/1)
+    end
+
+    test "decodes without signatures when given the opts signed: false but an encoded signed tx", %{
+      encoded_signed_tx: encoded_signed_tx
+    } do
+      assert {:ok, %Transaction{tx_type: 1, sigs: []}} = Transaction.decode(encoded_signed_tx, signed: false)
+    end
+
+    test "decodes without signatures when given the opts signed: false and an encoded unsigned tx", %{
+      signed: signed
+    } do
+      unsigned = %Transaction{signed | sigs: []}
+      unsigned_encoded = Transaction.encode(unsigned, signed: false)
+      assert Transaction.decode(unsigned_encoded, signed: false) == {:ok, unsigned}
     end
 
     test "returns a malformed_rlp error when rlp is not decodable", %{encoded_signed_tx: encoded_signed_tx} do
@@ -245,7 +259,7 @@ defmodule ExPlasma.TransactionTest do
     end
   end
 
-  describe "to_map/1" do
+  describe "to_map/2" do
     test "maps an rlp list starting with a list of sigs into a Transaction structure", %{signed: signed} do
       rlp = Transaction.to_rlp(signed)
 
@@ -333,7 +347,7 @@ defmodule ExPlasma.TransactionTest do
     end
   end
 
-  describe "encode/1" do
+  describe "encode/2" do
     test "encodes a transaction struct", %{signed: signed} do
       result = Transaction.encode(signed)
 
@@ -351,6 +365,21 @@ defmodule ExPlasma.TransactionTest do
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
 
       assert expected_result == result
+    end
+
+    test "encodes without signatures when given the opts signed: false", %{signed: signed} do
+      refute signed.sigs == []
+      encoded_unsigned_tx = Transaction.encode(signed, signed: false)
+      assert [_payment_marker, _inputs, _outputs, _txdata, _metadata] = ExRLP.decode(encoded_unsigned_tx)
+
+      expected_result =
+        <<248, 150, 1, 248, 66, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          59, 154, 202, 0, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 119,
+          53, 148, 0, 238, 237, 1, 235, 148, 70, 55, 228, 199, 167, 80, 4, 228, 159, 169, 40, 95, 34, 176, 220, 96, 12,
+          124, 194, 203, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 128, 160, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+
+      assert expected_result == encoded_unsigned_tx
     end
   end
 

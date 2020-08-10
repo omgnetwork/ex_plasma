@@ -48,7 +48,9 @@ defmodule ExPlasma do
   def transaction_types(), do: [payment_v1(), fee()]
 
   @doc """
-  Produces a RLP encoded transaction bytes for the given transaction data.
+  Encode the given Transaction into an RLP encodable list.
+
+  If `signed: false` is given in the list of opts, will encode the transaction without its signatures.
 
   ## Example
 
@@ -90,7 +92,12 @@ defmodule ExPlasma do
   defdelegate encode(transaction, opts \\ []), to: Transaction
 
   @doc """
-  Decode the given RLP list into a Transaction.
+  Attempt to decode the given RLP list into a Transaction.
+
+  If `signed: false` is given in the list of opts, expects the underlying RLP to not contain signatures.
+
+  Only validates that the RLP is structurally correct and that the tx type is supported.
+  Does not perform any other kind of validation, use validate/1 for that.
 
   ## Example
 
@@ -151,11 +158,7 @@ defmodule ExPlasma do
   defdelegate hash(transaction), to: Transaction
 
   @doc """
-  Validates the transaction in its flavor context.
-
-  For a Recovered transaction: validates the signed transaction
-  For a Signed transaction: validates the signed transaction
-  For a Raw transaction: validates the raw transaction
+  Statelessly validate a transation.
 
   Returns :ok if valid or {:error, {atom, atom}} otherwise
   """

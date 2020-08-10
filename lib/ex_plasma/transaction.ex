@@ -1,6 +1,6 @@
 defmodule ExPlasma.Transaction do
   @moduledoc """
-  Contains the base structure of any type of transactions.
+  Contains the base structure of transactions.
   """
 
   alias ExPlasma.Crypto
@@ -11,7 +11,6 @@ defmodule ExPlasma.Transaction do
   alias ExPlasma.Utils.RlpDecoder
 
   @tx_types_modules TypeMapper.tx_type_modules()
-
   @empty_metadata <<0::256>>
   @empty_tx_data 0
 
@@ -55,7 +54,7 @@ defmodule ExPlasma.Transaction do
   @callback validate(t()) :: :ok | {:error, {atom(), atom()}}
 
   @doc """
-  Encode the given Transaction into an RLP encodeable list.
+  Encode the given Transaction into an RLP encodable list.
 
   If `signed: false` is given in the list of opts, will encode the transaction without its signatures.
 
@@ -95,7 +94,7 @@ defmodule ExPlasma.Transaction do
   226, 241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0>>
   """
-  @spec encode(t()) :: tx_bytes()
+  @spec encode(t() | list(), keyword()) :: tx_bytes()
   def encode(transaction, opts \\ [])
   def encode(%__MODULE__{} = transaction, opts), do: transaction |> to_rlp(opts) |> encode(opts)
   def encode(rlp_items, _opts) when is_list(rlp_items), do: ExRLP.encode(rlp_items)
@@ -148,19 +147,11 @@ defmodule ExPlasma.Transaction do
   """
   @spec decode(tx_bytes(), keyword()) :: {:ok, t()} | {:error, decoding_error()}
   def decode(tx_bytes, opts \\ []) do
-    decoder =
-      case Keyword.get(opts, :signed, true) do
-        true -> Signed
-        false -> ExRLP
-      end
+    decoder = get_decoder_for_opts(opts)
 
-    do_decode(tx_bytes, decoder)
-  end
-
-  defp do_decode(tx_bytes, decoder) do
     with {:ok, tx_rlp_items} <- decoder.decode(tx_bytes),
          {:ok, transaction} <- to_map(tx_rlp_items) do
-      {:ok, transaction}
+      {:ok, strip_sigs_for_opts(transaction, opts)}
     end
   end
 
@@ -192,7 +183,7 @@ defmodule ExPlasma.Transaction do
   def to_map(_), do: {:error, :malformed_transaction}
 
   @doc """
-  Encode the given Transaction into an RLP encodeable list.
+  Encode the given Transaction into an RLP encodable list.
 
   If `signed: false` is given in the list of opts, will not prepend the signatures to the RLP list.
 
@@ -249,7 +240,7 @@ defmodule ExPlasma.Transaction do
       {:ok, module} ->
         rlp = module.to_rlp(transaction)
 
-        case Keyword.get(opts, :signed, true) do
+        case signed_requested?(opts) do
           true -> [transaction.sigs | rlp]
           false -> rlp
         end
@@ -259,6 +250,10 @@ defmodule ExPlasma.Transaction do
     end
   end
 
+  @doc """
+  Recovers the witnesses as addresses and add them to the transaction struct under
+  the `witnesses` key.
+  """
   @spec with_witnesses(t()) :: {:ok, t()} | {:error, Witness.recovery_error()}
   def with_witnesses(transaction) do
     case Signed.get_witnesses(transaction) do
@@ -367,6 +362,22 @@ defmodule ExPlasma.Transaction do
     case Map.get(@tx_types_modules, tx_type) do
       nil -> {:error, :unrecognized_transaction_type}
       module -> {:ok, module}
+    end
+  end
+
+  defp signed_requested?(opts), do: Keyword.get(opts, :signed, true)
+
+  defp get_decoder_for_opts(opts) do
+    case signed_requested?(opts) do
+      true -> Signed
+      false -> RlpDecoder
+    end
+  end
+
+  defp strip_sigs_for_opts(transaction, opts) do
+    case signed_requested?(opts) do
+      true -> transaction
+      false -> %{transaction | sigs: []}
     end
   end
 end

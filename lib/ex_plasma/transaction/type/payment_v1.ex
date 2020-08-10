@@ -1,8 +1,6 @@
 defmodule ExPlasma.Transaction.Type.PaymentV1 do
   @moduledoc """
-  Internal representation of a raw payment transaction done on Plasma chain.
-
-  This module holds the representation of a "raw" transaction, i.e. without signatures nor recovered input spenders
+  Implementation of Transaction behaviour for Payment V1 type.
   """
 
   @behaviour ExPlasma.Transaction

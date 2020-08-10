@@ -51,7 +51,7 @@ defmodule ExPlasma.Output.Position do
   end
 
   @doc """
-  Encodes the output position into an RLP encodeable object.
+  Encodes the output position into an RLP encodable object.
 
   ## Example
 
