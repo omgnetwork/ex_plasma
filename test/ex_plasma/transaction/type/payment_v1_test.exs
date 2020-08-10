@@ -3,52 +3,10 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
   use ExUnit.Case, async: true
   doctest ExPlasma.Transaction.Type.PaymentV1, import: true
 
+  alias ExPlasma.Builder
   alias ExPlasma.Output
-  alias ExPlasma.Transaction.Protocol
+  alias ExPlasma.Transaction
   alias ExPlasma.Transaction.Type.PaymentV1
-
-  describe "new/3" do
-    test "returns a new transaction with given fields" do
-      input = %Output{
-        output_data: [],
-        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-        output_type: nil
-      }
-
-      output = PaymentV1.new_output(<<0::160>>, <<0::160>>, 1)
-      metadata = <<1::256>>
-      tx = PaymentV1.new([input], [output], metadata)
-
-      assert tx == %PaymentV1{
-               inputs: [input],
-               metadata: metadata,
-               outputs: [output],
-               tx_data: 0,
-               tx_type: 1
-             }
-    end
-  end
-
-  describe "new/2" do
-    test "returns a new transaction with empty metadata" do
-      input = %Output{
-        output_data: [],
-        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-        output_type: nil
-      }
-
-      output = PaymentV1.new_output(<<0::160>>, <<0::160>>, 1)
-      tx = PaymentV1.new([input], [output])
-
-      assert tx == %PaymentV1{
-               inputs: [input],
-               metadata: <<0::256>>,
-               outputs: [output],
-               tx_data: 0,
-               tx_type: 1
-             }
-    end
-  end
 
   describe "new_output/3" do
     test "returns a new payment v1 output with the given params" do
@@ -71,9 +29,9 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       }
 
       output = PaymentV1.new_output(<<1::160>>, <<0::160>>, 1)
-      tx = PaymentV1.new([input], [output])
+      tx = Builder.new(1, inputs: [input], outputs: [output])
 
-      rlp = Protocol.to_rlp(tx)
+      rlp = PaymentV1.to_rlp(tx)
 
       assert rlp == [
                # tx type
@@ -133,9 +91,9 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
         <<0::256>>
       ]
 
-      assert {:ok, tx} = Protocol.to_map(%PaymentV1{}, rlp)
+      assert {:ok, tx} = PaymentV1.to_map(rlp)
 
-      assert tx == %PaymentV1{
+      assert tx == %Transaction{
                inputs: [
                  %Output{
                    output_data: nil,
@@ -152,83 +110,38 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
                  }
                ],
                tx_data: 0,
-               tx_type: 1
+               tx_type: 1,
+               sigs: [],
+               witnesses: []
              }
     end
 
     test "returns a `malformed_transaction` error when the rlp is invalid" do
-      assert Protocol.to_map(%PaymentV1{}, [<<1>>, <<1>>]) == {:error, :malformed_transaction}
+      assert PaymentV1.to_map([<<1>>, <<1>>]) == {:error, :malformed_transaction}
     end
 
     test "returns a `malformed_tx_data` error when the tx data is invalid" do
-      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [], [], <<0, 1>>, <<0::256>>]) == {:error, :malformed_tx_data}
+      assert PaymentV1.to_map([<<1>>, [], [], <<0, 1>>, <<0::256>>]) == {:error, :malformed_tx_data}
     end
 
     test "returns a `malformed_inputs` error when the inputs are not a list" do
-      assert Protocol.to_map(%PaymentV1{}, [<<1>>, 123, [], <<0>>, <<0::256>>]) == {:error, :malformed_inputs}
+      assert PaymentV1.to_map([<<1>>, 123, [], <<0>>, <<0::256>>]) == {:error, :malformed_inputs}
     end
 
     test "returns a `malformed_inputs` error when the inputs are not an encoded position" do
-      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [123, 123], [], <<0>>, <<0::256>>]) == {:error, :malformed_inputs}
+      assert PaymentV1.to_map([<<1>>, [123, 123], [], <<0>>, <<0::256>>]) == {:error, :malformed_inputs}
     end
 
     test "returns a `malformed_outputs` error when the outputs are not a list" do
-      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [], 123, <<0>>, <<0::256>>]) == {:error, :malformed_outputs}
+      assert PaymentV1.to_map([<<1>>, [], 123, <<0>>, <<0::256>>]) == {:error, :malformed_outputs}
     end
 
     test "returns a `malformed_outputs` error when the outputs are not an encoded output data" do
-      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [], [123], <<0>>, <<0::256>>]) == {:error, :malformed_outputs}
+      assert PaymentV1.to_map([<<1>>, [], [123], <<0>>, <<0::256>>]) == {:error, :malformed_outputs}
     end
 
     test "returns a `malformed_metadata` error when metadata is not a 32 bytes binary" do
-      assert Protocol.to_map(%PaymentV1{}, [<<1>>, [], [], <<0>>, 123]) == {:error, :malformed_metadata}
-    end
-  end
-
-  describe "get_inputs/1" do
-    test "returns the transaction inputs" do
-      input_1 = %Output{
-        output_data: nil,
-        output_id: %{blknum: 1, oindex: 2, position: 1_000_030_002, txindex: 3},
-        output_type: nil
-      }
-
-      input_2 = %Output{
-        output_data: nil,
-        output_id: %{blknum: 1, oindex: 3, position: 1_000_030_003, txindex: 3},
-        output_type: nil
-      }
-
-      tx = PaymentV1.new([input_1, input_2], [])
-
-      assert Protocol.get_inputs(tx) == [input_1, input_2]
-    end
-  end
-
-  describe "get_outputs/1" do
-    test "returns the transaction outputs" do
-      output_1 = %Output{
-        output_data: %{amount: 1, output_guard: <<1::160>>, token: <<0::160>>},
-        output_id: nil,
-        output_type: 1
-      }
-
-      output_2 = %Output{
-        output_data: %{amount: 2, output_guard: <<2::160>>, token: <<0::160>>},
-        output_id: nil,
-        output_type: 1
-      }
-
-      tx = PaymentV1.new([], [output_1, output_2])
-
-      assert Protocol.get_outputs(tx) == [output_1, output_2]
-    end
-  end
-
-  describe "get_tx_type" do
-    test "returns a payment v1 type" do
-      tx = PaymentV1.new([], [])
-      assert Protocol.get_tx_type(tx) == 1
+      assert PaymentV1.to_map([<<1>>, [], [], <<0>>, 123]) == {:error, :malformed_metadata}
     end
   end
 
@@ -250,32 +163,26 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       output_2 = PaymentV1.new_output(<<1::160>>, <<0::160>>, 2)
       output_3 = PaymentV1.new_output(<<2::160>>, <<0::160>>, 3)
 
-      tx = PaymentV1.new([input_1, input_2], [output_1, output_2, output_3])
+      tx = Builder.new(1, inputs: [input_1, input_2], outputs: [output_1, output_2, output_3])
 
-      assert Protocol.validate(tx) == :ok
+      assert PaymentV1.validate(tx) == :ok
     end
 
     test "returns an error when generic output is not valid" do
       output = PaymentV1.new_output(<<1::160>>, <<0::160>>, 0)
-      tx = PaymentV1.new([], [output])
+      tx = Builder.new(1, inputs: [], outputs: [output])
 
       assert_field(tx, :amount, :cannot_be_zero)
     end
 
     test "returns an error when inputs are not unique" do
-      input_1 = %Output{
+      input = %Output{
         output_data: [],
         output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
         output_type: nil
       }
 
-      input_2 = %Output{
-        output_data: [],
-        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-        output_type: nil
-      }
-
-      tx = PaymentV1.new([input_1, input_2], [])
+      tx = Builder.new(1, inputs: [input, input], outputs: [])
 
       assert_field(tx, :inputs, :duplicate_inputs)
     end
@@ -295,7 +202,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
 
       output = PaymentV1.new_output(<<1::160>>, <<0::160>>, 0)
 
-      tx = PaymentV1.new(inputs, [output])
+      tx = Builder.new(1, inputs: inputs, outputs: [output])
 
       assert_field(tx, :inputs, :cannot_exceed_maximum_value)
     end
@@ -306,13 +213,13 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
           [PaymentV1.new_output(<<1::160>>, <<0::160>>, i) | acc]
         end)
 
-      tx = PaymentV1.new([], outputs)
+      tx = Builder.new(1, inputs: [], outputs: outputs)
 
       assert_field(tx, :outputs, :cannot_exceed_maximum_value)
     end
 
     test "returns an error when outputs count is 0" do
-      tx = PaymentV1.new([], [])
+      tx = Builder.new(1, inputs: [], outputs: [])
 
       assert_field(tx, :outputs, :cannot_subceed_minimum_value)
     end
@@ -324,13 +231,13 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
         output_type: 0
       }
 
-      tx = PaymentV1.new([], [output])
+      tx = Builder.new(1, inputs: [], outputs: [output])
 
       assert_field(tx, :outputs, :invalid_output_type_for_transaction)
     end
   end
 
   defp assert_field(data, field, message) do
-    assert {:error, {^field, ^message}} = Protocol.validate(data)
+    assert {:error, {^field, ^message}} = PaymentV1.validate(data)
   end
 end
