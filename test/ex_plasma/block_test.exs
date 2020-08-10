@@ -17,7 +17,7 @@ defmodule ExPlasma.BlockTest do
       result = Block.new([transaction])
 
       assert result.transactions == [transaction]
-      assert result.hash == ExPlasma.Merkle.root_hash([ExPlasma.encode(transaction)])
+      assert result.hash == ExPlasma.Merkle.root_hash([ExPlasma.encode(transaction, signed: false)])
     end
   end
 end

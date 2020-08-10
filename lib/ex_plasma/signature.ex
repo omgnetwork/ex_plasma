@@ -27,7 +27,7 @@ defmodule ExPlasma.Signature do
   @doc """
   Produces a stand-alone, 65 bytes long, signature for message hash.
   """
-  @spec signature_digest(keccak_hash(), String.t()) :: <<_::520>>
+  @spec signature_digest(keccak_hash(), String.t()) :: ExPlasma.Crypto.sig_t()
   def signature_digest(hash_digest, private_key_hash) do
     private_key_binary = Encoding.to_binary!(private_key_hash)
 

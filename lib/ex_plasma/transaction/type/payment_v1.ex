@@ -4,14 +4,17 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
 
   This module holds the representation of a "raw" transaction, i.e. without signatures nor recovered input spenders
   """
-  require __MODULE__.Validator
 
+  @behaviour ExPlasma.Transaction
+
+  alias __MODULE__.Validator
   alias ExPlasma.Crypto
+  alias ExPlasma.Output
   alias ExPlasma.Transaction
   alias ExPlasma.Transaction.TypeMapper
-  alias __MODULE__.Validator
-  alias ExPlasma.Output
   alias ExPlasma.Utils.RlpDecoder
+
+  require __MODULE__.Validator
 
   @empty_metadata <<0::256>>
   @empty_tx_data 0
@@ -33,8 +36,6 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
           | :malformed_tx_data
           | :malformed_inputs
           | :malformed_outputs
-
-  @behaviour ExPlasma.Transaction
 
   @doc """
   Creates output for a payment v1 transaction

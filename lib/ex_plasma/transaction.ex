@@ -1,5 +1,6 @@
 defmodule ExPlasma.Transaction do
   @moduledoc """
+  Contains the base structure of any type of transactions.
   """
 
   alias ExPlasma.Crypto
@@ -49,96 +50,116 @@ defmodule ExPlasma.Transaction do
     witnesses: []
   ]
 
-  @callback to_map(any()) :: map()
-  @callback to_rlp(map()) :: any()
-  @callback validate(any()) :: {:ok, map()} | {:error, {atom(), atom()}}
+  @callback to_map(list()) :: {:ok, t()} | {:error, atom()}
+  @callback to_rlp(t()) :: list()
+  @callback validate(t()) :: :ok | {:error, {atom(), atom()}}
 
   @doc """
   Encode the given Transaction into an RLP encodeable list.
+
+  If `signed: false` is given in the list of opts, will encode the transaction without its signatures.
+
   ## Example
-    iex> txn =
-    ...>  %ExPlasma.Transaction{
-    ...>    inputs: [
-    ...>      %ExPlasma.Output{
-    ...>        output_data: nil,
-    ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-    ...>        output_type: nil
-    ...>      }
-    ...>    ],
-    ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-    ...>    outputs: [
-    ...>      %ExPlasma.Output{
-    ...>        output_data: %{
-    ...>          amount: 1,
-    ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-    ...>            217, 206, 65, 226, 241, 55, 0, 110>>,
-    ...>          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-    ...>            65, 226, 241, 55, 0, 110>>
-    ...>        },
-    ...>        output_id: nil,
-    ...>        output_type: 1
-    ...>      }
-    ...>    ],
-    ...>    sigs: [],
-    ...>    tx_data: <<0>>,
-    ...>    tx_type: 1
-    ...>  }
-    iex> ExPlasma.Transaction.encode(txn)
-    <<248, 104, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
-      41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
-      148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
-      241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0>>
+  iex> txn =
+  ...>  %ExPlasma.Transaction{
+  ...>    inputs: [
+  ...>      %ExPlasma.Output{
+  ...>        output_data: nil,
+  ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+  ...>        output_type: nil
+  ...>      }
+  ...>    ],
+  ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  ...>    outputs: [
+  ...>      %ExPlasma.Output{
+  ...>        output_data: %{
+  ...>          amount: 1,
+  ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
+  ...>            217, 206, 65, 226, 241, 55, 0, 110>>,
+  ...>          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
+  ...>            65, 226, 241, 55, 0, 110>>
+  ...>        },
+  ...>        output_id: nil,
+  ...>        output_type: 1
+  ...>      }
+  ...>    ],
+  ...>    sigs: [],
+  ...>    tx_data: <<0>>,
+  ...>    tx_type: 1
+  ...>  }
+  iex> ExPlasma.Transaction.encode(txn)
+  <<248, 105, 192, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246,
+  47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0,
+  110, 148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
+  226, 241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0>>
   """
   @spec encode(t()) :: tx_bytes()
-  def encode(%__MODULE__{} = transaction), do: transaction |> to_rlp() |> encode()
-  def encode(rlp_items) when is_list(rlp_items), do: ExRLP.encode(rlp_items)
+  def encode(transaction, opts \\ [])
+  def encode(%__MODULE__{} = transaction, opts), do: transaction |> to_rlp(opts) |> encode(opts)
+  def encode(rlp_items, _opts) when is_list(rlp_items), do: ExRLP.encode(rlp_items)
 
   @doc """
   Attempt to decode the given RLP list into a Transaction.
+
+  If `signed: false` is given in the list of opts, expects the underlying RLP to not contain signatures.
 
   Only validates that the RLP is structurally correct and that the tx type is supported.
   Does not perform any other kind of validation, use validate/1 for that.
 
   ## Example
-  iex> rlp = <<248, 74, 192, 1, 193, 128, 239, 174, 237, 1, 235, 148, 29, 246, 47, 41, 27,
-  ...>   46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46,
-  ...>   38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
-  ...>   0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ...>   0>>
+  iex> rlp = <<248, 117, 192, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ...>  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246,
+  ...>  47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0,
+  ...>  110, 148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
+  ...>  226, 241, 55, 0, 110, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ...>  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   iex> ExPlasma.Transaction.decode(rlp)
-  %ExPlasma.Transaction{
-    inputs: [
-      %ExPlasma.Output{
-        output_data: nil,
-        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-        output_type: nil
-      }
-    ],
-    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-    outputs: [
-      %ExPlasma.Output{
-        output_data: %{
-          amount: 1,
-          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-            217, 206, 65, 226, 241, 55, 0, 110>>,
-          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-            65, 226, 241, 55, 0, 110>>
-        },
-        output_id: nil,
-        output_type: 1
-      }
-    ],
-    sigs: [],
-    tx_data: 0,
-    tx_type: 1
+  {:ok,
+    %ExPlasma.Transaction{
+      inputs: [
+        %ExPlasma.Output{
+          output_data: nil,
+          output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+          output_type: nil
+        }
+      ],
+      metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      outputs: [
+        %ExPlasma.Output{
+          output_data: %{
+            amount: 1,
+            output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
+              217, 206, 65, 226, 241, 55, 0, 110>>,
+            token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
+              65, 226, 241, 55, 0, 110>>
+          },
+          output_id: nil,
+          output_type: 1
+        }
+      ],
+      witnesses: [],
+      sigs: [],
+      tx_data: 0,
+      tx_type: 1
+    }
   }
   """
-  @spec decode(tx_bytes()) :: {:ok, t()} | {:error, decoding_error()}
-  def decode(tx_bytes) do
-    with {:ok, signed_tx_rlp_items} <- Signed.decode(tx_bytes),
-         {:ok, transaction} <- to_map(signed_tx_rlp_items) do
+  @spec decode(tx_bytes(), keyword()) :: {:ok, t()} | {:error, decoding_error()}
+  def decode(tx_bytes, opts \\ []) do
+    decoder =
+      case Keyword.get(opts, :signed, true) do
+        true -> Signed
+        false -> ExRLP
+      end
+
+    do_decode(tx_bytes, decoder)
+  end
+
+  defp do_decode(tx_bytes, decoder) do
+    with {:ok, tx_rlp_items} <- decoder.decode(tx_bytes),
+         {:ok, transaction} <- to_map(tx_rlp_items) do
       {:ok, transaction}
     end
   end
@@ -170,11 +191,71 @@ defmodule ExPlasma.Transaction do
 
   def to_map(_), do: {:error, :malformed_transaction}
 
-  @spec to_rlp(t()) :: list()
-  def to_rlp(transaction) do
+  @doc """
+  Encode the given Transaction into an RLP encodeable list.
+
+  If `signed: false` is given in the list of opts, will not prepend the signatures to the RLP list.
+
+  ## Example
+  iex> txn =
+  ...>  %ExPlasma.Transaction{
+  ...>    inputs: [
+  ...>      %ExPlasma.Output{
+  ...>        output_data: nil,
+  ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+  ...>        output_type: nil
+  ...>      }
+  ...>    ],
+  ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  ...>    outputs: [
+  ...>      %ExPlasma.Output{
+  ...>        output_data: %{
+  ...>          amount: 1,
+  ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
+  ...>            217, 206, 65, 226, 241, 55, 0, 110>>,
+  ...>          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
+  ...>            65, 226, 241, 55, 0, 110>>
+  ...>        },
+  ...>        output_id: nil,
+  ...>        output_type: 1
+  ...>      }
+  ...>    ],
+  ...>    sigs: [],
+  ...>    tx_data: <<0>>,
+  ...>    tx_type: 1
+  ...>  }
+  iex> ExPlasma.Transaction.to_rlp(txn)
+  [
+    [],
+    <<1>>,
+    [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>],
+    [
+      [
+        <<1>>,
+        [
+          <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
+          <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
+          <<1>>
+        ]
+      ]
+    ],
+    0,
+    <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+  ]
+  """
+  @spec to_rlp(t(), keyword()) :: list()
+  def to_rlp(transaction, opts \\ []) do
     case get_transaction_module(transaction.tx_type) do
-      {:ok, module} -> [transaction.sigs | module.to_rlp(transaction)]
-      {:error, :unrecognized_transaction_type} = error -> error
+      {:ok, module} ->
+        rlp = module.to_rlp(transaction)
+
+        case Keyword.get(opts, :signed, true) do
+          true -> [transaction.sigs | rlp]
+          false -> rlp
+        end
+
+      {:error, :unrecognized_transaction_type} = error ->
+        error
     end
   end
 
@@ -198,7 +279,7 @@ defmodule ExPlasma.Transaction do
   ...>      output_type: nil
   ...>    }
   ...>  ],
-  ...>  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  ...>  metadata: <<0::256>>,
   ...>  outputs: [
   ...>    %ExPlasma.Output{
   ...>      output_data: %{
@@ -211,7 +292,7 @@ defmodule ExPlasma.Transaction do
   ...>    }
   ...>  ],
   ...>  sigs: [],
-  ...>  tx_data: <<0>>,
+  ...>  tx_data: 0,
   ...>  tx_type: 1
   ...>}
   iex> :ok = ExPlasma.Transaction.validate(txn)
@@ -230,10 +311,10 @@ defmodule ExPlasma.Transaction do
   end
 
   @doc """
-  Returns the hash of the raw transaction involved without the signatures
+  Returns the hash of the transaction involved without the signatures
   """
-  @spec hash(t()) :: tx_hash()
-  def hash(%__MODULE__{} = transaction), do: transaction |> encode() |> hash()
+  @spec hash(t() | tx_bytes()) :: tx_hash()
+  def hash(%__MODULE__{} = transaction), do: transaction |> encode(signed: false) |> hash()
   def hash(tx_bytes) when is_binary(tx_bytes), do: Crypto.keccak_hash(tx_bytes)
 
   @doc """
@@ -248,23 +329,23 @@ defmodule ExPlasma.Transaction do
   ## Example
 
   iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
-  iex> txn = %ExPlasma.Transaction.Type.PaymentV1.new([], [])
+  iex> txn = %ExPlasma.Transaction{tx_type: 1}
   iex> ExPlasma.Transaction.sign(txn, [key])
-  %ExPlasma.Transaction{
+  {:ok, %ExPlasma.Transaction{
     sigs: [
           <<129, 213, 32, 15, 183, 218, 255, 22, 82, 95, 22, 86, 103, 227, 92, 109, 9,
             89, 7, 142, 235, 107, 203, 29, 20, 231, 91, 168, 255, 119, 204, 239, 44,
             125, 76, 109, 200, 196, 204, 230, 224, 241, 84, 75, 9, 3, 160, 177, 37,
             181, 174, 98, 51, 15, 136, 235, 47, 96, 15, 209, 45, 85, 153, 2, 28>>
         ],
-    raw_tx: %{
-      inputs: [],
-      metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-      outputs: [],
-      tx_data: 0
-    }
-  }
+    inputs: [],
+    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+    outputs: [],
+    tx_type: 1,
+    witnesses: [],
+    tx_data: 0
+  }}
   """
   def sign(transaction, keys) do
     case Signed.compute_signatures(transaction, keys) do

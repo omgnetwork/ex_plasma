@@ -2,10 +2,10 @@ defmodule ExPlasma.TransactionTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
-  # doctest ExPlasma.Transaction
+  doctest ExPlasma.Transaction
 
-  alias ExPlasma.Output
   alias ExPlasma.Builder
+  alias ExPlasma.Output
   alias ExPlasma.Support.TestEntity
   alias ExPlasma.Transaction
   alias ExPlasma.Transaction.Type.PaymentV1
@@ -359,18 +359,18 @@ defmodule ExPlasma.TransactionTest do
       result = Transaction.hash(signed)
 
       expected_result =
-        <<104, 29, 23, 142, 71, 153, 25, 100, 238, 36, 123, 37, 155, 64, 50, 21, 235, 230, 14, 170, 217, 109, 83, 189,
-          142, 93, 9, 71, 50, 23, 240, 87>>
+        <<105, 141, 249, 154, 54, 160, 13, 35, 161, 231, 99, 13, 206, 227, 150, 12, 97, 25, 184, 143, 201, 55, 30, 48,
+          19, 54, 34, 199, 95, 115, 237, 56>>
 
       assert result == expected_result
     end
 
     test "calculates hash for rlp encoded transaction", %{signed: signed} do
-      result = signed |> Transaction.encode() |> Transaction.hash()
+      result = signed |> Transaction.encode(signed: false) |> Transaction.hash()
 
       expected_result =
-        <<104, 29, 23, 142, 71, 153, 25, 100, 238, 36, 123, 37, 155, 64, 50, 21, 235, 230, 14, 170, 217, 109, 83, 189,
-          142, 93, 9, 71, 50, 23, 240, 87>>
+        <<105, 141, 249, 154, 54, 160, 13, 35, 161, 231, 99, 13, 206, 227, 150, 12, 97, 25, 184, 143, 201, 55, 30, 48,
+          19, 54, 34, 199, 95, 115, 237, 56>>
 
       assert result == expected_result
     end

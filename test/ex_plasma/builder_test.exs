@@ -2,8 +2,8 @@ defmodule ExPlasma.BuilderTest do
   use ExUnit.Case, async: true
   doctest ExPlasma.Builder, import: true
 
-  alias ExPlasma.Output
   alias ExPlasma.Builder
+  alias ExPlasma.Output
   alias ExPlasma.Support.TestEntity
   alias ExPlasma.Transaction
   alias ExPlasma.Transaction.Type.PaymentV1
@@ -92,7 +92,8 @@ defmodule ExPlasma.BuilderTest do
 
       assert tx.outputs == []
 
-      updated_tx = Builder.add_output(tx, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
+      updated_tx =
+        Builder.add_output(tx, output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
 
       assert updated_tx.outputs == [
                %Output{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
@@ -140,7 +141,10 @@ defmodule ExPlasma.BuilderTest do
                |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0)
                |> Builder.add_input(blknum: 2, txindex: 1, oindex: 0)
                |> Builder.add_input(blknum: 3, txindex: 0, oindex: 1)
-               |> Builder.add_output(output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
+               |> Builder.add_output(
+                 output_type: 1,
+                 output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
+               )
                |> Builder.add_output(output_guard: <<1::160>>, token: <<0::160>>, amount: 1)
                |> Builder.add_output(output_guard: <<2::160>>, token: <<0::160>>, amount: 2)
                |> Builder.sign([key_1, key_1, key_2])

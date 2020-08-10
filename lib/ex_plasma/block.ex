@@ -50,7 +50,7 @@ defmodule ExPlasma.Block do
   # Encode the transactions and merkle root hash them.
   defp merkle_root_hash(transactions) when is_list(transactions) do
     transactions
-    |> Enum.map(&Transaction.encode/1)
+    |> Enum.map(fn tx -> Transaction.encode(tx, signed: false) end)
     |> Merkle.root_hash()
   end
 end

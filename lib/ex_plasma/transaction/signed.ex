@@ -68,7 +68,7 @@ defmodule ExPlasma.Transaction.Signed do
     end)
   end
 
-  @spec compute_signatures(Transaction.t(), list(String.t())) :: {:ok, Signed.t()} | {:error, :not_signable}
+  @spec compute_signatures(Transaction.t(), list(String.t())) :: {:ok, sigs()} | {:error, :not_signable}
   def compute_signatures(transaction, keys) when is_list(keys) do
     case TypedData.impl_for(transaction) do
       nil ->

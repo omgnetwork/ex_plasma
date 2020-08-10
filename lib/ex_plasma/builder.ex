@@ -50,7 +50,7 @@ defmodule ExPlasma.Builder do
   ## Example
 
   iex> new(1)
-  ...> |> add_output(output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
+  ...> |> add_output(output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
   ...> |> add_output(output_guard: <<1::160>>, token: <<0::160>>, amount: 2)
   %ExPlasma.Transaction{
     tx_type: 1,

@@ -34,7 +34,7 @@ defmodule ExPlasma.MerkleTest do
             tx_type: 1
           }
 
-          ExPlasma.encode(transaction)
+          ExPlasma.encode(transaction, signed: false)
         end)
 
       assert Merkle.proof(transactions, 10) ==
@@ -93,7 +93,7 @@ defmodule ExPlasma.MerkleTest do
             tx_type: 1
           }
 
-          ExPlasma.encode(transaction)
+          ExPlasma.encode(transaction, signed: false)
         end)
 
       assert Merkle.root_hash(transactions) ==
