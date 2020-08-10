@@ -30,8 +30,8 @@ defmodule ExPlasma.Transaction.Signed do
   @spec decode(tx_bytes()) :: {:ok, list()} | {:error, decoding_error()}
   def decode(signed_tx_bytes) do
     with {:ok, tx_rlp_items} <- RlpDecoder.decode(signed_tx_bytes),
-         {:ok, sigs, typed_tx_rlp_items} <- validate_rlp_items(tx_rlp_items) do
-      {:ok, [sigs, typed_tx_rlp_items]}
+         {:ok, signed_tx_rlp_items} <- validate_rlp_items(tx_rlp_items) do
+      {:ok, signed_tx_rlp_items}
     end
   end
 
@@ -81,9 +81,9 @@ defmodule ExPlasma.Transaction.Signed do
     end
   end
 
-  defp validate_rlp_items([sigs, typed_tx_rlp_items]) when is_list(sigs), do: {:ok, sigs, typed_tx_rlp_items}
-  defp validate_rlp_items([_sigs, _typed_tx_rlp_items]), do: {:error, :malformed_witnesses}
-  defp validate_rlp_items(_), do: {:error, :malformed_rlp}
+  defp validate_rlp_items([sigs | _typed_tx_rlp_items] = rlp) when is_list(sigs), do: {:ok, rlp}
+  defp validate_rlp_items([_sigs | _typed_tx_rlp_items]), do: {:error, :malformed_witnesses}
+  defp validate_rlp_items(_), do: {:error, :malformed_transaction}
 
   defp validate_sigs([sig | rest]) do
     case Witness.valid?(sig) do

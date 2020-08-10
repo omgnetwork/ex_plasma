@@ -99,7 +99,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
     end
   end
 
-  def to_map(_, _), do: {:error, :malformed_transaction}
+  def to_map(_), do: {:error, :malformed_transaction}
 
   @doc """
   Validates the Transaction.

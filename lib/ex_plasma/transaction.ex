@@ -136,21 +136,31 @@ defmodule ExPlasma.Transaction do
   }
   """
   @spec decode(tx_bytes()) :: {:ok, t()} | {:error, decoding_error()}
-
   def decode(tx_bytes) do
-    with {:ok, [sigs, typed_tx_rlp_items]} <- Signed.decode(tx_bytes),
-         {:ok, transaction} <- to_map(typed_tx_rlp_items) do
-      {:ok, Map.put(transaction, :sigs, sigs)}
+    with {:ok, signed_tx_rlp_items} <- Signed.decode(tx_bytes),
+         {:ok, transaction} <- to_map(signed_tx_rlp_items) do
+      {:ok, transaction}
     end
   end
 
   @doc """
   Maps the given RLP list into a transaction.
 
+  When the RLP list starts with a list, assumes it's the sigs
+  and map it accordingly.
+  If not starting with a list, assumes it's the transaction type.
+
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
   @spec to_map(list()) :: {:ok, t()} | {:error, mapping_error()}
+  def to_map([sigs | typed_tx_rlp_items]) when is_list(sigs) do
+    case to_map(typed_tx_rlp_items) do
+      {:ok, transaction} -> {:ok, %{transaction | sigs: sigs}}
+      {:error, _mapping_error} = error -> error
+    end
+  end
+
   def to_map([raw_tx_type | _transaction_rlp_items] = rlp) do
     with {:ok, _tx_type, transaction_module} <- parse_tx_type(raw_tx_type),
          {:ok, transaction} <- transaction_module.to_map(rlp) do
@@ -258,7 +268,7 @@ defmodule ExPlasma.Transaction do
   """
   def sign(transaction, keys) do
     case Signed.compute_signatures(transaction, keys) do
-      {:ok, sigs} -> Map.put(transaction, :sigs, sigs)
+      {:ok, sigs} -> {:ok, Map.put(transaction, :sigs, sigs)}
       {:error, :not_signable} = error -> error
     end
   end
