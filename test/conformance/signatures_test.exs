@@ -58,7 +58,7 @@ defmodule Conformance.SignaturesTest do
   end
 
   defp assert_signs_conform(%Transaction{} = transaction) do
-    tx_bytes = Transaction.encode(transaction)
+    tx_bytes = Transaction.encode(transaction, signed: false)
     typed_data_hash = TypedData.hash(transaction)
 
     assert typed_data_hash == verify_hash(tx_bytes)
