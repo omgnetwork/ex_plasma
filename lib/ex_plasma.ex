@@ -9,10 +9,10 @@ defmodule ExPlasma do
   # constants that identify payment types, make sure that
   # when we introduce a new payment type, you name it `paymentV2`
   # https://github.com/omisego/plasma-contracts/blob/6ab35256b805e25cfc30d85f95f0616415220b20/plasma_framework/docs/design/tx-types-dependencies.md
-  @payment_v1 <<TypeMapper.tx_type_for(:tx_payment_v1)>>
-  @fee <<TypeMapper.tx_type_for(:tx_fee_token_claim)>>
+  @payment_v1 TypeMapper.tx_type_for(:tx_payment_v1)
+  @fee TypeMapper.tx_type_for(:tx_fee_token_claim)
 
-  @type transaction_type :: <<_::8>>
+  @type transaction_type :: non_neg_integer()
 
   @doc """
   Simple payment type V1
@@ -20,9 +20,9 @@ defmodule ExPlasma do
   ## Example
 
     iex> ExPlasma.payment_v1()
-    <<1>>
+    1
   """
-  @spec payment_v1() :: transaction_type()
+  @spec payment_v1() :: 1
   def payment_v1(), do: @payment_v1
 
   @doc """
@@ -31,9 +31,9 @@ defmodule ExPlasma do
   ## Example
 
     iex> ExPlasma.fee()
-    <<3>>
+    3
   """
-  @spec fee() :: transaction_type()
+  @spec fee() :: 3
   def fee(), do: @fee
 
   @doc """
@@ -42,9 +42,9 @@ defmodule ExPlasma do
   ## Example
 
     iex> ExPlasma.transaction_types()
-    [<<1>>, <<3>>]
+    [1, 3]
   """
-  @spec transaction_types :: [<<_::8>>, ...]
+  @spec transaction_types :: [1 | 3, ...]
   def transaction_types(), do: [payment_v1(), fee()]
 
   @doc """

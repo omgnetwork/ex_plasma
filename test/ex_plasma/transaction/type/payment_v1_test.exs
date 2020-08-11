@@ -29,7 +29,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       }
 
       output = PaymentV1.new_output(<<1::160>>, <<0::160>>, 1)
-      tx = Builder.new(1, inputs: [input], outputs: [output])
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: [input], outputs: [output])
 
       rlp = PaymentV1.to_rlp(tx)
 
@@ -163,14 +163,14 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       output_2 = PaymentV1.new_output(<<1::160>>, <<0::160>>, 2)
       output_3 = PaymentV1.new_output(<<2::160>>, <<0::160>>, 3)
 
-      tx = Builder.new(1, inputs: [input_1, input_2], outputs: [output_1, output_2, output_3])
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: [input_1, input_2], outputs: [output_1, output_2, output_3])
 
       assert PaymentV1.validate(tx) == :ok
     end
 
     test "returns an error when generic output is not valid" do
       output = PaymentV1.new_output(<<1::160>>, <<0::160>>, 0)
-      tx = Builder.new(1, inputs: [], outputs: [output])
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: [], outputs: [output])
 
       assert_field(tx, :amount, :cannot_be_zero)
     end
@@ -182,7 +182,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
         output_type: nil
       }
 
-      tx = Builder.new(1, inputs: [input, input], outputs: [])
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: [input, input], outputs: [])
 
       assert_field(tx, :inputs, :duplicate_inputs)
     end
@@ -202,7 +202,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
 
       output = PaymentV1.new_output(<<1::160>>, <<0::160>>, 0)
 
-      tx = Builder.new(1, inputs: inputs, outputs: [output])
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: inputs, outputs: [output])
 
       assert_field(tx, :inputs, :cannot_exceed_maximum_value)
     end
@@ -213,13 +213,13 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
           [PaymentV1.new_output(<<1::160>>, <<0::160>>, i) | acc]
         end)
 
-      tx = Builder.new(1, inputs: [], outputs: outputs)
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: [], outputs: outputs)
 
       assert_field(tx, :outputs, :cannot_exceed_maximum_value)
     end
 
     test "returns an error when outputs count is 0" do
-      tx = Builder.new(1, inputs: [], outputs: [])
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: [], outputs: [])
 
       assert_field(tx, :outputs, :cannot_subceed_minimum_value)
     end
@@ -231,7 +231,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
         output_type: 0
       }
 
-      tx = Builder.new(1, inputs: [], outputs: [output])
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: [], outputs: [output])
 
       assert_field(tx, :outputs, :invalid_output_type_for_transaction)
     end

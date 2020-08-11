@@ -12,14 +12,14 @@ defmodule ExPlasma.Builder do
   ## Example
 
   # Empty payment v1 transaction
-  iex> new(1)
+  iex> new(ExPlasma.payment_v1())
   %ExPlasma.Transaction{tx_type: 1, inputs: [], outputs: [], metadata: <<0::256>>}
 
   # New payment v1 transaction with metadata
-  iex> new(1, metadata: <<1::256>>)
+  iex> new(ExPlasma.payment_v1(), metadata: <<1::256>>)
   %ExPlasma.Transaction{tx_type: 1, inputs: [], outputs: [], metadata: <<1::256>>}
   """
-  @spec new(pos_integer(), list()) :: Transaction.t()
+  @spec new(ExPlasma.transaction_type(), list()) :: Transaction.t()
   def new(tx_type, opts \\ []), do: struct(%Transaction{tx_type: tx_type}, opts)
 
   @doc """
@@ -27,7 +27,8 @@ defmodule ExPlasma.Builder do
 
   ## Example
 
-  iex> new(1)
+  iex> ExPlasma.payment_v1()
+  ...> |> new()
   ...> |> add_input(blknum: 1, txindex: 0, oindex: 0)
   ...> |> add_input(blknum: 2, txindex: 0, oindex: 0)
   %ExPlasma.Transaction{
@@ -49,7 +50,8 @@ defmodule ExPlasma.Builder do
 
   ## Example
 
-  iex> new(1)
+  iex> ExPlasma.payment_v1()
+  ...> |> new()
   ...> |> add_output(output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
   ...> |> add_output(output_guard: <<1::160>>, token: <<0::160>>, amount: 2)
   %ExPlasma.Transaction{
@@ -79,7 +81,8 @@ defmodule ExPlasma.Builder do
   ## Example
 
     iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
-    ...> new(1)
+    ...> ExPlasma.payment_v1()
+    ...> |> new()
     ...> |> sign([key])
     {:ok, %ExPlasma.Transaction{
         tx_type: 1,

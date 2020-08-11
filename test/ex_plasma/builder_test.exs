@@ -18,7 +18,7 @@ defmodule ExPlasma.BuilderTest do
       output_2 = PaymentV1.new_output(<<2::160>>, <<0::160>>, 2)
       metadata = <<1::256>>
 
-      tx = Builder.new(1, metadata: <<1::256>>, inputs: [input], outputs: [output_1, output_2])
+      tx = Builder.new(ExPlasma.payment_v1(), metadata: <<1::256>>, inputs: [input], outputs: [output_1, output_2])
 
       assert tx == %Transaction{
                tx_type: 1,
@@ -30,7 +30,7 @@ defmodule ExPlasma.BuilderTest do
     end
 
     test "returns an empty payment v1 struct when no param given" do
-      tx = Builder.new(1)
+      tx = Builder.new(ExPlasma.payment_v1())
 
       assert tx == %Transaction{
                tx_type: 1,
@@ -49,7 +49,7 @@ defmodule ExPlasma.BuilderTest do
       oindex = 101
 
       assert %{inputs: [output]} =
-               1
+               ExPlasma.payment_v1()
                |> Builder.new()
                |> Builder.add_input(blknum: block_number, txindex: tx_index, oindex: oindex)
 
@@ -88,7 +88,7 @@ defmodule ExPlasma.BuilderTest do
 
   describe "add_output/2" do
     test "adds the given output when given `output_data` map to the existing transaction" do
-      tx = Builder.new(1)
+      tx = Builder.new(ExPlasma.payment_v1())
 
       assert tx.outputs == []
 
@@ -101,7 +101,7 @@ defmodule ExPlasma.BuilderTest do
     end
 
     test "adds the given output when given output data to the existing transaction" do
-      tx = Builder.new(1)
+      tx = Builder.new(ExPlasma.payment_v1())
 
       assert tx.outputs == []
 
@@ -119,7 +119,7 @@ defmodule ExPlasma.BuilderTest do
       %{priv_encoded: key_2} = @bob
 
       tx =
-        1
+        ExPlasma.payment_v1()
         |> Builder.new()
         |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
         |> Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
@@ -136,7 +136,7 @@ defmodule ExPlasma.BuilderTest do
       %{priv_encoded: key_2} = @bob
 
       assert {:ok, txn} =
-               1
+               ExPlasma.payment_v1()
                |> Builder.new(metadata: <<1::160>>, tx_data: 0)
                |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0)
                |> Builder.add_input(blknum: 2, txindex: 1, oindex: 0)

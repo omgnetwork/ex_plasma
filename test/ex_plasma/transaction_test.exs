@@ -23,7 +23,7 @@ defmodule ExPlasma.TransactionTest do
     %{addr: bob_addr} = @bob
 
     signed =
-      1
+      ExPlasma.payment_v1()
       |> Builder.new()
       |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
       |> Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
@@ -248,7 +248,7 @@ defmodule ExPlasma.TransactionTest do
       %{addr: bob_addr} = @bob
 
       signed =
-        1
+        ExPlasma.payment_v1()
         |> Builder.new()
         |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
         |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
@@ -329,7 +329,7 @@ defmodule ExPlasma.TransactionTest do
       %{priv_encoded: key_2} = @bob
 
       tx =
-        1
+        ExPlasma.payment_v1()
         |> Builder.new()
         |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
         |> Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
@@ -421,7 +421,7 @@ defmodule ExPlasma.TransactionTest do
     privs = Enum.map(sigs, & &1.priv_encoded)
 
     assert {:ok, signed} =
-             1
+             ExPlasma.payment_v1()
              |> Builder.new(inputs: inputs, outputs: outputs)
              |> Builder.sign(privs)
 
