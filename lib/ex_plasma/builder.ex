@@ -6,6 +6,20 @@ defmodule ExPlasma.Builder do
   alias ExPlasma.Output
   alias ExPlasma.Transaction
 
+  @type tx_opts :: [
+          inputs: Transaction.outputs(),
+          outputs: Transaction.outputs(),
+          tx_data: any(),
+          metadata: Transaction.metadata()
+        ]
+
+  @type input_opts :: [
+          position: pos_integer(),
+          blknum: non_neg_integer(),
+          txindex: non_neg_integer(),
+          oindex: non_neg_integer()
+        ]
+
   @doc """
   Create a new Transaction
 
@@ -19,7 +33,7 @@ defmodule ExPlasma.Builder do
   iex> new(ExPlasma.payment_v1(), metadata: <<1::256>>)
   %ExPlasma.Transaction{tx_type: 1, inputs: [], outputs: [], metadata: <<1::256>>}
   """
-  @spec new(ExPlasma.transaction_type(), list()) :: Transaction.t()
+  @spec new(ExPlasma.transaction_type(), tx_opts()) :: Transaction.t()
   def new(tx_type, opts \\ []), do: struct(%Transaction{tx_type: tx_type}, opts)
 
   @doc """
@@ -39,7 +53,7 @@ defmodule ExPlasma.Builder do
     ]
   }
   """
-  @spec add_input(Transaction.t(), keyword()) :: Transaction.t()
+  @spec add_input(Transaction.t(), input_opts()) :: Transaction.t()
   def add_input(txn, opts) do
     input = %Output{output_id: Enum.into(opts, %{})}
     %{txn | inputs: txn.inputs ++ [input]}

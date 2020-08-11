@@ -44,11 +44,12 @@ defmodule ExPlasma.Block do
   }
   """
   @spec new(maybe_improper_list()) :: t()
-  def new(transactions) when is_list(transactions),
-    do: %__MODULE__{transactions: transactions, hash: merkle_root_hash(transactions)}
+  def new(transactions) do
+    %__MODULE__{transactions: transactions, hash: merkle_root_hash(transactions)}
+  end
 
   # Encode the transactions and merkle root hash them.
-  defp merkle_root_hash(transactions) when is_list(transactions) do
+  defp merkle_root_hash(transactions) do
     transactions
     |> Enum.map(fn tx -> Transaction.encode(tx, signed: false) end)
     |> Merkle.root_hash()
