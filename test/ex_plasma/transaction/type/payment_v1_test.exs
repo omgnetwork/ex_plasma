@@ -63,7 +63,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
   end
 
   describe "to_map/2" do
-    test "returns a payment v1 struct from an rlp list when valid" do
+    test "returns a transaction struct from an rlp list when valid" do
       rlp = [
         # tx type
         <<1>>,

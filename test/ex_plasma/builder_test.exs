@@ -12,7 +12,7 @@ defmodule ExPlasma.BuilderTest do
   @bob TestEntity.bob()
 
   describe "new/1" do
-    test "returns a payment v1 struct with given params" do
+    test "returns a transaction representing a payment v1 with given params" do
       input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
       output_1 = PaymentV1.new_output(<<1::160>>, <<0::160>>, 1)
       output_2 = PaymentV1.new_output(<<2::160>>, <<0::160>>, 2)
@@ -29,7 +29,7 @@ defmodule ExPlasma.BuilderTest do
              }
     end
 
-    test "returns an empty payment v1 struct when no param given" do
+    test "returns an empty transaction struct of the given type when no param given" do
       tx = Builder.new(ExPlasma.payment_v1())
 
       assert tx == %Transaction{
