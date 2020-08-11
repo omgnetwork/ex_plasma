@@ -62,7 +62,6 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   @doc """
   Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
   """
-  @spec to_rlp(Transaction.t()) :: list()
   @impl Transaction
   def to_rlp(transaction) do
     [
@@ -80,7 +79,6 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec to_map(list()) :: {:ok, Transaction.t()} | {:error, mapping_error()}
   @impl Transaction
   def to_map([<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
     with {:ok, inputs} <- decode_inputs(inputs_rlp),
@@ -103,7 +101,6 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   @doc """
   Validates the Transaction.
   """
-  @spec validate(Transaction.t()) :: :ok | {:error, validation_error()}
   @impl Transaction
   def validate(transaction) do
     with :ok <- Validator.validate_inputs(transaction.inputs),

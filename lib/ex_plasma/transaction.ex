@@ -257,7 +257,7 @@ defmodule ExPlasma.Transaction do
   @spec with_witnesses(t()) :: {:ok, t()} | {:error, Witness.recovery_error()}
   def with_witnesses(transaction) do
     case Signed.get_witnesses(transaction) do
-      {:ok, witnesses} -> {:ok, Map.put(transaction, :witnesses, witnesses)}
+      {:ok, witnesses} -> {:ok, %{transaction | witnesses: witnesses}}
       {:error, _witness_recovery_error} = error -> error
     end
   end
