@@ -15,6 +15,7 @@ defmodule ExPlasma.Transaction do
   @empty_tx_data 0
 
   @type tx_bytes() :: binary()
+  @type nonce() :: Crypto.hash_t() | nil
   @type tx_hash() :: Crypto.hash_t()
   @type outputs() :: list(Output.t()) | []
   @type metadata() :: <<_::256>> | nil
@@ -34,6 +35,7 @@ defmodule ExPlasma.Transaction do
           inputs: outputs(),
           outputs: outputs(),
           tx_data: any(),
+          nonce: nonce(),
           metadata: metadata(),
           witnesses: list(Witness.t())
         }
@@ -45,10 +47,12 @@ defmodule ExPlasma.Transaction do
     outputs: [],
     tx_data: @empty_tx_data,
     metadata: @empty_metadata,
+    nonce: nil,
     sigs: [],
     witnesses: []
   ]
 
+  @callback build_nonce(map()) :: {:ok, nonce()} | {:error, atom()}
   @callback to_map(list()) :: {:ok, t()} | {:error, atom()}
   @callback to_rlp(t()) :: list()
   @callback validate(t()) :: :ok | {:error, {atom(), atom()}}
@@ -259,6 +263,14 @@ defmodule ExPlasma.Transaction do
     case Signed.get_witnesses(transaction) do
       {:ok, witnesses} -> {:ok, %{transaction | witnesses: witnesses}}
       {:error, _witness_recovery_error} = error -> error
+    end
+  end
+
+  @spec with_nonce(t(), map()) :: {:ok, t()} | {:error, atom()}
+  def with_nonce(transaction, params) do
+    with {:ok, module} <- get_transaction_module(transaction.tx_type),
+         {:ok, nonce} <- module.build_nonce(params) do
+      {:ok, %{transaction | nonce: nonce}}
     end
   end
 

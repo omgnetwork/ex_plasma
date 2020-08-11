@@ -42,6 +42,47 @@ defmodule ExPlasma.BuilderTest do
     end
   end
 
+  describe "with_nonce/2" do
+    test "returns {:ok, transaction} with a nonce when valid" do
+      tx = Builder.new(ExPlasma.fee())
+
+      assert tx.nonce == nil
+      assert {:ok, tx_with_nonce} = Builder.with_nonce(tx, %{blknum: 1000, token: <<0::160>>})
+      assert %{nonce: nonce} = tx_with_nonce
+
+      assert nonce ==
+               <<61, 119, 206, 68, 25, 203, 29, 23, 147, 224, 136, 32, 198, 128, 177, 74, 227, 250, 194, 173, 146, 182,
+                 251, 152, 123, 172, 26, 83, 175, 194, 213, 238>>
+    end
+
+    test "returns {:error, atom} when not given valid params" do
+      tx = Builder.new(ExPlasma.fee())
+      assert Builder.with_nonce(tx, %{}) == {:error, :invalid_nonce_params}
+    end
+  end
+
+  describe "with_nonce!/2" do
+    test "returns transaction with a nonce when valid" do
+      tx = Builder.new(ExPlasma.fee())
+
+      assert tx.nonce == nil
+      assert tx_with_nonce = Builder.with_nonce!(tx, %{blknum: 1000, token: <<0::160>>})
+      assert %{nonce: nonce} = tx_with_nonce
+
+      assert nonce ==
+               <<61, 119, 206, 68, 25, 203, 29, 23, 147, 224, 136, 32, 198, 128, 177, 74, 227, 250, 194, 173, 146, 182,
+                 251, 152, 123, 172, 26, 83, 175, 194, 213, 238>>
+    end
+
+    test "raises when not given valid params" do
+      tx = Builder.new(ExPlasma.fee())
+
+      assert_raise MatchError, fn ->
+        Builder.with_nonce!(tx, %{})
+      end
+    end
+  end
+
   describe "add_input/2" do
     test "adds input" do
       block_number = 99
