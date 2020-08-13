@@ -5,6 +5,7 @@ defmodule ExPlasma.Builder do
 
   alias ExPlasma.Output
   alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.Signed
 
   @type tx_opts :: [
           inputs: Transaction.outputs(),
@@ -35,6 +36,35 @@ defmodule ExPlasma.Builder do
   """
   @spec new(ExPlasma.transaction_type(), tx_opts()) :: Transaction.t()
   def new(tx_type, opts \\ []), do: struct(%Transaction{tx_type: tx_type}, opts)
+
+  @doc """
+  Decorates the transaction with a nonce when given valid params for the type.
+
+  ## Example
+
+  iex> tx = new(ExPlasma.fee())
+  iex> with_nonce(tx, %{blknum: 1000, token: <<0::160>>})
+  {:ok, %ExPlasma.Transaction{
+    inputs: [],
+    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0>>,
+    nonce: <<61, 119, 206, 68, 25, 203, 29, 23, 147, 224, 136, 32, 198, 128, 177, 74,
+      227, 250, 194, 173, 146, 182, 251, 152, 123, 172, 26, 83, 175, 194, 213, 238>>,
+    outputs: [],
+    sigs: [],
+    tx_data: 0,
+    tx_type: 3,
+    witnesses: []
+  }}
+  """
+  @spec with_nonce(Transaction.t(), map()) :: {:ok, Transaction.t()} | {:error, atom()}
+  defdelegate with_nonce(transaction, params), to: Transaction
+
+  @spec with_nonce!(Transaction.t(), map()) :: Transaction.t() | no_return()
+  def with_nonce!(transaction, params) do
+    {:ok, transaction} = Transaction.with_nonce(transaction, params)
+    transaction
+  end
 
   @doc """
   Adds an input to the Transaction
@@ -115,6 +145,7 @@ defmodule ExPlasma.Builder do
   """
   defdelegate sign(txn, sigs), to: Transaction
 
+  @spec sign!(Transaction.t(), Signed.sigs()) :: Transaction.t() | no_return()
   def sign!(txn, sigs) do
     {:ok, signed} = Transaction.sign(txn, sigs)
     signed

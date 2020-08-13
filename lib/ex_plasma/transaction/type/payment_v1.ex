@@ -59,6 +59,9 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
     }
   end
 
+  @impl Transaction
+  def build_nonce(_params), do: {:ok, nil}
+
   @doc """
   Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
   """

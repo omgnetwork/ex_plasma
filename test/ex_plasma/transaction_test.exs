@@ -8,6 +8,7 @@ defmodule ExPlasma.TransactionTest do
   alias ExPlasma.Output
   alias ExPlasma.Support.TestEntity
   alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.Type.Fee
   alias ExPlasma.Transaction.Type.PaymentV1
   alias ExPlasma.Transaction.TypeMapper
 
@@ -63,6 +64,15 @@ defmodule ExPlasma.TransactionTest do
       Enum.map(transaction_list, &decode_tester/1)
     end
 
+    test "decodes successfuly a fee transaction" do
+      outputs = [Fee.new_output(@alice.addr, @eth, 7)]
+      {:ok, nonce} = Fee.build_nonce(%{token: @eth, blknum: 1000})
+      transaction = Builder.new(ExPlasma.fee(), outputs: outputs, nonce: nonce)
+      encoded_transaction = Transaction.encode(transaction)
+
+      assert Transaction.decode(encoded_transaction, signed: false) == {:ok, transaction}
+    end
+
     test "decodes without signatures when given the opts signed: false but an encoded signed tx", %{
       encoded_signed_tx: encoded_signed_tx
     } do
@@ -89,13 +99,16 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "returns a malformed_transaction error when rlp is decodable, but doesn't represent a known transaction format",
-         %{sigs: sigs, outputs: outputs} do
+         %{sigs: sigs, inputs: inputs, outputs: outputs} do
       assert Transaction.decode(<<192>>) == {:error, :malformed_transaction}
       assert Transaction.decode(<<0x80>>) == {:error, :malformed_transaction}
       assert Transaction.decode(<<>>) == {:error, :malformed_transaction}
       assert Transaction.decode(ExRLP.encode(23)) == {:error, :malformed_transaction}
       assert Transaction.decode(ExRLP.encode([sigs, 1])) == {:error, :malformed_transaction}
       assert Transaction.decode(ExRLP.encode([sigs, 1, outputs, 0, @zero_metadata])) == {:error, :malformed_transaction}
+      # looks like a payment transaction but type points to a `Transaction.Fee`, hence malformed not unrecognized
+      assert Transaction.decode(ExRLP.encode([sigs, 3, inputs, outputs, 0, @zero_metadata])) ==
+               {:error, :malformed_transaction}
     end
 
     test "returns a unrecognized_transaction_type error when given an unkown/invalid transaction type", %{
@@ -227,6 +240,25 @@ defmodule ExPlasma.TransactionTest do
     end
   end
 
+  describe "with_nonce/2" do
+    test "returns {:ok, transaction} with a nonce when valid" do
+      tx = Builder.new(ExPlasma.fee())
+
+      assert tx.nonce == nil
+      assert {:ok, tx_with_nonce} = Transaction.with_nonce(tx, %{blknum: 1000, token: <<0::160>>})
+      assert %{nonce: nonce} = tx_with_nonce
+
+      assert nonce ==
+               <<61, 119, 206, 68, 25, 203, 29, 23, 147, 224, 136, 32, 198, 128, 177, 74, 227, 250, 194, 173, 146, 182,
+                 251, 152, 123, 172, 26, 83, 175, 194, 213, 238>>
+    end
+
+    test "returns {:error, atom} when not given valid params" do
+      tx = Builder.new(ExPlasma.fee())
+      assert Transaction.with_nonce(tx, %{}) == {:error, :invalid_nonce_params}
+    end
+  end
+
   describe "validate/1" do
     test "returns :ok when the transaction is valid", %{signed: signed} do
       assert Transaction.validate(signed) == :ok
@@ -289,7 +321,20 @@ defmodule ExPlasma.TransactionTest do
   end
 
   describe "to_rlp/1" do
-    test "returns the RLP list of a transaction", %{signed: signed} do
+    test "returns the RLP list of a fee transaction" do
+      outputs = [Fee.new_output(@alice.addr, @eth, 7)]
+      {:ok, nonce} = Fee.build_nonce(%{token: @eth, blknum: 1000})
+      transaction = Builder.new(ExPlasma.fee(), outputs: outputs, nonce: nonce)
+      rlp = Transaction.to_rlp(transaction)
+
+      assert [[], tx_type, outputs, nonce] = rlp
+
+      assert is_binary(tx_type)
+      assert is_list(outputs)
+      assert is_binary(nonce)
+    end
+
+    test "returns the RLP list of a payment v1 transaction", %{signed: signed} do
       rlp = Transaction.to_rlp(signed)
 
       assert [sigs, tx_type, inputs, outputs, 0, metadata] = rlp
@@ -348,7 +393,22 @@ defmodule ExPlasma.TransactionTest do
   end
 
   describe "encode/2" do
-    test "encodes a transaction struct", %{signed: signed} do
+    test "encodes a fee transaction struct" do
+      outputs = [Fee.new_output(@alice.addr, @eth, 7)]
+      {:ok, nonce} = Fee.build_nonce(%{token: @eth, blknum: 1000})
+      transaction = Builder.new(ExPlasma.fee(), outputs: outputs, nonce: nonce)
+      result = Transaction.encode(transaction)
+
+      expected_result =
+        <<248, 82, 192, 3, 238, 237, 2, 235, 148, 99, 100, 231, 104, 170, 156, 129, 68, 252, 45, 124, 232, 218, 107,
+          175, 51, 13, 180, 254, 40, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 160, 61, 119,
+          206, 68, 25, 203, 29, 23, 147, 224, 136, 32, 198, 128, 177, 74, 227, 250, 194, 173, 146, 182, 251, 152, 123,
+          172, 26, 83, 175, 194, 213, 238>>
+
+      assert result == expected_result
+    end
+
+    test "encodes a payment v1 transaction struct", %{signed: signed} do
       result = Transaction.encode(signed)
 
       expected_result =

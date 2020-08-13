@@ -1,6 +1,6 @@
-defmodule ExPlasma.Output.Type.PaymentV1 do
+defmodule ExPlasma.Output.Type.Fee do
   @moduledoc """
-  Payment V1 output type.
+  Fee Output Type.
   """
   @behaviour ExPlasma.Output
 

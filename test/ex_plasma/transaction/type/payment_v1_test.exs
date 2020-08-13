@@ -20,6 +20,12 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
     end
   end
 
+  describe "build_nonce/1" do
+    test "returns a nil nonce" do
+      assert PaymentV1.build_nonce(%{}) == {:ok, nil}
+    end
+  end
+
   describe "to_rlp/1" do
     test "returns the rlp item list of the given payment v1 transaction" do
       input = %Output{
@@ -62,7 +68,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
     end
   end
 
-  describe "to_map/2" do
+  describe "to_map/1" do
     test "returns a transaction struct from an rlp list when valid" do
       rlp = [
         # tx type
