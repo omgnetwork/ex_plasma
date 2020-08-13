@@ -1,5 +1,6 @@
 defimpl ExPlasma.TypedData, for: ExPlasma.Transaction do
-  import ExPlasma.Encoding, only: [to_binary: 1, keccak_hash: 1]
+  import ExPlasma.Crypto, only: [keccak_hash: 1]
+  import ExPlasma.Encoding, only: [to_binary!: 1]
   import ABI.TypeEncoder, only: [encode_raw: 2]
 
   alias ExPlasma.Configuration
@@ -71,8 +72,8 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction do
       keccak_hash(signature),
       keccak_hash(name),
       keccak_hash(version),
-      encode_raw([to_binary(verifying_contract)], [:address]),
-      encode_raw([to_binary(salt)], [{:bytes, 32}])
+      encode_raw([to_binary!(verifying_contract)], [:address]),
+      encode_raw([to_binary!(salt)], [{:bytes, 32}])
     ]
     |> Enum.join()
     |> keccak_hash()

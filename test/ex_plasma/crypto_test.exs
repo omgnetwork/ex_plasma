@@ -6,6 +6,20 @@ defmodule ExPlasma.CryptoTest do
   alias ExPlasma.Encoding
   alias ExPlasma.Signature
 
+  describe "keccak_hash/1" do
+    test "calculates keccak hash" do
+      message = "Hello world"
+
+      result = Crypto.keccak_hash(message)
+
+      expected_result =
+        <<237, 108, 17, 176, 181, 184, 8, 150, 13, 242, 111, 91, 252, 71, 29, 4, 193, 153, 91, 15, 253, 32, 85, 146, 90,
+          209, 190, 40, 214, 186, 173, 253>>
+
+      assert result == expected_result
+    end
+  end
+
   describe "recover_address/2" do
     test "recovers address of the signer from a binary-encoded signature" do
       {:ok, priv} = generate_private_key()
@@ -19,15 +33,15 @@ defmodule ExPlasma.CryptoTest do
     end
 
     test "fails to recover address with invalid signature" do
-      assert {:error, :invalid_signature} = Crypto.recover_address(<<2::256>>, <<1::65>>)
+      assert Crypto.recover_address(<<2::256>>, <<1::65>>) == {:error, :corrupted_witness}
     end
 
     test "fails to recover address with invalid signature size" do
-      assert {:error, :invalid_signature} = Crypto.recover_address(<<2::256>>, <<1>>)
+      assert Crypto.recover_address(<<2::256>>, <<1>>) == {:error, :corrupted_witness}
     end
 
     test "fails to recover address with invalid message" do
-      assert {:error, :invalid_message} = Crypto.recover_address(<<2>>, <<1::65>>)
+      assert Crypto.recover_address(<<2>>, <<1::65>>) == {:error, :invalid_message}
     end
   end
 
@@ -36,7 +50,7 @@ defmodule ExPlasma.CryptoTest do
       # test vectors below were generated using pyethereum's sha3 and privtoaddr
       py_priv = "7880aec93413f117ef14bd4e6d130875ab2c7d7d55a064fac3c2f7bd51516380"
       py_pub = "c4d178249d840f548b09ad8269e8a3165ce2c170"
-      priv = Encoding.keccak_hash(<<"11">>)
+      priv = Crypto.keccak_hash(<<"11">>)
 
       {:ok, pub} = generate_public_key(priv)
       {:ok, address} = Crypto.generate_address(pub)
@@ -52,8 +66,8 @@ defmodule ExPlasma.CryptoTest do
       py_signature =
         "b8670d619701733e1b4d10149bc90eb4eb276760d2f77a08a5428d4cbf2eadbd656f374c187b1ac80ce31d8c62076af26150e52ef1f33bfc07c6d244da7ca38c1c"
 
-      msg = Encoding.keccak_hash("1234")
-      priv = Encoding.keccak_hash("11")
+      msg = Crypto.keccak_hash("1234")
+      priv = Crypto.keccak_hash("11")
 
       {:ok, pub} = generate_public_key(priv)
       {:ok, _} = Crypto.generate_address(pub)

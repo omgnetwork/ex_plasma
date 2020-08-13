@@ -1,54 +1,73 @@
 defmodule ExPlasma.Transaction.Type.PaymentV1 do
-  @moduledoc false
+  @moduledoc """
+  Implementation of Transaction behaviour for Payment V1 type.
+  """
 
   @behaviour ExPlasma.Transaction
 
+  alias __MODULE__.Validator
+  alias ExPlasma.Crypto
+  alias ExPlasma.Output
   alias ExPlasma.Transaction
+  alias ExPlasma.Transaction.TypeMapper
+  alias ExPlasma.Utils.RlpDecoder
 
-  @type validation_responses() ::
-          ExPlasma.Output.Type.PaymentV1.validation_responses()
-          | {:error, {:inputs, :cannot_exceed_maximum_value}}
-          | {:error, {:outputs, :cannot_exceed_maximum_value}}
+  require __MODULE__.Validator
 
-  # The maximum input and outputs the Transaction can have.
-  @output_limit 4
-
-  @tx_type 1
-
-  # Currently, the plasma-contracts don't have these
-  # values set, so we mark them explicitly empty.
-  @empty_tx_data 0
   @empty_metadata <<0::256>>
+  @empty_tx_data 0
+
+  @tx_type TypeMapper.tx_type_for(:tx_payment_v1)
+  @output_type TypeMapper.output_type_for(:output_payment_v1)
+
+  @type outputs() :: list(Output.t()) | []
+  @type metadata() :: <<_::256>> | nil
+
+  @type validation_error() ::
+          Validator.inputs_validation_error()
+          | Validator.outputs_validation_error()
+          | {:tx_data, :malformed_tx_data}
+          | {:metadata, :malformed_metadata}
+
+  @type mapping_error() ::
+          :malformed_transaction
+          | :malformed_tx_data
+          | :malformed_inputs
+          | :malformed_outputs
 
   @doc """
-  Encode the given Transaction into an RLP encodeable list.
+  Creates output for a payment v1 transaction
 
   ## Example
 
-  iex> txn = %ExPlasma.Transaction{
-  ...>  inputs: [%ExPlasma.Output{output_data: nil, output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}],
-  ...>  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-  ...>  outputs: [
-  ...>    %ExPlasma.Output{
-  ...>      output_data: %{amount: 1, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
-  ...>        token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1
-  ...>    }
-  ...>  ],
-  ...>  sigs: [],
-  ...>  tx_data: <<0>>,
-  ...>  tx_type: 1
-  ...>}
-  iex> ExPlasma.Transaction.Type.PaymentV1.to_rlp(txn)
-  [[], <<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>], [[<<1>>, [<<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<1>>]]], 0, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>]
+  iex> output = new_output(<<1::160>>, <<0::160>>, 1)
+  iex> %ExPlasma.Output{
+  ...>   output_data: %{amount: 1, output_guard: <<1::160>>, token: <<0::160>>},
+  ...>   output_id: nil,
+  ...>   output_type: 1
+  ...> } = output
+  """
+  @spec new_output(Crypto.address_t(), Crypto.address_t(), pos_integer()) :: Output.t()
+  def new_output(owner, token, amount) do
+    %Output{
+      output_type: @output_type,
+      output_data: %{
+        amount: amount,
+        output_guard: owner,
+        token: token
+      }
+    }
+  end
+
+  @doc """
+  Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
   """
   @impl Transaction
-  @spec to_rlp(Transaction.t()) :: list()
-  def to_rlp(%{} = transaction) do
+  def to_rlp(transaction) do
     [
-      transaction.sigs,
       <<@tx_type>>,
-      Enum.map(transaction.inputs, &ExPlasma.Output.to_rlp_id/1),
-      Enum.map(transaction.outputs, &ExPlasma.Output.to_rlp/1),
+      Enum.map(transaction.inputs, &Output.to_rlp_id/1),
+      Enum.map(transaction.outputs, &Output.to_rlp/1),
       @empty_tx_data,
       transaction.metadata || @empty_metadata
     ]
@@ -57,94 +76,62 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   @doc """
   Decodes an RLP list into a Payment V1 Transaction.
 
-  ## Example
-
-  iex> rlp = [
-  ...>  [], 
-  ...>  <<1>>, 
-  ...>  [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>], 
-  ...>  [
-  ...>    [
-  ...>      <<1>>, 
-  ...>      [<<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, <<1>>]
-  ...>    ]
-  ...>  ], 
-  ...>  0,
-  ...>  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
-  ...>]
-  iex> ExPlasma.Transaction.Type.PaymentV1.to_map(rlp)
-  %ExPlasma.Transaction{
-  	inputs: [
-  		%ExPlasma.Output{
-  			output_data: nil,
-  			output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-  			output_type: nil
-  		}
-  	],
-  	metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-  	outputs: [
-  		%ExPlasma.Output{
-  			output_data: %{
-  				amount: 1,
-  				output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-  					217, 206, 65, 226, 241, 55, 0, 110>>,
-  				token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-  					65, 226, 241, 55, 0, 110>>
-  			},
-  			output_id: nil,
-  			output_type: 1
-  		}
-  	],
-  	sigs: [],
-  	tx_data: 0,
-  	tx_type: 1
-  }
+  Only validates that the RLP is structurally correct.
+  Does not perform any other kind of validation, use validate/1 for that.
   """
   @impl Transaction
-  @spec to_map(list()) :: Transaction.t()
-  def to_map(rlp) when is_list(rlp), do: do_to_map(rlp)
-
-  defp do_to_map([sigs, tx_type, inputs, outputs, "", metadata]),
-    do: do_to_map([sigs, tx_type, inputs, outputs, 0, metadata])
-
-  defp do_to_map([sigs, <<tx_type>>, inputs, outputs, tx_data, metadata]),
-    do: do_to_map([sigs, tx_type, inputs, outputs, tx_data, metadata])
-
-  defp do_to_map([sigs, tx_type, inputs, outputs, tx_data, metadata]) do
-    %ExPlasma.Transaction{
-      sigs: sigs,
-      tx_type: tx_type,
-      inputs: Enum.map(inputs, &ExPlasma.Output.decode_id/1),
-      outputs: Enum.map(outputs, &ExPlasma.Output.decode/1),
-      tx_data: tx_data,
-      metadata: metadata
-    }
-  end
-
-  @doc """
-  Validates the Transaction.
-
-  ## Example
-
-  iex> txn = %{inputs: [%{output_data: [], output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0}, output_type: nil}], metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, outputs: [%{output_data: %{amount: <<0, 0, 0, 0, 0, 0, 0, 1>>, output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>, token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>}, output_id: nil, output_type: 1}], sigs: [], tx_data: <<0>>, tx_type: <<1>>}
-  iex> {:ok, ^txn} = ExPlasma.Transaction.Type.PaymentV1.validate(txn)
-  """
-  @impl Transaction
-  @spec validate(map()) :: validation_responses()
-  def validate(%{} = transaction) do
-    with {:ok, _inputs} <- do_validate_total(:inputs, transaction.inputs, 0),
-         {:ok, _outputs} <- do_validate_total(:outputs, transaction.outputs, 1) do
-      {:ok, transaction}
+  def to_map([<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
+    with {:ok, inputs} <- decode_inputs(inputs_rlp),
+         {:ok, outputs} <- decode_outputs(outputs_rlp),
+         {:ok, tx_data} <- decode_tx_data(tx_data_rlp),
+         {:ok, metadata} <- decode_metadata(metadata_rlp) do
+      {:ok,
+       %Transaction{
+         tx_type: @tx_type,
+         inputs: inputs,
+         outputs: outputs,
+         tx_data: tx_data,
+         metadata: metadata
+       }}
     end
   end
 
-  defp do_validate_total(field, list, _min_limit) when length(list) > @output_limit do
-    {:error, {field, :cannot_exceed_maximum_value}}
+  def to_map(_), do: {:error, :malformed_transaction}
+
+  @doc """
+  Validates the Transaction.
+  """
+  @impl Transaction
+  def validate(transaction) do
+    with :ok <- Validator.validate_inputs(transaction.inputs),
+         :ok <- Validator.validate_outputs(transaction.outputs),
+         :ok <- Validator.validate_tx_data(transaction.tx_data),
+         :ok <- Validator.validate_metadata(transaction.metadata) do
+      :ok
+    end
   end
 
-  defp do_validate_total(field, list, min_limit) when length(list) < min_limit do
-    {:error, {field, :cannot_subceed_minimum_value}}
+  defp decode_inputs(inputs_rlp) do
+    {:ok, Enum.map(inputs_rlp, &Output.decode_id(&1))}
+  rescue
+    _ -> {:error, :malformed_inputs}
   end
 
-  defp do_validate_total(_field, list, _min_limit), do: {:ok, list}
+  defp decode_outputs(outputs_rlp) do
+    {:ok, Enum.map(outputs_rlp, &Output.decode(&1))}
+  rescue
+    _ -> {:error, :malformed_outputs}
+  end
+
+  defp decode_metadata(metadata_rlp) when Validator.is_metadata(metadata_rlp), do: {:ok, metadata_rlp}
+  defp decode_metadata(_), do: {:error, :malformed_metadata}
+
+  defp decode_tx_data(@empty_tx_data), do: {:ok, @empty_tx_data}
+
+  defp decode_tx_data(tx_data_rlp) do
+    case RlpDecoder.parse_uint256(tx_data_rlp) do
+      {:ok, tx_data} -> {:ok, tx_data}
+      _ -> {:error, :malformed_tx_data}
+    end
+  end
 end

@@ -6,7 +6,7 @@ defmodule ExPlasma.Block do
     * transactions - the list of Transactions associated with this given block
   """
 
-  alias ExPlasma.Encoding
+  alias ExPlasma.Merkle
   alias ExPlasma.Transaction
 
   @type t() :: %__MODULE__{
@@ -14,7 +14,7 @@ defmodule ExPlasma.Block do
           transactions: maybe_improper_list()
         }
 
-  defstruct(hash: nil, transactions: [])
+  defstruct hash: nil, transactions: []
 
   # TODO
   #
@@ -31,11 +31,12 @@ defmodule ExPlasma.Block do
       62>>,
     transactions: [
       %ExPlasma.Transaction{
+        sigs: [],
+        witnesses: [],
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [],
-        sigs: [],
         tx_data: 0,
         tx_type: 1
       }
@@ -43,13 +44,14 @@ defmodule ExPlasma.Block do
   }
   """
   @spec new(maybe_improper_list()) :: t()
-  def new(transactions) when is_list(transactions),
-    do: %__MODULE__{transactions: transactions, hash: merkle_root_hash(transactions)}
+  def new(transactions) do
+    %__MODULE__{transactions: transactions, hash: merkle_root_hash(transactions)}
+  end
 
   # Encode the transactions and merkle root hash them.
-  defp merkle_root_hash(transactions) when is_list(transactions) do
+  defp merkle_root_hash(transactions) do
     transactions
-    |> Enum.map(&Transaction.encode/1)
-    |> Encoding.merkle_root_hash()
+    |> Enum.map(fn tx -> Transaction.encode(tx, signed: false) end)
+    |> Merkle.root_hash()
   end
 end

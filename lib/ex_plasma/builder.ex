@@ -1,33 +1,48 @@
 defmodule ExPlasma.Builder do
   @moduledoc """
-  Helper module to make crafting plasma transactions much simplier.
+  Helper module to make crafting plasma transactions much simpler.
   """
 
   alias ExPlasma.Output
   alias ExPlasma.Transaction
+
+  @type tx_opts :: [
+          inputs: Transaction.outputs(),
+          outputs: Transaction.outputs(),
+          tx_data: any(),
+          metadata: Transaction.metadata()
+        ]
+
+  @type input_opts :: [
+          position: pos_integer(),
+          blknum: non_neg_integer(),
+          txindex: non_neg_integer(),
+          oindex: non_neg_integer()
+        ]
 
   @doc """
   Create a new Transaction
 
   ## Example
 
-  # Add tx_type
-  iex> new(tx_type: 1)
-  %ExPlasma.Transaction{tx_type: 1}
+  # Empty payment v1 transaction
+  iex> new(ExPlasma.payment_v1())
+  %ExPlasma.Transaction{tx_type: 1, inputs: [], outputs: [], metadata: <<0::256>>}
 
-  # Add metadata
-  iex> new(metadata: <<1::160>>, tx_type: 1)
-  %ExPlasma.Transaction{tx_type: 1, metadata: <<1::160>>}
+  # New payment v1 transaction with metadata
+  iex> new(ExPlasma.payment_v1(), metadata: <<1::256>>)
+  %ExPlasma.Transaction{tx_type: 1, inputs: [], outputs: [], metadata: <<1::256>>}
   """
-  @spec new(list()) :: Transaction.t()
-  def new(opts \\ []), do: struct(%Transaction{}, opts)
+  @spec new(ExPlasma.transaction_type(), tx_opts()) :: Transaction.t()
+  def new(tx_type, opts \\ []), do: struct(%Transaction{tx_type: tx_type}, opts)
 
   @doc """
   Adds an input to the Transaction
 
   ## Example
 
-  iex> new(tx_type: 1)
+  iex> ExPlasma.payment_v1()
+  ...> |> new()
   ...> |> add_input(blknum: 1, txindex: 0, oindex: 0)
   ...> |> add_input(blknum: 2, txindex: 0, oindex: 0)
   %ExPlasma.Transaction{
@@ -38,8 +53,8 @@ defmodule ExPlasma.Builder do
     ]
   }
   """
-  @spec add_input(Transaction.t(), list()) :: Transaction.t()
-  def add_input(txn, opts \\ []) do
+  @spec add_input(Transaction.t(), input_opts()) :: Transaction.t()
+  def add_input(txn, opts) do
     input = %Output{output_id: Enum.into(opts, %{})}
     %{txn | inputs: txn.inputs ++ [input]}
   end
@@ -49,7 +64,8 @@ defmodule ExPlasma.Builder do
 
   ## Example
 
-  iex> new(tx_type: 1)
+  iex> ExPlasma.payment_v1()
+  ...> |> new()
   ...> |> add_output(output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
   ...> |> add_output(output_guard: <<1::160>>, token: <<0::160>>, amount: 2)
   %ExPlasma.Transaction{
@@ -74,29 +90,33 @@ defmodule ExPlasma.Builder do
   @doc """
   Sign the inputs of the transaction with the given keys in the corresponding order.
 
+  Returns a tuple {:ok, transaction} if success or {:error, atom} otherwise.
+
   ## Example
 
     iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
-    ...> [tx_type: 1]
+    ...> ExPlasma.payment_v1()
     ...> |> new()
     ...> |> sign([key])
-    %ExPlasma.Transaction{
+    {:ok, %ExPlasma.Transaction{
         inputs: [],
         metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
         outputs: [],
+        tx_data: 0,
         sigs: [
               <<129, 213, 32, 15, 183, 218, 255, 22, 82, 95, 22, 86, 103, 227, 92, 109, 9,
                 89, 7, 142, 235, 107, 203, 29, 20, 231, 91, 168, 255, 119, 204, 239, 44,
                 125, 76, 109, 200, 196, 204, 230, 224, 241, 84, 75, 9, 3, 160, 177, 37,
                 181, 174, 98, 51, 15, 136, 235, 47, 96, 15, 209, 45, 85, 153, 2, 28>>
             ],
-        tx_data: 0,
         tx_type: 1
-    }
+    }}
   """
-  @spec sign(Transaction.t(), list()) :: Transaction.t()
-  def sign(txn, sigs) when is_list(sigs) do
-    Transaction.sign(txn, keys: sigs)
+  defdelegate sign(txn, sigs), to: Transaction
+
+  def sign!(txn, sigs) do
+    {:ok, signed} = Transaction.sign(txn, sigs)
+    signed
   end
 end

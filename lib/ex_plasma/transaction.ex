@@ -1,129 +1,188 @@
 defmodule ExPlasma.Transaction do
-  @moduledoc false
+  @moduledoc """
+  Contains the base structure of transactions.
+  """
 
+  alias ExPlasma.Crypto
   alias ExPlasma.Output
+  alias ExPlasma.Transaction.Signed
+  alias ExPlasma.Transaction.TypeMapper
+  alias ExPlasma.Transaction.Witness
+  alias ExPlasma.Utils.RlpDecoder
 
-  @type sigs() :: list(binary()) | []
+  @tx_types_modules TypeMapper.tx_type_modules()
+  @empty_metadata <<0::256>>
+  @empty_tx_data 0
+
+  @type tx_bytes() :: binary()
+  @type tx_hash() :: Crypto.hash_t()
   @type outputs() :: list(Output.t()) | []
-  @type metadata :: <<_::256>> | nil
+  @type metadata() :: <<_::256>> | nil
+
+  @type decoding_error() :: :malformed_rlp | mapping_error()
+
+  @type mapping_error() :: :malformed_transaction | :unrecognized_transaction_type | atom()
 
   @type t() :: %__MODULE__{
-          sigs: sigs(),
+          sigs: Signed.sigs(),
           tx_type: pos_integer(),
           inputs: outputs(),
           outputs: outputs(),
           tx_data: any(),
-          metadata: metadata()
+          metadata: metadata(),
+          witnesses: list(Witness.t())
         }
 
-  @callback to_map(any()) :: map()
-  @callback to_rlp(map()) :: any()
-  @callback validate(any()) :: {:ok, map()} | {:error, {atom(), atom()}}
-
-  @transaction_types %{
-    1 => ExPlasma.Transaction.Type.PaymentV1
-  }
-
-  defstruct sigs: [], tx_type: 0, inputs: [], outputs: [], tx_data: 0, metadata: <<0::256>>
-
-  @doc """
-  Encode the given Transaction into an RLP encodeable list.
-
-  ## Example
-
-    iex> txn =
-    ...>  %ExPlasma.Transaction{
-    ...>    inputs: [
-    ...>      %ExPlasma.Output{
-    ...>        output_data: nil,
-    ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-    ...>        output_type: nil
-    ...>      }
-    ...>    ],
-    ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-    ...>    outputs: [
-    ...>      %ExPlasma.Output{
-    ...>        output_data: %{
-    ...>          amount: 1,
-    ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-    ...>            217, 206, 65, 226, 241, 55, 0, 110>>,
-    ...>          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-    ...>            65, 226, 241, 55, 0, 110>>
-    ...>        },
-    ...>        output_id: nil,
-    ...>        output_type: 1
-    ...>      }
-    ...>    ],
-    ...>    sigs: [],
-    ...>    tx_data: <<0>>,
-    ...>    tx_type: 1
-    ...>  }
-    iex> ExPlasma.Transaction.encode(txn)
-    <<248, 104, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
-      41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
-      148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
-      241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0>>
-  """
-  @spec encode(t()) :: binary()
-  def encode(%__MODULE__{} = transaction), do: transaction |> to_rlp() |> ExRLP.encode()
-  def encode(transaction) when is_list(transaction), do: ExRLP.encode(transaction)
-
-  @doc """
-  Decode the given RLP list into a Transaction.
-
-  ## Example
-
-  iex> rlp = <<248, 74, 192, 1, 193, 128, 239, 174, 237, 1, 235, 148, 29, 246, 47, 41, 27,
-  ...>   46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46,
-  ...>   38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
-  ...>   0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ...>   0>>
-  iex> ExPlasma.Transaction.decode(rlp)
-  %ExPlasma.Transaction{
-    inputs: [
-      %ExPlasma.Output{
-        output_data: nil,
-        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-        output_type: nil
-      }
-    ],
-    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-    outputs: [
-      %ExPlasma.Output{
-        output_data: %{
-          amount: 1,
-          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-            217, 206, 65, 226, 241, 55, 0, 110>>,
-          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-            65, 226, 241, 55, 0, 110>>
-        },
-        output_id: nil,
-        output_type: 1
-      }
-    ],
+  @enforce_keys [:tx_type]
+  defstruct [
+    :tx_type,
+    inputs: [],
+    outputs: [],
+    tx_data: @empty_tx_data,
+    metadata: @empty_metadata,
     sigs: [],
-    tx_data: 0,
-    tx_type: 1
+    witnesses: []
+  ]
+
+  @callback to_map(list()) :: {:ok, t()} | {:error, atom()}
+  @callback to_rlp(t()) :: list()
+  @callback validate(t()) :: :ok | {:error, {atom(), atom()}}
+
+  @doc """
+  Encode the given Transaction into an RLP encodable list.
+
+  If `signed: false` is given in the list of opts, will encode the transaction without its signatures.
+
+  ## Example
+  iex> txn =
+  ...>  %ExPlasma.Transaction{
+  ...>    inputs: [
+  ...>      %ExPlasma.Output{
+  ...>        output_data: nil,
+  ...>        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+  ...>        output_type: nil
+  ...>      }
+  ...>    ],
+  ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  ...>    outputs: [
+  ...>      %ExPlasma.Output{
+  ...>        output_data: %{
+  ...>          amount: 1,
+  ...>          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
+  ...>            217, 206, 65, 226, 241, 55, 0, 110>>,
+  ...>          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
+  ...>            65, 226, 241, 55, 0, 110>>
+  ...>        },
+  ...>        output_id: nil,
+  ...>        output_type: 1
+  ...>      }
+  ...>    ],
+  ...>    sigs: [],
+  ...>    tx_data: <<0>>,
+  ...>    tx_type: 1
+  ...>  }
+  iex> ExPlasma.Transaction.encode(txn)
+  <<248, 105, 192, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246,
+  47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0,
+  110, 148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
+  226, 241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0>>
+  """
+  @spec encode(t() | list(), keyword()) :: tx_bytes()
+  def encode(transaction, opts \\ [])
+  def encode(%__MODULE__{} = transaction, opts), do: transaction |> to_rlp(opts) |> encode(opts)
+  def encode(rlp_items, _opts) when is_list(rlp_items), do: ExRLP.encode(rlp_items)
+
+  @doc """
+  Attempt to decode the given RLP list into a Transaction.
+
+  If `signed: false` is given in the list of opts, expects the underlying RLP to not contain signatures.
+
+  Only validates that the RLP is structurally correct and that the tx type is supported.
+  Does not perform any other kind of validation, use validate/1 for that.
+
+  ## Example
+  iex> rlp = <<248, 117, 192, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ...>  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246,
+  ...>  47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0,
+  ...>  110, 148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
+  ...>  226, 241, 55, 0, 110, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ...>  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+  iex> ExPlasma.Transaction.decode(rlp)
+  {:ok,
+    %ExPlasma.Transaction{
+      inputs: [
+        %ExPlasma.Output{
+          output_data: nil,
+          output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
+          output_type: nil
+        }
+      ],
+      metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+      outputs: [
+        %ExPlasma.Output{
+          output_data: %{
+            amount: 1,
+            output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
+              217, 206, 65, 226, 241, 55, 0, 110>>,
+            token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
+              65, 226, 241, 55, 0, 110>>
+          },
+          output_id: nil,
+          output_type: 1
+        }
+      ],
+      witnesses: [],
+      sigs: [],
+      tx_data: 0,
+      tx_type: 1
+    }
   }
   """
-  @spec decode(binary()) :: t()
-  def decode(data), do: data |> ExRLP.decode() |> do_decode()
+  @spec decode(tx_bytes(), keyword()) :: {:ok, t()} | {:error, decoding_error()}
+  def decode(tx_bytes, opts \\ []) do
+    decoder = get_decoder_for_opts(opts)
 
-  defp do_decode([_tx_type, _inputs, _outputs, _tx_data, _metadata] = rlp) do
-    do_decode([[] | rlp])
-  end
-
-  defp do_decode([_sigs, <<tx_type>>, _inputs, _outputs, _tx_data, _metadata] = rlp) do
-    get_transaction_type(tx_type).to_map(rlp)
+    with {:ok, tx_rlp_items} <- decoder.decode(tx_bytes),
+         {:ok, transaction} <- to_map(tx_rlp_items) do
+      {:ok, strip_sigs_for_opts(transaction, opts)}
+    end
   end
 
   @doc """
-  Encode the given Transaction into an RLP encodeable list.
+  Maps the given RLP list into a transaction.
+
+  When the RLP list starts with a list, assumes it's the sigs
+  and map it accordingly.
+  If not starting with a list, assumes it's the transaction type.
+
+  Only validates that the RLP is structurally correct.
+  Does not perform any other kind of validation, use validate/1 for that.
+  """
+  @spec to_map(list()) :: {:ok, t()} | {:error, mapping_error()}
+  def to_map([sigs | typed_tx_rlp_items]) when is_list(sigs) do
+    case to_map(typed_tx_rlp_items) do
+      {:ok, transaction} -> {:ok, %{transaction | sigs: sigs}}
+      {:error, _mapping_error} = error -> error
+    end
+  end
+
+  def to_map([raw_tx_type | _transaction_rlp_items] = rlp) do
+    with {:ok, _tx_type, transaction_module} <- parse_tx_type(raw_tx_type),
+         {:ok, transaction} <- transaction_module.to_map(rlp) do
+      {:ok, transaction}
+    end
+  end
+
+  def to_map(_), do: {:error, :malformed_transaction}
+
+  @doc """
+  Encode the given Transaction into an RLP encodable list.
+
+  If `signed: false` is given in the list of opts, will not prepend the signatures to the RLP list.
 
   ## Example
-
   iex> txn =
   ...>  %ExPlasma.Transaction{
   ...>    inputs: [
@@ -153,6 +212,7 @@ defmodule ExPlasma.Transaction do
   ...>  }
   iex> ExPlasma.Transaction.to_rlp(txn)
   [
+    [],
     <<1>>,
     [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>],
     [
@@ -169,22 +229,38 @@ defmodule ExPlasma.Transaction do
     <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   ]
   """
-  @spec to_rlp(t()) :: list()
-  def to_rlp(%__MODULE__{tx_type: tx_type} = transaction) do
-    transaction |> get_transaction_type(tx_type).to_rlp() |> remove_empty_sigs()
+  @spec to_rlp(t(), keyword()) :: list()
+  def to_rlp(transaction, opts \\ []) do
+    case get_transaction_module(transaction.tx_type) do
+      {:ok, module} ->
+        rlp = module.to_rlp(transaction)
+
+        case signed_requested?(opts) do
+          true -> [transaction.sigs | rlp]
+          false -> rlp
+        end
+
+      {:error, :unrecognized_transaction_type} = error ->
+        error
+    end
   end
 
-  # NB: We need to standardize on this. Currently, if there is no sig, we strip the empty list.
-  defp remove_empty_sigs([[] | raw_transaction_rlp]), do: raw_transaction_rlp
-  defp remove_empty_sigs(raw_transaction_rlp), do: raw_transaction_rlp
+  @doc """
+  Recovers the witnesses as addresses and add them to the transaction struct under
+  the `witnesses` key.
+  """
+  @spec with_witnesses(t()) :: {:ok, t()} | {:error, Witness.recovery_error()}
+  def with_witnesses(transaction) do
+    case Signed.get_witnesses(transaction) do
+      {:ok, witnesses} -> {:ok, %{transaction | witnesses: witnesses}}
+      {:error, _witness_recovery_error} = error -> error
+    end
+  end
 
   @doc """
-  Validate a Transation. This will check the inputs, outputs, and run
-  the validation through the matching transaction type.
-
+  Statelessly validate a transation.
 
   ## Example
-
   iex> txn = %ExPlasma.Transaction{
   ...>  inputs: [
   ...>    %ExPlasma.Output{
@@ -193,7 +269,7 @@ defmodule ExPlasma.Transaction do
   ...>      output_type: nil
   ...>    }
   ...>  ],
-  ...>  metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  ...>  metadata: <<0::256>>,
   ...>  outputs: [
   ...>    %ExPlasma.Output{
   ...>      output_data: %{
@@ -206,103 +282,97 @@ defmodule ExPlasma.Transaction do
   ...>    }
   ...>  ],
   ...>  sigs: [],
-  ...>  tx_data: <<0>>,
+  ...>  tx_data: 0,
   ...>  tx_type: 1
   ...>}
-  iex> {:ok, ^txn} = ExPlasma.Transaction.validate(txn)
+  iex> :ok = ExPlasma.Transaction.validate(txn)
   """
-  @spec validate(t()) :: tuple()
-  def validate(%__MODULE__{} = transaction) do
-    with {:ok, _inputs} <- validate_output(transaction.inputs),
-         {:ok, _outputs} <- validate_output(transaction.outputs),
-         {:ok, _transaction} <- do_validate(transaction) do
-      {:ok, transaction}
+  def validate(transaction) do
+    with :ok <- Signed.validate(transaction),
+         {:ok, module} <- get_transaction_module(transaction.tx_type) do
+      module.validate(transaction)
+    else
+      {:error, :unrecognized_transaction_type} ->
+        {:error, {:tx_type, :unrecognized_transaction_type}}
+
+      {:error, {_field_atom, _error_atom}} = error ->
+        error
     end
   end
 
-  defp validate_output([output | rest]) do
-    with {:ok, _whatever} <- ExPlasma.Output.validate(output), do: validate_output(rest)
-  end
-
-  defp validate_output([]), do: {:ok, []}
-
-  defp do_validate(%{tx_type: type} = transaction),
-    do: get_transaction_type(type).validate(transaction)
-
-  def recover_signatures(transaction) do
-    hash = ExPlasma.TypedData.hash(transaction)
-
-    transaction.sigs
-    |> Enum.reverse()
-    |> Enum.reduce_while({:ok, []}, fn signature, {:ok, addresses} ->
-      case ExPlasma.Crypto.recover_address(hash, signature) do
-        {:ok, address} ->
-          {:cont, {:ok, [address | addresses]}}
-
-        error ->
-          {:halt, error}
-      end
-    end)
-  end
+  @doc """
+  Returns the hash of the transaction involved without the signatures
+  """
+  @spec hash(t() | tx_bytes()) :: tx_hash()
+  def hash(%__MODULE__{} = transaction), do: transaction |> encode(signed: false) |> hash()
+  def hash(tx_bytes) when is_binary(tx_bytes), do: Crypto.keccak_hash(tx_bytes)
 
   @doc """
-  Sign the inputs of the transaction with the given keys in the corresponding order.
+  Signs the inputs of the transaction with the given keys in the corresponding order.
+  Only signs transactions that implement the ExPlasma.TypedData protocol.
 
+  Returns
+  - {:ok, %Transaction{}} with sigs when succesfuly signed
+  or
+  - {:error, :not_signable} when the given transaction is not supported.
 
   ## Example
 
-    iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
-    iex> txn = %ExPlasma.Transaction{tx_type: 1}
-    iex> ExPlasma.Transaction.sign(txn, keys: [key])
-    %ExPlasma.Transaction{
-        inputs: [],
-        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-        outputs: [],
-        sigs: [
-              <<129, 213, 32, 15, 183, 218, 255, 22, 82, 95, 22, 86, 103, 227, 92, 109, 9,
-                89, 7, 142, 235, 107, 203, 29, 20, 231, 91, 168, 255, 119, 204, 239, 44,
-                125, 76, 109, 200, 196, 204, 230, 224, 241, 84, 75, 9, 3, 160, 177, 37,
-                181, 174, 98, 51, 15, 136, 235, 47, 96, 15, 209, 45, 85, 153, 2, 28>>
-            ],
-        tx_data: 0,
-        tx_type: 1
-    }
+  iex> key = "0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"
+  iex> txn = %ExPlasma.Transaction{tx_type: 1}
+  iex> ExPlasma.Transaction.sign(txn, [key])
+  {:ok, %ExPlasma.Transaction{
+    sigs: [
+          <<129, 213, 32, 15, 183, 218, 255, 22, 82, 95, 22, 86, 103, 227, 92, 109, 9,
+            89, 7, 142, 235, 107, 203, 29, 20, 231, 91, 168, 255, 119, 204, 239, 44,
+            125, 76, 109, 200, 196, 204, 230, 224, 241, 84, 75, 9, 3, 160, 177, 37,
+            181, 174, 98, 51, 15, 136, 235, 47, 96, 15, 209, 45, 85, 153, 2, 28>>
+        ],
+    inputs: [],
+    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+    outputs: [],
+    tx_type: 1,
+    witnesses: [],
+    tx_data: 0
+  }}
   """
-  def sign(%{} = transaction, keys: []), do: %{transaction | sigs: []}
-
-  def sign(%{} = transaction, keys: keys) when is_list(keys) do
-    eip712_hash = ExPlasma.TypedData.hash(transaction)
-    sigs = Enum.map(keys, fn key -> ExPlasma.Signature.signature_digest(eip712_hash, key) end)
-    %{transaction | sigs: sigs}
-  end
-
-  @doc """
-  Keccak hash the Transaction. This is used in the contracts and events to to reference transactions.
-
-
-  ## Example
-
-  iex> rlp = <<248, 74, 192, 1, 193, 128, 239, 174, 237, 1, 235, 148, 29, 246, 47, 41, 27,
-  ...> 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110, 148, 46,
-  ...> 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55,
-  ...> 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ...> 0>>
-  iex> ExPlasma.Transaction.hash(rlp)
-  <<87, 132, 239, 36, 144, 239, 129, 88, 63, 88, 116, 147, 164, 200, 113, 191,
-    124, 14, 55, 131, 119, 96, 112, 13, 28, 178, 251, 49, 16, 127, 58, 96>>
-  """
-  @spec hash(t() | binary()) :: <<_::256>>
-  def hash(txn) when is_map(txn), do: txn |> encode() |> hash()
-  def hash(txn) when is_binary(txn), do: ExPlasma.Encoding.keccak_hash(txn)
-
-  defp get_transaction_type(type) do
-    case Map.fetch(@transaction_types, type) do
-      {:ok, type} ->
-        type
-
-      :error ->
-        raise ArgumentError, "transaction type #{type} does not exist."
+  def sign(transaction, keys) do
+    case Signed.compute_signatures(transaction, keys) do
+      {:ok, sigs} -> {:ok, Map.put(transaction, :sigs, sigs)}
+      {:error, :not_signable} = error -> error
     end
   end
+
+  defp parse_tx_type(tx_type_rlp) do
+    with {:ok, tx_type} <- RlpDecoder.parse_uint256(tx_type_rlp),
+         {:ok, module} <- get_transaction_module(tx_type) do
+      {:ok, tx_type, module}
+    else
+      _ -> {:error, :unrecognized_transaction_type}
+    end
+  end
+
+  defp get_transaction_module(tx_type) do
+    case Map.get(@tx_types_modules, tx_type) do
+      nil -> {:error, :unrecognized_transaction_type}
+      module -> {:ok, module}
+    end
+  end
+
+  defp get_decoder_for_opts(opts) do
+    case signed_requested?(opts) do
+      true -> Signed
+      false -> RlpDecoder
+    end
+  end
+
+  defp strip_sigs_for_opts(transaction, opts) do
+    case signed_requested?(opts) do
+      true -> transaction
+      false -> %{transaction | sigs: []}
+    end
+  end
+
+  defp signed_requested?(opts), do: Keyword.get(opts, :signed, true)
 end
