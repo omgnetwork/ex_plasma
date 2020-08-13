@@ -11,9 +11,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1.Validator do
 
   @output_type TypeMapper.output_type_for(:output_payment_v1)
 
-  @type inputs_validation_error() ::
-          {:inputs, :duplicate_inputs}
-          | {:inputs, :cannot_exceed_maximum_value}
+  @type inputs_validation_error() :: {:inputs, :duplicate_inputs} | {:inputs, :cannot_exceed_maximum_value}
 
   @type outputs_validation_error() ::
           {:outputs, :cannot_exceed_maximum_value}

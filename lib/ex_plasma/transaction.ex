@@ -20,14 +20,9 @@ defmodule ExPlasma.Transaction do
   @type outputs() :: list(Output.t()) | []
   @type metadata() :: <<_::256>> | nil
 
-  @type decoding_error() ::
-          :malformed_rlp
-          | mapping_error()
+  @type decoding_error() :: :malformed_rlp | mapping_error()
 
-  @type mapping_error() ::
-          :malformed_transaction
-          | :unrecognized_transaction_type
-          | atom()
+  @type mapping_error() :: :malformed_transaction | :unrecognized_transaction_type | atom()
 
   @type t() :: %__MODULE__{
           sigs: Signed.sigs(),
@@ -377,8 +372,6 @@ defmodule ExPlasma.Transaction do
     end
   end
 
-  defp signed_requested?(opts), do: Keyword.get(opts, :signed, true)
-
   defp get_decoder_for_opts(opts) do
     case signed_requested?(opts) do
       true -> Signed
@@ -392,4 +385,6 @@ defmodule ExPlasma.Transaction do
       false -> %{transaction | sigs: []}
     end
   end
+
+  defp signed_requested?(opts), do: Keyword.get(opts, :signed, true)
 end
