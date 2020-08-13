@@ -118,14 +118,14 @@ defmodule ExPlasma.BuilderTest do
       %{priv_encoded: key_1} = @alice
       %{priv_encoded: key_2} = @bob
 
-      tx =
-        ExPlasma.payment_v1()
-        |> Builder.new()
-        |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
-        |> Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
-        |> Builder.add_input(blknum: 3, txindex: 0, oindex: 0, position: 3_000_000_000)
+      assert {:ok, transaction} =
+               ExPlasma.payment_v1()
+               |> Builder.new()
+               |> Builder.add_input(blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000)
+               |> Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
+               |> Builder.add_input(blknum: 3, txindex: 0, oindex: 0, position: 3_000_000_000)
+               |> Builder.sign([key_1, key_1, key_2])
 
-      assert {:ok, transaction} = Builder.sign(tx, [key_1, key_1, key_2])
       assert [sig_1, sig_1, sig_2] = transaction.sigs
     end
   end
