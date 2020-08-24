@@ -5,7 +5,9 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
 
   @behaviour ExPlasma.Output
 
+  alias __MODULE__.Validator
   alias ExPlasma.Output
+  alias ExPlasma.Utils.RlpDecoder
 
   @type address() :: <<_::160>>
   @type output_guard() :: address()
@@ -22,7 +24,10 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
           amount: amount()
         }
 
-  @zero_address <<0::160>>
+  @type validation_error() ::
+          Validator.amount_validation_errors()
+          | Validator.token_validation_errors()
+          | Validator.output_guard_validation_errors()
 
   @doc """
   Encode a map of the output data into an RLP list.
@@ -49,7 +54,10 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   end
 
   @doc """
-  Decode a map of the output data into the Abstract Payment format:
+  Decode a map of the output data into the Abstract Payment format
+
+  Only validates that the RLP is structurally correct.
+  Does not perform any other kind of validation, use validate/1 for that.
 
   ## Example
   iex> data = [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
@@ -64,14 +72,19 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
           :output_data => %{:amount => non_neg_integer(), :output_guard => any(), :token => any()},
           :output_type => byte()
         }
-  def to_map(rlp) do
-    [<<output_type>>, [output_guard, token, amount]] = rlp
-
-    %{
-      output_type: output_type,
-      output_data: %{output_guard: output_guard, token: token, amount: :binary.decode_unsigned(amount, :big)}
-    }
+  def to_map([<<output_type>>, [output_guard_rlp, token_rlp, amount_rlp]]) do
+    with {:ok, output_guard} <- decode_output_guard(output_guard_rlp),
+         {:ok, token} <- decode_token(token_rlp),
+         {:ok, amount} <- decode_amount(amount_rlp) do
+      {:ok,
+       %Output{
+         output_type: output_type,
+         output_data: %{output_guard: output_guard, token: token, amount: amount}
+       }}
+    end
   end
+
+  def to_map(_), do: {:error, :malformed_output}
 
   @doc """
   Validates the output data
@@ -79,34 +92,39 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   ## Example
   iex> data = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
   iex> {:ok, resp} = ExPlasma.Output.Type.AbstractPayment.validate(data)
-  {:ok, %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
+  :ok
   """
   @impl Output
   def validate(output) do
-    %{output_data: data} = output
-
-    case do_validate([data.output_guard, data.token, data.amount]) do
-      {field, value} ->
-        {:error, {field, value}}
-
-      :ok ->
-        {:ok, data}
+    with :ok <- Validator.validate_amount(output.data.amount),
+         :ok <- Validator.validate_token(output.data.token),
+         :ok <- Validator.validate_output_guard(output.data.output_guard) do
+      :ok
     end
   end
-
-  defp do_validate([_output_guard, _token, nil]), do: {:amount, :cannot_be_nil}
-
-  defp do_validate([_output_guard, _token, amount]) when amount <= 0,
-    do: {:amount, :cannot_be_zero}
-
-  defp do_validate([_output_guard, nil, _amount]), do: {:token, :cannot_be_nil}
-  defp do_validate([nil, _token, _amount]), do: {:output_guard, :cannot_be_nil}
-  defp do_validate([@zero_address, _token, _amount]), do: {:output_guard, :cannot_be_zero}
-  defp do_validate([<<_::160>>, _token, _amount]), do: :ok
-
-  defp do_validate([_, _, _]), do: {:output_guard, :invalid_length}
 
   defp truncate_leading_zero(<<0>>), do: <<0>>
   defp truncate_leading_zero(<<0>> <> binary), do: truncate_leading_zero(binary)
   defp truncate_leading_zero(binary), do: binary
+
+  defp decode_output_guard(output_guard_rlp) do
+    case RlpDecoder.parse_address(output_guard_rlp) do
+      {:ok, output_guard} -> {:ok, output_guard}
+      _error -> {:error, :malformed_output_guard}
+    end
+  end
+
+  defp decode_token(token_rlp) do
+    case RlpDecoder.parse_address(token_rlp) do
+      {:ok, token} -> {:ok, token}
+      _error -> {:error, :malformed_token}
+    end
+  end
+
+  defp decode_amount(amount_rlp) do
+    case RlpDecoder.parse_uint256(amount_rlp) do
+      {:ok, amount} -> {:ok, amount}
+      _error -> {:error, :malformed_amount}
+    end
+  end
 end

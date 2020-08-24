@@ -21,7 +21,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction do
   # NB: Currently we only support 1 type of transaction: Payment.
   @max_output_count 4
 
-  @empty_input Output.decode_id(<<0>>)
+  @empty_input Output.decode_id!(<<0>>)
   @empty_input_hash TypedData.hash(@empty_input, as: :input)
 
   @empty_output %Output{

@@ -95,8 +95,15 @@ defmodule ExPlasma.Transaction do
   """
   @spec encode(t() | list(), keyword()) :: tx_bytes()
   def encode(transaction, opts \\ [])
-  def encode(%__MODULE__{} = transaction, opts), do: transaction |> to_rlp(opts) |> encode(opts)
-  def encode(rlp_items, _opts) when is_list(rlp_items), do: ExRLP.encode(rlp_items)
+
+  def encode(%__MODULE__{} = transaction, opts) do
+    case to_rlp(transaction, opts) do
+      {:ok, rlp} -> encode(rlp, opts)
+      {:error, :unrecognized_transaction_type} = error -> error
+    end
+  end
+
+  def encode(rlp_items, _opts) when is_list(rlp_items), do: {:ok, ExRLP.encode(rlp_items)}
 
   @doc """
   Attempt to decode the given RLP list into a Transaction.
@@ -173,7 +180,7 @@ defmodule ExPlasma.Transaction do
   end
 
   def to_map([raw_tx_type | _transaction_rlp_items] = rlp) do
-    with {:ok, _tx_type, transaction_module} <- parse_tx_type(raw_tx_type),
+    with {:ok, transaction_module} <- parse_tx_type(raw_tx_type),
          {:ok, transaction} <- transaction_module.to_map(rlp) do
       {:ok, transaction}
     end
@@ -233,16 +240,19 @@ defmodule ExPlasma.Transaction do
     <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
   ]
   """
-  @spec to_rlp(t(), keyword()) :: list()
+  @spec to_rlp(t(), keyword()) :: {:ok, list()} | {:error, :unrecognized_transaction_type}
   def to_rlp(transaction, opts \\ []) do
     case get_transaction_module(transaction.tx_type) do
       {:ok, module} ->
-        rlp = module.to_rlp(transaction)
+        unsigned_rlp = module.to_rlp(transaction)
 
-        case signed_requested?(opts) do
-          true -> [transaction.sigs | rlp]
-          false -> rlp
-        end
+        rlp =
+          case signed_requested?(opts) do
+            true -> [transaction.sigs | unsigned_rlp]
+            false -> unsigned_rlp
+          end
+
+        {:ok, rlp}
 
       {:error, :unrecognized_transaction_type} = error ->
         error
@@ -359,7 +369,7 @@ defmodule ExPlasma.Transaction do
   defp parse_tx_type(tx_type_rlp) do
     with {:ok, tx_type} <- RlpDecoder.parse_uint256(tx_type_rlp),
          {:ok, module} <- get_transaction_module(tx_type) do
-      {:ok, tx_type, module}
+      {:ok, module}
     else
       _ -> {:error, :unrecognized_transaction_type}
     end
