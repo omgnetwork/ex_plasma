@@ -58,7 +58,7 @@ defmodule ExPlasma.Output.Position do
 
   iex> pos = %ExPlasma.Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
   iex> ExPlasma.Output.Position.to_rlp(pos)
-  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+  {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
   """
   @impl Output
   @spec to_rlp(Output.t()) :: pos_integer()
@@ -87,7 +87,7 @@ defmodule ExPlasma.Output.Position do
 
   iex> pos = 1_000_000_000
   iex> ExPlasma.Output.Position.to_map(pos)
-  %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}
+  {:ok, %ExPlasma.Output{output_id: %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}}
   """
   @impl Output
   @spec to_map(position()) :: Output.t()
@@ -113,7 +113,7 @@ defmodule ExPlasma.Output.Position do
   Validates that values can give a valid position.
 
   ## Example
-  iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
+  iex> pos = %ExPlasma.Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
   iex> ExPlasma.Output.Position.validate(pos)
   :ok
   """

@@ -3,31 +3,123 @@ defmodule ExPlasma.Output.PositionTest do
   use ExUnit.Case, async: true
   doctest ExPlasma.Output.Position
 
+  alias ExPlasma.Output
   alias ExPlasma.Output.Position
 
-  describe "validate/1" do
-    test "that blknum cannot be nil" do
-      position = %{blknum: nil, txindex: 0, oindex: 0}
-      assert_field(position, :blknum, :cannot_be_nil)
-    end
-
-    test "that blknum cannot exceed maximum value" do
-      position = %{blknum: 1_000_000_000_000_000_000, txindex: 0, oindex: 0}
-      assert_field(position, :blknum, :cannot_exceed_maximum_value)
-    end
-
-    test "that txindex cannot be nil" do
-      position = %{blknum: 0, txindex: nil, oindex: 0}
-      assert_field(position, :txindex, :cannot_be_nil)
-    end
-
-    test "that txindex cannot exceed maximum value" do
-      position = %{blknum: 0, txindex: 1_000_000_000_000_000_000, oindex: 0}
-      assert_field(position, :txindex, :cannot_exceed_maximum_value)
+  describe "pos/1" do
+    test "returns the position" do
+      output_id = %{blknum: 1, txindex: 2, oindex: 3}
+      assert Position.pos(output_id) == 1_000_020_003
     end
   end
 
-  defp assert_field(input, field, message) do
-    assert {:error, {^field, ^message}} = Position.validate(input)
+  describe "to_rlp/1" do
+    test "returns the encoded position when valid" do
+      output = %Output{output_id: %{blknum: 1, txindex: 2, oindex: 3}}
+      assert {:ok, result} = Position.to_rlp(output)
+
+      expected_result =
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 155, 24, 35>>
+
+      assert result == expected_result
+    end
+
+    test "returns an error when output_id is nil" do
+      assert Position.to_rlp(%Output{output_id: nil}) == {:error, :invalid_output_id}
+    end
+  end
+
+  describe "encode/1" do
+    test "returns the encoded position when valid" do
+      assert {:ok, result} = Position.encode(1_000_020_003)
+
+      expected_result =
+        <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 155, 24, 35>>
+
+      assert result == expected_result
+    end
+  end
+
+  describe "to_map/1" do
+    test "returns an Output struct from the given position" do
+      assert Position.to_map(1_000_020_003) ==
+               {:ok,
+                %ExPlasma.Output{
+                  output_data: nil,
+                  output_id: %{blknum: 1, oindex: 3, position: 1_000_020_003, txindex: 2},
+                  output_type: nil
+                }}
+    end
+  end
+
+  describe "decode/1" do
+    test "returns the decoded position from the given binary" do
+      encoded = <<59, 155, 24, 35>>
+      assert Position.decode(encoded) == {:ok, 1_000_020_003}
+    end
+
+    test "returns an error when the given position is invalid" do
+      assert Position.decode([]) == {:error, :malformed_input_position_rlp}
+    end
+  end
+
+  describe "validate/1" do
+    setup do
+      output = %Output{
+        output_data: nil,
+        output_id: %{blknum: 1, oindex: 3, position: 1_000_020_003, txindex: 2},
+        output_type: nil
+      }
+
+      {:ok, %{output: output}}
+    end
+
+    test "returns :ok when valid", %{output: output} do
+      assert Position.validate(output) == :ok
+    end
+
+    test "returns an error when blknum is nil", %{output: output} do
+      output = %Output{output | output_id: %{output.output_id | blknum: nil}}
+      assert_field(output, :blknum, :cannot_be_nil)
+    end
+
+    test "returns an error when blknum exceed maximum value", %{output: output} do
+      output = %Output{output | output_id: %{output.output_id | blknum: 1_000_000_000_000_000_000}}
+      assert_field(output, :blknum, :cannot_exceed_maximum_value)
+    end
+
+    test "returns an error when blknum is not an integer", %{output: output} do
+      output = %Output{output | output_id: %{output.output_id | blknum: "a"}}
+      assert_field(output, :blknum, :must_be_an_integer)
+    end
+
+    test "returns an error when txindex is nil", %{output: output} do
+      output = %Output{output | output_id: %{output.output_id | txindex: nil}}
+      assert_field(output, :txindex, :cannot_be_nil)
+    end
+
+    test "returns an error when txindex exceed maximum value", %{output: output} do
+      output = %Output{output | output_id: %{output.output_id | txindex: 1_000_000_000_000_000_000}}
+      assert_field(output, :txindex, :cannot_exceed_maximum_value)
+    end
+
+    test "returns an error when txindex is not an integer", %{output: output} do
+      output = %Output{output | output_id: %{output.output_id | txindex: "a"}}
+      assert_field(output, :txindex, :must_be_an_integer)
+    end
+
+    test "returns an error when oindex is nil", %{output: output} do
+      output = %Output{output | output_id: %{output.output_id | oindex: nil}}
+      assert_field(output, :oindex, :cannot_be_nil)
+    end
+
+    test "returns an error when oindex is not an integer", %{output: output} do
+      output = %Output{output | output_id: %{output.output_id | oindex: "a"}}
+      assert_field(output, :oindex, :must_be_an_integer)
+    end
+  end
+
+  defp assert_field(data, field, message) do
+    assert {:error, {^field, ^message}} = Position.validate(data)
   end
 end
