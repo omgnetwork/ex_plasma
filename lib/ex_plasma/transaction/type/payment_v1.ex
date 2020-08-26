@@ -32,8 +32,8 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   @type mapping_error() ::
           :malformed_transaction
           | :malformed_tx_data
-          | :malformed_inputs
-          | :malformed_outputs
+          | :malformed_input_position_rlp
+          | :malformed_output_rlp
 
   @doc """
   Creates output for a payment v1 transaction
@@ -63,17 +63,21 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   def build_nonce(_params), do: {:ok, nil}
 
   @doc """
-  Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
+  Turns a structure instance into a structure of RLP items, ready to be RLP encoded
   """
   @impl Transaction
   def to_rlp(transaction) do
-    [
-      <<@tx_type>>,
-      Enum.map(transaction.inputs, &Output.to_rlp_id/1),
-      Enum.map(transaction.outputs, &Output.to_rlp/1),
-      @empty_tx_data,
-      transaction.metadata || @empty_metadata
-    ]
+    with {:ok, inputs} <- encode_inputs(transaction.inputs),
+         {:ok, outputs} <- encode_outputs(transaction.outputs) do
+      {:ok,
+       [
+         <<@tx_type>>,
+         inputs,
+         outputs,
+         @empty_tx_data,
+         transaction.metadata || @empty_metadata
+       ]}
+    end
   end
 
   @doc """
@@ -84,8 +88,8 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
   """
   @impl Transaction
   def to_map([<<@tx_type>>, inputs_rlp, outputs_rlp, tx_data_rlp, metadata_rlp]) do
-    with {:ok, inputs} <- decode_inputs(inputs_rlp),
-         {:ok, outputs} <- decode_outputs(outputs_rlp),
+    with {:ok, inputs} <- map_inputs(inputs_rlp),
+         {:ok, outputs} <- map_outputs(outputs_rlp),
          {:ok, tx_data} <- decode_tx_data(tx_data_rlp),
          {:ok, metadata} <- decode_metadata(metadata_rlp) do
       {:ok,
@@ -114,16 +118,25 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
     end
   end
 
-  defp decode_inputs(inputs_rlp) do
-    {:ok, Enum.map(inputs_rlp, &Output.decode_id(&1))}
-  rescue
-    _ -> {:error, :malformed_inputs}
-  end
+  defp encode_inputs(inputs) when is_list(inputs), do: reduce_outputs(inputs, [], &Output.to_rlp_id/1)
+  defp encode_inputs(_inputs), do: {:error, :malformed_input_position_rlp}
 
-  defp decode_outputs(outputs_rlp) do
-    {:ok, Enum.map(outputs_rlp, &Output.decode(&1))}
-  rescue
-    _ -> {:error, :malformed_outputs}
+  defp encode_outputs(outputs) when is_list(outputs), do: reduce_outputs(outputs, [], &Output.to_rlp/1)
+  defp encode_outputs(_outputs), do: {:error, :malformed_output_rlp}
+
+  defp map_inputs(inputs) when is_list(inputs), do: reduce_outputs(inputs, [], &Output.decode_id/1)
+  defp map_inputs(_inputs), do: {:error, :malformed_input_position_rlp}
+
+  defp map_outputs(outputs) when is_list(outputs), do: reduce_outputs(outputs, [], &Output.to_map/1)
+  defp map_outputs(_outputs), do: {:error, :malformed_output_rlp}
+
+  defp reduce_outputs([], reduced, _reducing_func), do: {:ok, Enum.reverse(reduced)}
+
+  defp reduce_outputs([output | rest], reduced, reducing_func) do
+    case reducing_func.(output) do
+      {:ok, item} -> reduce_outputs(rest, [item | reduced], reducing_func)
+      error -> error
+    end
   end
 
   defp decode_metadata(metadata_rlp) when Validator.is_metadata(metadata_rlp), do: {:ok, metadata_rlp}

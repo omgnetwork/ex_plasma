@@ -27,7 +27,7 @@ defmodule ExPlasma.Transaction.SignedTest do
       |> Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
       |> Builder.sign!([alice_priv, alice_priv])
 
-    encoded_signed_tx = Transaction.encode(signed)
+    {:ok, encoded_signed_tx} = Transaction.encode(signed)
 
     {:ok,
      %{

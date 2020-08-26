@@ -11,6 +11,7 @@ defmodule ExPlasma.Output.Position do
 
   alias __MODULE__.Validator
   alias ExPlasma.Output
+  alias ExPlasma.Utils.RlpDecoder
 
   @type position() :: pos_integer()
 
@@ -45,26 +46,38 @@ defmodule ExPlasma.Output.Position do
   iex> ExPlasma.Output.Position.pos(pos)
   1_000_000_000
   """
-  @spec pos(t()) :: number()
+  @spec pos(t()) :: pos_integer()
   def pos(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     blknum * @block_offset + txindex * @transaction_offset + oindex
   end
+
+  @doc """
+  Transforms the output position into a positive integer representing the position.
+
+  ## Example
+
+  iex> pos = %ExPlasma.Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
+  iex> ExPlasma.Output.Position.to_rlp(pos)
+  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+  """
+  @impl Output
+  @spec to_rlp(Output.t()) :: pos_integer()
+  def to_rlp(%Output{output_id: nil}), do: {:error, :invalid_output_id}
+  def to_rlp(output), do: output.output_id |> pos() |> encode()
 
   @doc """
   Encodes the output position into an RLP encodable object.
 
   ## Example
 
-  iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
-  iex> ExPlasma.Output.Position.to_rlp(pos)
-  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+  iex> pos = ExPlasma.Output.Position.pos(%{blknum: 1, txindex: 0, oindex: 0})
+  iex> ExPlasma.Output.Position.encode(pos)
+  {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
   """
-  @impl Output
-  @spec to_rlp(Output.t()) :: binary()
-  def to_rlp(%Output{output_id: nil}), do: {:error, :invalid_output_id}
 
-  def to_rlp(%Output{output_id: id}) do
-    {:ok, id |> pos() |> :binary.encode_unsigned(:big) |> pad_binary()}
+  def encode(position) do
+    encoded = position |> :binary.encode_unsigned(:big) |> pad_binary()
+    {:ok, encoded}
   end
 
   @doc """
@@ -78,12 +91,22 @@ defmodule ExPlasma.Output.Position do
   """
   @impl Output
   @spec to_map(position()) :: Output.t()
-  def to_map(pos) do
+  def to_map(pos) when is_integer(pos) do
     blknum = div(pos, @block_offset)
     txindex = pos |> rem(@block_offset) |> div(@transaction_offset)
     oindex = rem(pos, @transaction_offset)
 
     {:ok, %Output{output_id: %{position: pos, blknum: blknum, txindex: txindex, oindex: oindex}}}
+  end
+
+  def to_map(_), do: {:error, :malformed_output_position}
+
+  @spec decode(binary()) :: {:ok, position()} | {:error, :malformed_input_position_rlp}
+  def decode(encoded_pos) do
+    case RlpDecoder.parse_uint256_with_leading(encoded_pos) do
+      {:ok, pos} -> {:ok, pos}
+      _error -> {:error, :malformed_input_position_rlp}
+    end
   end
 
   @doc """

@@ -62,10 +62,11 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   ## Example
   iex> data = [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   iex> ExPlasma.Output.Type.AbstractPayment.to_map(data)
-  %{
+  {:ok, %ExPlasma.Output{
+    output_id: nil,
     output_type: 1,
     output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}
-  }
+  }}
   """
   @impl Output
   @spec to_map([<<_::8>> | [any(), ...], ...]) :: %{
@@ -84,21 +85,21 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
     end
   end
 
-  def to_map(_), do: {:error, :malformed_output}
+  def to_map(_), do: {:error, :malformed_outputs}
 
   @doc """
   Validates the output data
 
   ## Example
   iex> data = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
-  iex> {:ok, resp} = ExPlasma.Output.Type.AbstractPayment.validate(data)
+  iex> ExPlasma.Output.Type.AbstractPayment.validate(data)
   :ok
   """
   @impl Output
   def validate(output) do
-    with :ok <- Validator.validate_amount(output.data.amount),
-         :ok <- Validator.validate_token(output.data.token),
-         :ok <- Validator.validate_output_guard(output.data.output_guard) do
+    with :ok <- Validator.validate_amount(output.output_data.amount),
+         :ok <- Validator.validate_token(output.output_data.token),
+         :ok <- Validator.validate_output_guard(output.output_data.output_guard) do
       :ok
     end
   end
@@ -117,14 +118,14 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   defp decode_token(token_rlp) do
     case RlpDecoder.parse_address(token_rlp) do
       {:ok, token} -> {:ok, token}
-      _error -> {:error, :malformed_token}
+      _error -> {:error, :malformed_output_token}
     end
   end
 
   defp decode_amount(amount_rlp) do
     case RlpDecoder.parse_uint256(amount_rlp) do
       {:ok, amount} -> {:ok, amount}
-      _error -> {:error, :malformed_amount}
+      _error -> {:error, :malformed_output_amount}
     end
   end
 end
