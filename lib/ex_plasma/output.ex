@@ -41,7 +41,7 @@ defmodule ExPlasma.Output do
 
   # Output Types and Identifiers should implement these.
   @callback to_map(any()) :: {:ok, map()} | {:error, atom()}
-  @callback to_rlp(map()) :: list() | binary()
+  @callback to_rlp(map()) :: list() | binary() | nil
   @callback validate(map()) :: validation_responses()
 
   @output_types_modules TypeMapper.output_type_modules()
