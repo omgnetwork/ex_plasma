@@ -22,11 +22,18 @@ defmodule ExPlasma.Output.Position do
           oindex: non_neg_integer()
         }
 
+  @type position_output :: %Output{
+          output_id: t(),
+          output_data: nil,
+          output_type: nil
+        }
+
   @type validation_responses() ::
           :ok
-          | {:error, Validator.blknum_validation_errors()}
-          | {:error, Validator.oindex_validation_errors()}
-          | {:error, Validator.txindex_validation_errors()}
+          | {:error,
+             Validator.blknum_validation_errors()
+             | Validator.oindex_validation_errors()
+             | Validator.txindex_validation_errors()}
 
   # Contract settings
   # These are being hard-coded from the same values on the contracts.
@@ -46,7 +53,7 @@ defmodule ExPlasma.Output.Position do
   iex> ExPlasma.Output.Position.pos(pos)
   1_000_000_000
   """
-  @spec pos(t()) :: pos_integer()
+  @spec pos(t()) :: position()
   def pos(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     blknum * @block_offset + txindex * @transaction_offset + oindex
   end
@@ -58,11 +65,10 @@ defmodule ExPlasma.Output.Position do
 
   iex> pos = %ExPlasma.Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
   iex> ExPlasma.Output.Position.to_rlp(pos)
-  {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
+  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
   @impl Output
-  @spec to_rlp(Output.t()) :: pos_integer()
-  def to_rlp(%Output{output_id: nil}), do: {:error, :invalid_output_id}
+  @spec to_rlp(Output.t()) :: binary()
   def to_rlp(output), do: output.output_id |> pos() |> encode()
 
   @doc """
@@ -72,12 +78,11 @@ defmodule ExPlasma.Output.Position do
 
   iex> pos = ExPlasma.Output.Position.pos(%{blknum: 1, txindex: 0, oindex: 0})
   iex> ExPlasma.Output.Position.encode(pos)
-  {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
+  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
 
   def encode(position) do
-    encoded = position |> :binary.encode_unsigned(:big) |> pad_binary()
-    {:ok, encoded}
+    position |> :binary.encode_unsigned(:big) |> pad_binary()
   end
 
   @doc """
@@ -90,7 +95,7 @@ defmodule ExPlasma.Output.Position do
   {:ok, %ExPlasma.Output{output_id: %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}}
   """
   @impl Output
-  @spec to_map(position()) :: Output.t()
+  @spec to_map(position()) :: {:ok, position_output()}
   def to_map(pos) when is_integer(pos) do
     blknum = div(pos, @block_offset)
     txindex = pos |> rem(@block_offset) |> div(@transaction_offset)
@@ -118,7 +123,7 @@ defmodule ExPlasma.Output.Position do
   :ok
   """
   @impl Output
-  @spec validate(t()) :: validation_responses()
+  @spec validate(Output.t()) :: validation_responses()
   def validate(%Output{output_id: nil}), do: :ok
 
   def validate(%Output{output_id: output_id}) do

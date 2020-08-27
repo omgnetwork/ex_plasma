@@ -38,7 +38,7 @@ defmodule ExPlasma.Utils.RlpDecoder do
   @doc """
   Parses unsigned at-most 32-bytes integer. Leading zeros are allowed
   """
-  @spec parse_uint256(binary()) :: {:ok, non_neg_integer()} | {:error, parse_uint256_errors()}
+  @spec parse_uint256_with_leading(binary()) :: {:ok, non_neg_integer()} | {:error, parse_uint256_errors()}
   def parse_uint256_with_leading(binary) when byte_size(binary) <= 32, do: {:ok, :binary.decode_unsigned(binary, :big)}
   def parse_uint256_with_leading(binary) when byte_size(binary) > 32, do: {:error, :encoded_uint_too_big}
   def parse_uint256_with_leading(_), do: {:error, :malformed_uint256}

@@ -13,10 +13,20 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   @type output_guard() :: address()
   @type token() :: address()
   @type amount() :: non_neg_integer()
+  @type mapping_errors() ::
+          :malformed_output_guard
+          | :malformed_output_token
+          | :malformed_output_amount
 
-  @type rlp() :: [output_guard() | [token() | amount()]]
+  @type rlp() :: [<<_::8>> | [output_guard() | [token() | binary()]]]
 
   @type validation_responses() :: {:ok, t()}
+
+  @type payment_output() :: %Output{
+          output_id: nil,
+          output_data: t(),
+          output_type: non_neg_integer()
+        }
 
   @type t() :: %{
           output_guard: output_guard(),
@@ -69,10 +79,7 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   }}
   """
   @impl Output
-  @spec to_map([<<_::8>> | [any(), ...], ...]) :: %{
-          :output_data => %{:amount => non_neg_integer(), :output_guard => any(), :token => any()},
-          :output_type => byte()
-        }
+  @spec to_map(rlp()) :: {:ok, payment_output()} | {:error, mapping_errors()}
   def to_map([<<output_type>>, [output_guard_rlp, token_rlp, amount_rlp]]) do
     with {:ok, output_guard} <- decode_output_guard(output_guard_rlp),
          {:ok, token} <- decode_token(token_rlp),

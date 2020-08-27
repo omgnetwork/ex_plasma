@@ -53,7 +53,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1.Validator do
 
   defp validate_generic_output([output | rest]) do
     case Output.validate(output) do
-      {:ok, _} -> validate_generic_output(rest)
+      :ok -> validate_generic_output(rest)
       error -> error
     end
   end

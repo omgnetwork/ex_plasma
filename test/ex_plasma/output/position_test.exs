@@ -14,24 +14,20 @@ defmodule ExPlasma.Output.PositionTest do
   end
 
   describe "to_rlp/1" do
-    test "returns the encoded position when valid" do
+    test "returns the encoded position from an output struct" do
       output = %Output{output_id: %{blknum: 1, txindex: 2, oindex: 3}}
-      assert {:ok, result} = Position.to_rlp(output)
+      result = Position.to_rlp(output)
 
       expected_result =
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 155, 24, 35>>
 
       assert result == expected_result
     end
-
-    test "returns an error when output_id is nil" do
-      assert Position.to_rlp(%Output{output_id: nil}) == {:error, :invalid_output_id}
-    end
   end
 
   describe "encode/1" do
-    test "returns the encoded position when valid" do
-      assert {:ok, result} = Position.encode(1_000_020_003)
+    test "returns the encoded position from a position" do
+      result = Position.encode(1_000_020_003)
 
       expected_result =
         <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 155, 24, 35>>

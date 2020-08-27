@@ -50,7 +50,7 @@ defmodule ExPlasma.Transaction do
 
   @callback build_nonce(map()) :: {:ok, nonce()} | {:error, atom()}
   @callback to_map(list()) :: {:ok, t()} | {:error, atom()}
-  @callback to_rlp(t()) :: list()
+  @callback to_rlp(t()) :: {:ok, list()} | {:error, atom()}
   @callback validate(t()) :: :ok | {:error, {atom(), atom()}}
 
   @doc """
