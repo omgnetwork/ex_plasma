@@ -22,12 +22,6 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
 
   @type validation_responses() :: {:ok, t()}
 
-  @type payment_output() :: %Output{
-          output_id: nil,
-          output_data: t(),
-          output_type: non_neg_integer()
-        }
-
   @type t() :: %{
           output_guard: output_guard(),
           token: token(),
@@ -72,20 +66,19 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   ## Example
   iex> data = [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   iex> ExPlasma.Output.Type.AbstractPayment.to_map(data)
-  {:ok, %ExPlasma.Output{
-    output_id: nil,
+  {:ok, %{
     output_type: 1,
     output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}
   }}
   """
   @impl Output
-  @spec to_map(rlp()) :: {:ok, payment_output()} | {:error, mapping_errors()}
+  @spec to_map(rlp()) :: {:ok, %{output_data: t(), output_type: non_neg_integer()}} | {:error, mapping_errors()}
   def to_map([<<output_type>>, [output_guard_rlp, token_rlp, amount_rlp]]) do
     with {:ok, output_guard} <- decode_output_guard(output_guard_rlp),
          {:ok, token} <- decode_token(token_rlp),
          {:ok, amount} <- decode_amount(amount_rlp) do
       {:ok,
-       %Output{
+       %{
          output_type: output_type,
          output_data: %{output_guard: output_guard, token: token, amount: amount}
        }}

@@ -22,12 +22,6 @@ defmodule ExPlasma.Output.Position do
           oindex: non_neg_integer()
         }
 
-  @type position_output :: %Output{
-          output_id: t(),
-          output_data: nil,
-          output_type: nil
-        }
-
   @type validation_responses() ::
           :ok
           | {:error,
@@ -63,13 +57,13 @@ defmodule ExPlasma.Output.Position do
 
   ## Example
 
-  iex> pos = %ExPlasma.Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
-  iex> ExPlasma.Output.Position.to_rlp(pos)
+  iex> output_id = %{blknum: 1, txindex: 0, oindex: 0}
+  iex> ExPlasma.Output.Position.to_rlp(output_id)
   <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
   @impl Output
-  @spec to_rlp(Output.t()) :: binary()
-  def to_rlp(output), do: output.output_id |> pos() |> encode()
+  @spec to_rlp(t()) :: binary()
+  def to_rlp(output_id), do: output_id |> pos() |> encode()
 
   @doc """
   Encodes the output position into an RLP encodable object.
@@ -80,7 +74,7 @@ defmodule ExPlasma.Output.Position do
   iex> ExPlasma.Output.Position.encode(pos)
   <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
-
+  @spec encode(position()) :: binary()
   def encode(position) do
     position |> :binary.encode_unsigned(:big) |> pad_binary()
   end
@@ -92,20 +86,29 @@ defmodule ExPlasma.Output.Position do
 
   iex> pos = 1_000_000_000
   iex> ExPlasma.Output.Position.to_map(pos)
-  {:ok, %ExPlasma.Output{output_id: %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}}
+  {:ok, %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}
   """
   @impl Output
-  @spec to_map(position()) :: {:ok, position_output()}
+  @spec to_map(position()) :: {:ok, t()} | {:error, :malformed_output_position}
   def to_map(pos) when is_integer(pos) do
     blknum = div(pos, @block_offset)
     txindex = pos |> rem(@block_offset) |> div(@transaction_offset)
     oindex = rem(pos, @transaction_offset)
 
-    {:ok, %Output{output_id: %{position: pos, blknum: blknum, txindex: txindex, oindex: oindex}}}
+    {:ok, %{position: pos, blknum: blknum, txindex: txindex, oindex: oindex}}
   end
 
   def to_map(_), do: {:error, :malformed_output_position}
 
+  @doc """
+  Decodes and return the integer position.
+
+  ## Example
+
+  iex> pos = <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+  iex> ExPlasma.Output.Position.decode(pos)
+  {:ok, 1_000_000_000}
+  """
   @spec decode(binary()) :: {:ok, position()} | {:error, :malformed_input_position_rlp}
   def decode(encoded_pos) do
     case RlpDecoder.parse_uint256_with_leading(encoded_pos) do
@@ -118,15 +121,15 @@ defmodule ExPlasma.Output.Position do
   Validates that values can give a valid position.
 
   ## Example
-  iex> pos = %ExPlasma.Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
-  iex> ExPlasma.Output.Position.validate(pos)
+  iex> output_id = %{blknum: 1, txindex: 0, oindex: 0}
+  iex> ExPlasma.Output.Position.validate(output_id)
   :ok
   """
   @impl Output
-  @spec validate(Output.t()) :: validation_responses()
-  def validate(%Output{output_id: nil}), do: :ok
+  @spec validate(t()) :: validation_responses()
+  def validate(nil), do: :ok
 
-  def validate(%Output{output_id: output_id}) do
+  def validate(output_id) do
     with :ok <- Validator.validate_blknum(output_id.blknum),
          :ok <- Validator.validate_txindex(output_id.txindex),
          :ok <- Validator.validate_oindex(output_id.oindex) do

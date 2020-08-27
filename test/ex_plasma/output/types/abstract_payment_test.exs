@@ -3,7 +3,6 @@ defmodule ExPlasma.Output.Type.AbstractPaymentTest do
   use ExUnit.Case, async: true
   doctest ExPlasma.Output.Type.AbstractPayment
 
-  alias ExPlasma.Output
   alias ExPlasma.Output.Type.AbstractPayment
 
   describe "to_rlp/1" do
@@ -63,13 +62,12 @@ defmodule ExPlasma.Output.Type.AbstractPaymentTest do
 
   describe "validate/1" do
     setup do
-      output = %Output{
+      output = %{
         output_data: %{
           amount: 1,
           output_guard: <<11, 246, 22, 41, 33, 46, 44, 159, 55, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
           token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>
         },
-        output_id: nil,
         output_type: 1
       }
 
@@ -81,27 +79,27 @@ defmodule ExPlasma.Output.Type.AbstractPaymentTest do
     end
 
     test "returns an error when amount is nil", %{output: output} do
-      output = %Output{output | output_data: %{output.output_data | amount: nil}}
+      output = %{output | output_data: %{output.output_data | amount: nil}}
       assert_field(output, :amount, :cannot_be_nil)
     end
 
     test "returns an error when amount is zero", %{output: output} do
-      output = %Output{output | output_data: %{output.output_data | amount: 0}}
+      output = %{output | output_data: %{output.output_data | amount: 0}}
       assert_field(output, :amount, :cannot_be_zero)
     end
 
     test "returns an error when token is nil", %{output: output} do
-      output = %Output{output | output_data: %{output.output_data | token: nil}}
+      output = %{output | output_data: %{output.output_data | token: nil}}
       assert_field(output, :token, :cannot_be_nil)
     end
 
     test "returns an error when output_guard is nil", %{output: output} do
-      output = %Output{output | output_data: %{output.output_data | output_guard: nil}}
+      output = %{output | output_data: %{output.output_data | output_guard: nil}}
       assert_field(output, :output_guard, :cannot_be_nil)
     end
 
     test "returns an error when output_guard is zero", %{output: output} do
-      output = %Output{output | output_data: %{output.output_data | output_guard: <<0::160>>}}
+      output = %{output | output_data: %{output.output_data | output_guard: <<0::160>>}}
       assert_field(output, :output_guard, :cannot_be_zero)
     end
   end

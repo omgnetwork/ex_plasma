@@ -22,15 +22,27 @@ defmodule ExPlasma.Output do
           output_data: output_data()
         }
 
+  @type input_position() :: %__MODULE__{
+          output_id: Position.t(),
+          output_type: nil,
+          output_data: nil
+        }
+
+  @type output() :: %__MODULE__{
+          output_id: nil,
+          output_type: output_type(),
+          output_data: output_data()
+        }
+
   @type decoding_error() :: :malformed_output_rlp | mapping_error()
   @type mapping_error() :: :malformed_outputs | :unrecognized_output_type | atom()
   @type validation_responses() :: :ok | validation_errors()
   @type validation_errors() :: {:error, {atom(), atom()}}
 
   # Output Types and Identifiers should implement these.
-  @callback to_map(any()) :: {:ok, t()} | {:error, atom()}
-  @callback to_rlp(t()) :: list() | binary()
-  @callback validate(t()) :: validation_responses()
+  @callback to_map(any()) :: {:ok, map()} | {:error, atom()}
+  @callback to_rlp(map()) :: list() | binary()
+  @callback validate(map()) :: validation_responses()
 
   @output_types_modules TypeMapper.output_type_modules()
 
@@ -56,7 +68,7 @@ defmodule ExPlasma.Output do
     output_type: 1
   }}
   """
-  @spec decode(binary()) :: {:ok, t()} | {:error, decoding_error()}
+  @spec decode(binary()) :: {:ok, output()} | {:error, decoding_error()}
   def decode(data) do
     case RlpDecoder.decode(data) do
       {:ok, rlp} -> to_map(rlp)
@@ -67,7 +79,7 @@ defmodule ExPlasma.Output do
   @doc """
   Throwing version of decode/1
   """
-  @spec decode!(binary()) :: t() | no_return()
+  @spec decode!(binary()) :: output() | no_return()
   def decode!(data) do
     {:ok, output} = decode(data)
     output
@@ -91,18 +103,18 @@ defmodule ExPlasma.Output do
     output_type: nil
   }}
   """
-  @spec decode_id(binary()) :: {:ok, Position.position_output()} | {:error, :malformed_input_position_rlp}
+  @spec decode_id(binary()) :: {:ok, input_position()} | {:error, :malformed_input_position_rlp}
   def decode_id(data) do
-    case Position.decode(data) do
-      {:ok, pos} -> Position.to_map(pos)
-      error -> error
+    with {:ok, pos} <- Position.decode(data),
+         {:ok, output_id} <- Position.to_map(pos) do
+      {:ok, %__MODULE__{output_id: output_id}}
     end
   end
 
   @doc """
   Throwing version of decode_id/1
   """
-  @spec decode_id!(binary()) :: Position.position_output() | no_return()
+  @spec decode_id!(binary()) :: input_position() | no_return()
   def decode_id!(data) do
     {:ok, output} = decode_id(data)
     output
@@ -138,17 +150,35 @@ defmodule ExPlasma.Output do
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
   """
-  @spec to_map(list()) :: {:ok, t()} | {:error, mapping_error()}
+  @spec to_map(list()) :: {:ok, output()} | {:error, mapping_error()}
   def to_map([raw_output_type | _output_rlp_items] = rlp) do
     with {:ok, output_module} <- parse_output_type(raw_output_type),
-         {:ok, output} <- output_module.to_map(rlp) do
-      {:ok, output}
+         {:ok, output_data} <- output_module.to_map(rlp) do
+      {:ok, struct(__MODULE__, output_data)}
     end
   end
 
   def to_map(_), do: {:error, :malformed_outputs}
 
-  defdelegate to_map_id(position), to: Position, as: :to_map
+  @doc """
+  Maps the given integer position into an output.
+
+  ## Examples
+
+  iex> pos = 1_000_000_000
+  iex> ExPlasma.Output.to_map_id(pos)
+  {:ok, %ExPlasma.Output{output_id: %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}}
+
+  Only validates that the RLP is structurally correct.
+  Does not perform any other kind of validation, use validate/1 for that.
+  """
+  @spec to_map_id(Position.position()) :: {:ok, input_position()} | {:error, :malformed_output_position}
+  def to_map_id(position) do
+    case Position.to_map(position) do
+      {:ok, output_id} -> {:ok, %__MODULE__{output_id: output_id}}
+      error -> error
+    end
+  end
 
   @doc """
 
@@ -210,7 +240,7 @@ defmodule ExPlasma.Output do
   iex> ExPlasma.Output.to_rlp(output)
   {:ok, [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<1>>]]}
   """
-  @spec to_rlp(t()) :: {:ok, list()} | {:error, :invalid_output_data | :unrecognized_output_type}
+  @spec to_rlp(output()) :: {:ok, list()} | {:error, :invalid_output_data | :unrecognized_output_type}
   def to_rlp(%__MODULE__{output_type: nil}), do: {:error, :invalid_output_data}
 
   def to_rlp(output) do
@@ -239,9 +269,9 @@ defmodule ExPlasma.Output do
   iex> ExPlasma.Output.to_rlp_id(output)
   {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
   """
-  @spec to_rlp_id(t()) :: {:ok, binary()} | {:error, :invalid_output_id}
-  def to_rlp_id(%__MODULE__{output_id: nil}), do: {:error, :invalid_output_id}
-  def to_rlp_id(output), do: {:ok, Position.to_rlp(output)}
+  @spec to_rlp_id(input_position()) :: {:ok, binary()} | {:error, :invalid_output_id}
+  def to_rlp_id(%__MODULE__{output_id: id}) when is_map(id), do: {:ok, Position.to_rlp(id)}
+  def to_rlp_id(_), do: {:error, :invalid_output_id}
 
   @doc """
   Validates the Output
@@ -289,7 +319,7 @@ defmodule ExPlasma.Output do
 
   # Validate the output ID. Bypass the validation if it doesn't
   # exist in the output body.
-  defp do_validate_id(output), do: Position.validate(output)
+  defp do_validate_id(output), do: Position.validate(output.output_id)
 
   defp parse_output_type(output_type_rlp) do
     with {:ok, output_type} <- RlpDecoder.parse_uint256(output_type_rlp),
