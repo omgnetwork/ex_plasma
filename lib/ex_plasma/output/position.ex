@@ -101,7 +101,7 @@ defmodule ExPlasma.Output.Position do
   def to_map(_), do: {:error, :malformed_output_position}
 
   @doc """
-  Decodes and return the integer position.
+  Decodes and returns the integer position.
 
   ## Example
 

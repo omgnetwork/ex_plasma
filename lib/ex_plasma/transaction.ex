@@ -30,7 +30,7 @@ defmodule ExPlasma.Transaction do
           tx_type: pos_integer(),
           inputs: outputs(),
           outputs: outputs(),
-          tx_data: any(),
+          tx_data: non_neg_integer(),
           nonce: nonce(),
           metadata: metadata(),
           witnesses: list(Witness.t())
