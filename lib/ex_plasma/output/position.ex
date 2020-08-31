@@ -9,7 +9,9 @@ defmodule ExPlasma.Output.Position do
 
   @behaviour ExPlasma.Output
 
+  alias __MODULE__.Validator
   alias ExPlasma.Output
+  alias ExPlasma.Utils.RlpDecoder
 
   @type position() :: pos_integer()
 
@@ -21,20 +23,20 @@ defmodule ExPlasma.Output.Position do
         }
 
   @type validation_responses() ::
-          {:ok, t() | Output.t()}
-          | {:error, {:blknum, :cannot_be_nil}}
-          | {:error, {:blknum, :cannot_exceed_maximum_value}}
-          | {:error, {:oindex, :cannot_be_nil}}
-          | {:error, {:txindex, :cannot_be_nil}}
-          | {:error, {:txindex, :cannot_exceed_maximum_value}}
+          :ok
+          | {:error,
+             Validator.blknum_validation_errors()
+             | Validator.oindex_validation_errors()
+             | Validator.txindex_validation_errors()}
 
   # Contract settings
   # These are being hard-coded from the same values on the contracts.
   # See: https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/contracts/src/utils/PosLib.sol#L16-L23
   @block_offset 1_000_000_000
   @transaction_offset 10_000
-  @max_txindex :math.pow(2, 16) - 1
-  @max_blknum (:math.pow(2, 54) - 1 - @max_txindex) / (@block_offset / @transaction_offset)
+
+  def block_offset(), do: @block_offset
+  def transaction_offset(), do: @transaction_offset
 
   @doc """
   Encodes the blknum, txindex, and oindex into a single integer.
@@ -45,24 +47,36 @@ defmodule ExPlasma.Output.Position do
   iex> ExPlasma.Output.Position.pos(pos)
   1_000_000_000
   """
-  @spec pos(t()) :: number()
+  @spec pos(t()) :: position()
   def pos(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     blknum * @block_offset + txindex * @transaction_offset + oindex
   end
+
+  @doc """
+  Transforms the output position into a positive integer representing the position.
+
+  ## Example
+
+  iex> output_id = %{blknum: 1, txindex: 0, oindex: 0}
+  iex> ExPlasma.Output.Position.to_rlp(output_id)
+  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+  """
+  @impl Output
+  @spec to_rlp(t()) :: binary()
+  def to_rlp(output_id), do: output_id |> pos() |> encode()
 
   @doc """
   Encodes the output position into an RLP encodable object.
 
   ## Example
 
-  iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
-  iex> ExPlasma.Output.Position.to_rlp(pos)
+  iex> pos = ExPlasma.Output.Position.pos(%{blknum: 1, txindex: 0, oindex: 0})
+  iex> ExPlasma.Output.Position.encode(pos)
   <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
-  @impl Output
-  @spec to_rlp(t()) :: binary()
-  def to_rlp(%{blknum: _, txindex: _, oindex: _} = id) do
-    id |> pos() |> :binary.encode_unsigned(:big) |> pad_binary()
+  @spec encode(position()) :: binary()
+  def encode(position) do
+    position |> :binary.encode_unsigned(:big) |> pad_binary()
   end
 
   @doc """
@@ -72,46 +86,56 @@ defmodule ExPlasma.Output.Position do
 
   iex> pos = 1_000_000_000
   iex> ExPlasma.Output.Position.to_map(pos)
-  %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}
+  {:ok, %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}
   """
   @impl Output
-  @spec to_map(position()) :: t()
-  def to_map(pos) do
+  @spec to_map(position()) :: {:ok, t()} | {:error, :malformed_output_position}
+  def to_map(pos) when is_integer(pos) do
     blknum = div(pos, @block_offset)
     txindex = pos |> rem(@block_offset) |> div(@transaction_offset)
     oindex = rem(pos, @transaction_offset)
 
-    %{position: pos, blknum: blknum, txindex: txindex, oindex: oindex}
+    {:ok, %{position: pos, blknum: blknum, txindex: txindex, oindex: oindex}}
+  end
+
+  def to_map(_), do: {:error, :malformed_output_position}
+
+  @doc """
+  Decodes and returns the integer position.
+
+  ## Example
+
+  iex> pos = <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+  iex> ExPlasma.Output.Position.decode(pos)
+  {:ok, 1_000_000_000}
+  """
+  @spec decode(binary()) :: {:ok, position()} | {:error, :malformed_input_position_rlp}
+  def decode(encoded_pos) do
+    case RlpDecoder.parse_uint256_with_leading(encoded_pos) do
+      {:ok, pos} -> {:ok, pos}
+      _error -> {:error, :malformed_input_position_rlp}
+    end
   end
 
   @doc """
   Validates that values can give a valid position.
 
   ## Example
-  iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
-  iex> {:ok, resp} = ExPlasma.Output.Position.validate(pos)
-  {:ok, %{blknum: 1, txindex: 0, oindex: 0}}
+  iex> output_id = %{blknum: 1, txindex: 0, oindex: 0}
+  iex> ExPlasma.Output.Position.validate(output_id)
+  :ok
   """
   @impl Output
   @spec validate(t()) :: validation_responses()
-  def validate(%{blknum: blknum, txindex: txindex, oindex: oindex} = pos) do
-    case do_validate({blknum, txindex, oindex}) do
-      {field, value} -> {:error, {field, value}}
-      nil -> {:ok, pos}
+  def validate(nil), do: :ok
+
+  def validate(output_id) do
+    with :ok <- Validator.validate_blknum(output_id.blknum),
+         :ok <- Validator.validate_txindex(output_id.txindex),
+         :ok <- Validator.validate_oindex(output_id.oindex) do
+      :ok
     end
   end
-
-  defp do_validate({nil, _, _}), do: {:blknum, :cannot_be_nil}
-  defp do_validate({_, nil, _}), do: {:txindex, :cannot_be_nil}
-  defp do_validate({_, _, nil}), do: {:oindex, :cannot_be_nil}
-
-  defp do_validate({blknum, _, _}) when is_integer(blknum) and blknum > @max_blknum,
-    do: {:blknum, :cannot_exceed_maximum_value}
-
-  defp do_validate({_, txindex, _}) when is_integer(txindex) and txindex > @max_txindex,
-    do: {:txindex, :cannot_exceed_maximum_value}
-
-  defp do_validate({_, _, _}), do: nil
 
   defp pad_binary(unpadded) do
     pad_size = (32 - byte_size(unpadded)) * 8

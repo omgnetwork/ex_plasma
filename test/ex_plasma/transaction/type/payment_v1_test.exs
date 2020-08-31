@@ -37,7 +37,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       output = PaymentV1.new_output(<<1::160>>, <<0::160>>, 1)
       tx = Builder.new(ExPlasma.payment_v1(), inputs: [input], outputs: [output])
 
-      rlp = PaymentV1.to_rlp(tx)
+      assert {:ok, rlp} = PaymentV1.to_rlp(tx)
 
       assert rlp == [
                # tx type
@@ -130,16 +130,16 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       assert PaymentV1.to_map([<<1>>, [], [], <<0, 1>>, <<0::256>>]) == {:error, :malformed_tx_data}
     end
 
-    test "returns a `malformed_inputs` error when the inputs are not a list" do
-      assert PaymentV1.to_map([<<1>>, 123, [], <<0>>, <<0::256>>]) == {:error, :malformed_inputs}
+    test "returns a `malformed_input_position_rlp` error when the inputs are not a list" do
+      assert PaymentV1.to_map([<<1>>, 123, [], <<0>>, <<0::256>>]) == {:error, :malformed_input_position_rlp}
     end
 
-    test "returns a `malformed_inputs` error when the inputs are not an encoded position" do
-      assert PaymentV1.to_map([<<1>>, [123, 123], [], <<0>>, <<0::256>>]) == {:error, :malformed_inputs}
+    test "returns a `malformed_input_position_rlp` error when the inputs are not an encoded position" do
+      assert PaymentV1.to_map([<<1>>, [123, 123], [], <<0>>, <<0::256>>]) == {:error, :malformed_input_position_rlp}
     end
 
-    test "returns a `malformed_outputs` error when the outputs are not a list" do
-      assert PaymentV1.to_map([<<1>>, [], 123, <<0>>, <<0::256>>]) == {:error, :malformed_outputs}
+    test "returns a `malformed_output_rlp` error when the outputs are not a list" do
+      assert PaymentV1.to_map([<<1>>, [], 123, <<0>>, <<0::256>>]) == {:error, :malformed_output_rlp}
     end
 
     test "returns a `malformed_outputs` error when the outputs are not an encoded output data" do
@@ -230,7 +230,7 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       assert_field(tx, :outputs, :cannot_subceed_minimum_value)
     end
 
-    test "returns an error when output type is not a payment v1" do
+    test "returns an error when output type is valid but not a payment v1" do
       output = %Output{
         output_data: %{amount: 2, output_guard: <<2::160>>, token: <<0::160>>},
         output_id: nil,
@@ -240,6 +240,17 @@ defmodule ExPlasma.Transaction.Type.PaymentV1Test do
       tx = Builder.new(ExPlasma.payment_v1(), inputs: [], outputs: [output])
 
       assert_field(tx, :outputs, :invalid_output_type_for_transaction)
+    end
+
+    test "returns an error when output type is invalid" do
+      output = %Output{
+        output_data: %{amount: 2, output_guard: <<2::160>>, token: <<0::160>>},
+        output_id: nil,
+        output_type: 98_123_983
+      }
+
+      tx = Builder.new(ExPlasma.payment_v1(), inputs: [], outputs: [output])
+      assert_field(tx, :output_type, :unrecognized_output_type)
     end
   end
 

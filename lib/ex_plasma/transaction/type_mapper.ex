@@ -8,7 +8,7 @@ defmodule ExPlasma.Transaction.TypeMapper do
 
   @type tx_type_to_tx_module_map() :: %{1 => Transaction.Type.PaymentV1, 3 => Transaction.Type.Fee}
   @type tx_type_to_output_module_map() :: %{
-          0 => Output.Type.PaymentV1,
+          0 => Output.Type.AbstractPayment,
           1 => Output.Type.PaymentV1,
           2 => Output.Type.Fee
         }
@@ -31,7 +31,7 @@ defmodule ExPlasma.Transaction.TypeMapper do
 
   @output_type_modules %{
     # NB: work-around the TypeData using a "zeroed-out" output to hash the eip712 struct with.
-    0 => Output.Type.PaymentV1,
+    0 => Output.Type.AbstractPayment,
     1 => Output.Type.PaymentV1,
     2 => Output.Type.Fee
   }

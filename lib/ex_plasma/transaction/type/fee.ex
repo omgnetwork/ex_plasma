@@ -54,15 +54,19 @@ defmodule ExPlasma.Transaction.Type.Fee do
   def build_nonce(_), do: {:error, :invalid_nonce_params}
 
   @doc """
-  Turns a structure instance into a structure of RLP items, ready to be RLP encoded, for a raw transaction
+  Turns a structure instance into a structure of RLP items, ready to be RLP encoded
   """
   @impl Transaction
   def to_rlp(transaction) do
-    [
-      <<@tx_type>>,
-      Enum.map(transaction.outputs, &Output.to_rlp(&1)),
-      transaction.nonce
-    ]
+    case encode_outputs(transaction.outputs) do
+      {:ok, outputs} ->
+        {:ok,
+         [
+           <<@tx_type>>,
+           outputs,
+           transaction.nonce
+         ]}
+    end
   end
 
   @doc """
@@ -73,7 +77,7 @@ defmodule ExPlasma.Transaction.Type.Fee do
   """
   @impl Transaction
   def to_map([<<@tx_type>>, outputs_rlp, nonce_rlp]) do
-    case decode_outputs(outputs_rlp) do
+    case map_outputs(outputs_rlp) do
       {:ok, outputs} ->
         {:ok,
          %Transaction{
@@ -100,9 +104,18 @@ defmodule ExPlasma.Transaction.Type.Fee do
     end
   end
 
-  defp decode_outputs(outputs_rlp) do
-    {:ok, Enum.map(outputs_rlp, &Output.decode(&1))}
-  rescue
-    _ -> {:error, :malformed_outputs}
+  defp encode_outputs(outputs) when is_list(outputs), do: reduce_outputs(outputs, [], &Output.to_rlp/1)
+  defp encode_outputs(_outputs), do: {:error, :malformed_output_rlp}
+
+  defp map_outputs(outputs) when is_list(outputs), do: reduce_outputs(outputs, [], &Output.to_map/1)
+  defp map_outputs(_outputs), do: {:error, :malformed_output_rlp}
+
+  defp reduce_outputs([], reduced, _reducing_func), do: {:ok, Enum.reverse(reduced)}
+
+  defp reduce_outputs([output | rest], reduced, reducing_func) do
+    case reducing_func.(output) do
+      {:ok, item} -> reduce_outputs(rest, [item | reduced], reducing_func)
+      error -> error
+    end
   end
 end

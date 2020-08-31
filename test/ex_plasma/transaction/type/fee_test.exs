@@ -45,7 +45,7 @@ defmodule ExPlasma.Transaction.Type.FeeTest do
         |> Builder.new(outputs: [output])
         |> Builder.with_nonce!(%{token: token, blknum: blknum})
 
-      rlp = Fee.to_rlp(tx)
+      assert {:ok, rlp} = Fee.to_rlp(tx)
 
       assert rlp == [
                # tx type
@@ -116,8 +116,8 @@ defmodule ExPlasma.Transaction.Type.FeeTest do
       assert Fee.to_map([<<3>>, <<1>>]) == {:error, :malformed_transaction}
     end
 
-    test "returns a `malformed_outputs` error when the outputs are not a list" do
-      assert Fee.to_map([<<3>>, 123, <<1>>]) == {:error, :malformed_outputs}
+    test "returns a `malformed_output_rlp` error when the outputs are not a list" do
+      assert Fee.to_map([<<3>>, 123, <<1>>]) == {:error, :malformed_output_rlp}
     end
 
     test "returns a `malformed_outputs` error when the outputs are not a valid encoded output" do

@@ -24,7 +24,7 @@ defmodule ExPlasma.Transaction.Type.Fee.Validator do
   end
 
   defp validate_generic_output(output) do
-    with {:ok, _} <- Output.validate(output), do: :ok
+    with :ok <- Output.validate(output), do: :ok
   end
 
   defp validate_outputs_count([output]), do: {:ok, output}

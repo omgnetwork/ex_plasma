@@ -12,8 +12,8 @@ defmodule ExPlasma.Output.Type.Empty do
   def to_rlp(_), do: [<<0>>, []]
 
   @impl Output
-  @spec to_map(any()) :: %{output_type: 0, output_data: []}
-  def to_map(_), do: %{output_type: 0, output_data: []}
+  @spec to_map(any()) :: {:ok, %Output{output_type: 0, output_data: %{}, output_id: nil}}
+  def to_map(_), do: {:ok, %Output{output_type: 0, output_data: %{}}}
 
   @impl Output
   @spec validate(any) :: {:error, {:output_type, :unknown}}

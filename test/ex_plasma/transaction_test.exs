@@ -31,7 +31,7 @@ defmodule ExPlasma.TransactionTest do
       |> Builder.add_output(output_guard: bob_addr, token: @eth, amount: 12)
       |> Builder.sign!([alice_priv, alice_priv])
 
-    encoded_signed_tx = Transaction.encode(signed)
+    encoded_signed_tx = Transaction.encode!(signed)
 
     [sigs, _payment_marker, inputs, outputs, _txdata, _metadata] = ExRLP.decode(encoded_signed_tx)
 
@@ -68,7 +68,7 @@ defmodule ExPlasma.TransactionTest do
       outputs = [Fee.new_output(@alice.addr, @eth, 7)]
       {:ok, nonce} = Fee.build_nonce(%{token: @eth, blknum: 1000})
       transaction = Builder.new(ExPlasma.fee(), outputs: outputs, nonce: nonce)
-      encoded_transaction = Transaction.encode(transaction)
+      encoded_transaction = Transaction.encode!(transaction)
 
       assert Transaction.decode(encoded_transaction, signed: false) == {:ok, transaction}
     end
@@ -83,7 +83,7 @@ defmodule ExPlasma.TransactionTest do
       signed: signed
     } do
       unsigned = %Transaction{signed | sigs: []}
-      unsigned_encoded = Transaction.encode(unsigned, signed: false)
+      unsigned_encoded = Transaction.encode!(unsigned, signed: false)
       assert Transaction.decode(unsigned_encoded, signed: false) == {:ok, unsigned}
     end
 
@@ -131,24 +131,24 @@ defmodule ExPlasma.TransactionTest do
                {:error, :malformed_witnesses}
     end
 
-    test "returns a malformed_inputs error when given malformated inputs", %{sigs: sigs, outputs: outputs} do
+    test "returns a malformed_input_position_rlp error when given malformated inputs", %{sigs: sigs, outputs: outputs} do
       assert Transaction.decode(ExRLP.encode([sigs, @payment_tx_type, 42, outputs, 0, @zero_metadata])) ==
-               {:error, :malformed_inputs}
+               {:error, :malformed_input_position_rlp}
 
       assert Transaction.decode(ExRLP.encode([sigs, @payment_tx_type, [[1, 2]], outputs, 0, @zero_metadata])) ==
-               {:error, :malformed_inputs}
+               {:error, :malformed_input_position_rlp}
 
       assert Transaction.decode(ExRLP.encode([sigs, @payment_tx_type, [[1, 2, 'a']], outputs, 0, @zero_metadata])) ==
-               {:error, :malformed_inputs}
+               {:error, :malformed_input_position_rlp}
     end
 
-    test "returns a malformed_outputs error when given malformated outputs", %{
+    test "returns various malformed outputs errors when given malformated outputs", %{
       sigs: sigs,
       inputs: inputs,
       alice_addr: alice_addr
     } do
       assert Transaction.decode(ExRLP.encode([sigs, @payment_tx_type, inputs, 42, 0, @zero_metadata])) ==
-               {:error, :malformed_outputs}
+               {:error, :malformed_output_rlp}
 
       assert Transaction.decode(
                ExRLP.encode([
@@ -181,18 +181,7 @@ defmodule ExPlasma.TransactionTest do
                  0,
                  @zero_metadata
                ])
-             ) == {:error, :malformed_outputs}
-
-      assert Transaction.decode(
-               ExRLP.encode([
-                 sigs,
-                 @payment_tx_type,
-                 inputs,
-                 [[<<232>>, [alice_addr, alice_addr, 1]]],
-                 0,
-                 @zero_metadata
-               ])
-             ) == {:error, :malformed_outputs}
+             ) == {:error, :malformed_output_amount}
 
       assert Transaction.decode(
                ExRLP.encode([
@@ -203,7 +192,18 @@ defmodule ExPlasma.TransactionTest do
                  0,
                  @zero_metadata
                ])
-             ) == {:error, :malformed_outputs}
+             ) == {:error, :malformed_output_amount}
+
+      assert Transaction.decode(
+               ExRLP.encode([
+                 sigs,
+                 @payment_tx_type,
+                 inputs,
+                 [[<<232>>, [alice_addr, alice_addr, 1]]],
+                 0,
+                 @zero_metadata
+               ])
+             ) == {:error, :unrecognized_output_type}
     end
 
     test "returns a malformed_tx_data error when given malformated tx data", %{
@@ -293,14 +293,14 @@ defmodule ExPlasma.TransactionTest do
 
   describe "to_map/2" do
     test "maps an rlp list starting with a list of sigs into a Transaction structure", %{signed: signed} do
-      rlp = Transaction.to_rlp(signed)
+      {:ok, rlp} = Transaction.to_rlp(signed)
 
       assert {:ok, mapped} = Transaction.to_map(rlp)
       assert mapped == signed
     end
 
     test "maps an rlp list starting with a type into a Transaction structure", %{signed: signed} do
-      [_sigs | typed_rlp] = Transaction.to_rlp(signed)
+      {:ok, [_sigs | typed_rlp]} = Transaction.to_rlp(signed)
 
       assert {:ok, mapped} = Transaction.to_map(typed_rlp)
       assert mapped == %{signed | sigs: []}
@@ -325,17 +325,16 @@ defmodule ExPlasma.TransactionTest do
       outputs = [Fee.new_output(@alice.addr, @eth, 7)]
       {:ok, nonce} = Fee.build_nonce(%{token: @eth, blknum: 1000})
       transaction = Builder.new(ExPlasma.fee(), outputs: outputs, nonce: nonce)
-      rlp = Transaction.to_rlp(transaction)
 
+      assert {:ok, rlp} = Transaction.to_rlp(transaction)
       assert [[], tx_type, outputs, nonce] = rlp
-
       assert is_binary(tx_type)
       assert is_list(outputs)
       assert is_binary(nonce)
     end
 
     test "returns the RLP list of a payment v1 transaction", %{signed: signed} do
-      rlp = Transaction.to_rlp(signed)
+      assert {:ok, rlp} = Transaction.to_rlp(signed)
 
       assert [sigs, tx_type, inputs, outputs, 0, metadata] = rlp
 
@@ -397,7 +396,7 @@ defmodule ExPlasma.TransactionTest do
       outputs = [Fee.new_output(@alice.addr, @eth, 7)]
       {:ok, nonce} = Fee.build_nonce(%{token: @eth, blknum: 1000})
       transaction = Builder.new(ExPlasma.fee(), outputs: outputs, nonce: nonce)
-      result = Transaction.encode(transaction)
+      assert {:ok, result} = Transaction.encode(transaction)
 
       expected_result =
         <<248, 82, 192, 3, 238, 237, 2, 235, 148, 99, 100, 231, 104, 170, 156, 129, 68, 252, 45, 124, 232, 218, 107,
@@ -409,7 +408,7 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "encodes a payment v1 transaction struct", %{signed: signed} do
-      result = Transaction.encode(signed)
+      assert {:ok, result} = Transaction.encode(signed)
 
       expected_result =
         <<249, 1, 30, 248, 134, 184, 65, 127, 174, 77, 180, 234, 189, 49, 84, 179, 178, 148, 52, 166, 45, 173, 243, 146,
@@ -429,7 +428,7 @@ defmodule ExPlasma.TransactionTest do
 
     test "encodes without signatures when given the opts signed: false", %{signed: signed} do
       refute signed.sigs == []
-      encoded_unsigned_tx = Transaction.encode(signed, signed: false)
+      assert {:ok, encoded_unsigned_tx} = Transaction.encode(signed, signed: false)
       assert [_payment_marker, _inputs, _outputs, _txdata, _metadata] = ExRLP.decode(encoded_unsigned_tx)
 
       expected_result =
@@ -445,7 +444,7 @@ defmodule ExPlasma.TransactionTest do
 
   describe "hash/1" do
     test "calculates transaction hash for struct", %{signed: signed} do
-      result = Transaction.hash(signed)
+      assert {:ok, result} = Transaction.hash(signed)
 
       expected_result =
         <<105, 141, 249, 154, 54, 160, 13, 35, 161, 231, 99, 13, 206, 227, 150, 12, 97, 25, 184, 143, 201, 55, 30, 48,
@@ -455,7 +454,7 @@ defmodule ExPlasma.TransactionTest do
     end
 
     test "calculates hash for rlp encoded transaction", %{signed: signed} do
-      result = signed |> Transaction.encode(signed: false) |> Transaction.hash()
+      assert {:ok, result} = signed |> Transaction.encode!(signed: false) |> Transaction.hash()
 
       expected_result =
         <<105, 141, 249, 154, 54, 160, 13, 35, 161, 231, 99, 13, 206, 227, 150, 12, 97, 25, 184, 143, 201, 55, 30, 48,
@@ -485,7 +484,7 @@ defmodule ExPlasma.TransactionTest do
              |> Builder.new(inputs: inputs, outputs: outputs)
              |> Builder.sign(privs)
 
-    encoded_signed_tx = Transaction.encode(signed)
+    encoded_signed_tx = Transaction.encode!(signed)
 
     assert {:ok, ^signed} = Transaction.decode(encoded_signed_tx)
   end

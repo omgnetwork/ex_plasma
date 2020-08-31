@@ -20,6 +20,7 @@ defmodule ExPlasma.Transaction do
   @type outputs() :: list(Output.t()) | []
   @type metadata() :: <<_::256>> | nil
 
+  @type encoding_error() :: :unrecognized_transaction_type
   @type decoding_error() :: :malformed_rlp | mapping_error()
 
   @type mapping_error() :: :malformed_transaction | :unrecognized_transaction_type | atom()
@@ -29,7 +30,7 @@ defmodule ExPlasma.Transaction do
           tx_type: pos_integer(),
           inputs: outputs(),
           outputs: outputs(),
-          tx_data: any(),
+          tx_data: non_neg_integer(),
           nonce: nonce(),
           metadata: metadata(),
           witnesses: list(Witness.t())
@@ -49,7 +50,7 @@ defmodule ExPlasma.Transaction do
 
   @callback build_nonce(map()) :: {:ok, nonce()} | {:error, atom()}
   @callback to_map(list()) :: {:ok, t()} | {:error, atom()}
-  @callback to_rlp(t()) :: list()
+  @callback to_rlp(t()) :: {:ok, list()} | {:error, atom()}
   @callback validate(t()) :: :ok | {:error, {atom(), atom()}}
 
   @doc """
@@ -67,7 +68,7 @@ defmodule ExPlasma.Transaction do
   ...>        output_type: nil
   ...>      }
   ...>    ],
-  ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+  ...>    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
   ...>    outputs: [
   ...>      %ExPlasma.Output{
   ...>        output_data: %{
@@ -82,21 +83,36 @@ defmodule ExPlasma.Transaction do
   ...>      }
   ...>    ],
   ...>    sigs: [],
-  ...>    tx_data: <<0>>,
+  ...>    tx_data: 0,
   ...>    tx_type: 1
   ...>  }
-  iex> ExPlasma.Transaction.encode(txn)
-  <<248, 105, 192, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246,
-  47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0,
-  110, 148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65,
-  226, 241, 55, 0, 110, 1, 128, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0>>
+  iex> ExPlasma.Transaction.encode(txn, signed: :false)
+  {:ok, <<248, 116, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
+  41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
+  148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
+  241, 55, 0, 110, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>}
   """
-  @spec encode(t() | list(), keyword()) :: tx_bytes()
+  @spec encode(t() | list(), keyword()) :: {:ok, tx_bytes()} | {:error, encoding_error()}
   def encode(transaction, opts \\ [])
-  def encode(%__MODULE__{} = transaction, opts), do: transaction |> to_rlp(opts) |> encode(opts)
-  def encode(rlp_items, _opts) when is_list(rlp_items), do: ExRLP.encode(rlp_items)
+
+  def encode(%__MODULE__{} = transaction, opts) do
+    case to_rlp(transaction, opts) do
+      {:ok, rlp} -> encode(rlp, opts)
+      {:error, :unrecognized_transaction_type} = error -> error
+    end
+  end
+
+  def encode(rlp_items, _opts) when is_list(rlp_items), do: {:ok, ExRLP.encode(rlp_items)}
+
+  @doc """
+  Throwing version of encode/2
+  """
+  def encode!(rlp_items, opts \\ []) do
+    {:ok, encoded} = encode(rlp_items, opts)
+    encoded
+  end
 
   @doc """
   Attempt to decode the given RLP list into a Transaction.
@@ -173,7 +189,7 @@ defmodule ExPlasma.Transaction do
   end
 
   def to_map([raw_tx_type | _transaction_rlp_items] = rlp) do
-    with {:ok, _tx_type, transaction_module} <- parse_tx_type(raw_tx_type),
+    with {:ok, transaction_module} <- parse_tx_type(raw_tx_type),
          {:ok, transaction} <- transaction_module.to_map(rlp) do
       {:ok, transaction}
     end
@@ -215,7 +231,7 @@ defmodule ExPlasma.Transaction do
   ...>    tx_type: 1
   ...>  }
   iex> ExPlasma.Transaction.to_rlp(txn)
-  [
+  {:ok, [
     [],
     <<1>>,
     [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>],
@@ -231,21 +247,16 @@ defmodule ExPlasma.Transaction do
     ],
     0,
     <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
-  ]
+  ]}
   """
-  @spec to_rlp(t(), keyword()) :: list()
+  @spec to_rlp(t(), keyword()) :: {:ok, list()} | {:error, :unrecognized_transaction_type}
   def to_rlp(transaction, opts \\ []) do
-    case get_transaction_module(transaction.tx_type) do
-      {:ok, module} ->
-        rlp = module.to_rlp(transaction)
-
-        case signed_requested?(opts) do
-          true -> [transaction.sigs | rlp]
-          false -> rlp
-        end
-
-      {:error, :unrecognized_transaction_type} = error ->
-        error
+    with {:ok, module} <- get_transaction_module(transaction.tx_type),
+         {:ok, unsigned_rlp} <- module.to_rlp(transaction) do
+      case signed_requested?(opts) do
+        true -> {:ok, [transaction.sigs | unsigned_rlp]}
+        false -> {:ok, unsigned_rlp}
+      end
     end
   end
 
@@ -315,9 +326,15 @@ defmodule ExPlasma.Transaction do
   @doc """
   Returns the hash of the transaction involved without the signatures
   """
-  @spec hash(t() | tx_bytes()) :: tx_hash()
-  def hash(%__MODULE__{} = transaction), do: transaction |> encode(signed: false) |> hash()
-  def hash(tx_bytes) when is_binary(tx_bytes), do: Crypto.keccak_hash(tx_bytes)
+  @spec hash(t() | tx_bytes()) :: {:ok, tx_hash()} | {:error, encoding_error()}
+  def hash(%__MODULE__{} = transaction) do
+    case encode(transaction, signed: false) do
+      {:ok, encoded} -> hash(encoded)
+      error -> error
+    end
+  end
+
+  def hash(tx_bytes) when is_binary(tx_bytes), do: {:ok, Crypto.keccak_hash(tx_bytes)}
 
   @doc """
   Signs the inputs of the transaction with the given keys in the corresponding order.
@@ -359,7 +376,7 @@ defmodule ExPlasma.Transaction do
   defp parse_tx_type(tx_type_rlp) do
     with {:ok, tx_type} <- RlpDecoder.parse_uint256(tx_type_rlp),
          {:ok, module} <- get_transaction_module(tx_type) do
-      {:ok, tx_type, module}
+      {:ok, module}
     else
       _ -> {:error, :unrecognized_transaction_type}
     end
