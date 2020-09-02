@@ -4,11 +4,15 @@ defmodule ExPlasma.MixProject do
   def project do
     [
       app: :ex_plasma,
-      version: "0.1.0",
+      version: "0.2.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
+      description: description(),
       deps: deps(),
+      package: package(),
+      name: "ExPlasma",
+      docs: docs(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -17,6 +21,30 @@ defmodule ExPlasma.MixProject do
         "coveralls.html": :test
       ],
       dialyzer: dialyzer()
+    ]
+  end
+
+  defp description do
+    """
+    A library for encoding, decoding and validating transactions used for the OMG Network Plasma contracts.
+    """
+  end
+
+  defp package do
+    [
+      name: :ex_plasma,
+      maintainers: ["OMG Network team"],
+      licenses: ["Apache-2.0 License"],
+      links: %{"GitHub" => "https://github.com/omgnetwork/ex_plasma"}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: [
+        "README.md"
+      ]
     ]
   end
 

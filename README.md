@@ -1,10 +1,8 @@
-[![Coverage Status](https://coveralls.io/repos/github/omisego/ex_plasma/badge.svg?branch=master)](https://coveralls.io/github/omisego/ex_plasma?branch=master)
+[![Build Status](https://circleci.com/gh/omgnetwork/ex_plasma.svg?style=svg)](https://circleci.com/gh/omgnetwork/ex_plasma)
 
 # ExPlasma
 
-**TODO: Add description**
-
-(ExPlasma)[] is an elixir client library to interact with the OmiseGO Plasma contracts.
+ExPlasma is an Elixir library for encoding, decoding and validating transactions used for the OMG Network Plasma contracts.
 
 ## Installation
 
@@ -14,7 +12,7 @@ by adding `ex_plasma` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_plasma, "~> 0.1.0"}
+    {:ex_plasma, "~> 0.2.0"}
   ]
 end
 ```
@@ -24,22 +22,31 @@ You will also need to specify some configurations in your [config/config.exs]():
 ```elixir
 config :ex_plasma,
   eip_712_domain: %{
-    name: "ExPlasma",
-    salt: "some-salt",
-    verifying_contract: "contract_address",
+    name: "OMG Network",
+    salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
+    verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
     version: "1"
   }
 ```
 
-## Setup (Mac OS)
+## Setup
 
-1. Clone the repo to your desktop `git@github.com:omisego/ex_plasma.git`
+1. Cloneр the repo to your desktop `git@github.com:omgnetwork/ex_plasma.git`
 2. Run `mix compile` in your terminal.
 3. If there are any unavailable dependencies, run `mix deps.get`.
-*If you run into any issues with* ***libsecp256k1_source***, *run* `brew install automake pkg-config libtool libffi gmp` *in your terminal.* 
+
+
+*If you run into any issues with* ***libsecp256k1_source***, *run in your terminal:*
+
+Mac OS: `brew install automake pkg-config libtool libffi gmp`
+Debian/Ubuntu: `apt-get -y install autoconf build-essential libgmp3-dev libtool`
+
+## Usage
+
+
+View the [documentation](https://hexdocs.pm/ex_plasma)
 
 ## Testing
-
 
 You can run the tests by running;
 
@@ -47,21 +54,6 @@ You can run the tests by running;
 mix test
 mix credo
 mix dialyzer
-```
-
-### exvcr
-
-The test suite has network requests recorded by [exvcr](). To record new cassettes, spin up docker:
-
-```sh
-docker-compose up
-```
-
-Or alternatively, you can use the make command to spin up a detached docker compose.
-
-```sh
-make up # docker-compose detached
-make logs # connects to logs from docker-compose
 ```
 
 This will load up Ganche and the plasma contracts to deploy.
@@ -94,3 +86,15 @@ This will spin up ganache and deploy the plasma framework and run the integratio
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/ex_plasma](https://hexdocs.pm/ex_plasma).
+
+## Contributing
+
+1. [Fork it!](https://github.com/omgnetwork/ex_plasma)
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
+
+## License
+
+ExPlasma is released under the Apache-2.0 License.
