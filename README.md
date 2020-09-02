@@ -30,7 +30,7 @@ config :ex_plasma,
 
 ## Setup
 
-1. Cloneр the repo to your desktop `git@github.com:omgnetwork/ex_plasma.git`
+1. Clone the repo to your desktop `git@github.com:omgnetwork/ex_plasma.git`
 2. Run `mix compile` in your terminal.
 3. If there are any unavailable dependencies, run `mix deps.get`.
 
