@@ -1,6 +1,5 @@
+## ExPlasma
 [![Build Status](https://circleci.com/gh/omgnetwork/ex_plasma.svg?style=svg)](https://circleci.com/gh/omgnetwork/ex_plasma)
-
-# ExPlasma
 
 ExPlasma is an Elixir library for encoding, decoding and validating transactions used for the OMG Network Plasma contracts.
 
@@ -156,22 +155,6 @@ mix test --only conformance
 ```
 
 This will spin up ganache and deploy the mock contracts.
-
-### Integration test
-
-We also have more integrated flows we need to test, such as the exit game. These use live interactions with
-the plasma framework contracts. To run those, you can execute:
-
-```sh
-make up
-mix test --only integration
-```
-
-This will spin up ganache and deploy the plasma framework and run the integration suite.
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/ex_plasma](https://hexdocs.pm/ex_plasma).
 
 ## Contributing
 
