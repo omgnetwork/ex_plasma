@@ -123,10 +123,53 @@ ExPlasma.decode(rlp, signed: false)
 }
 ```
 
-You can validate a transaction by using `ExPlasma.validat/1`:
+You can validate a transaction using `ExPlasma.validate/1`:
 
 ``` elixir
-ExPlasma.Transaction.validate(txn)
+ExPlasma.validate(txn)
+```
+
+To build a transaction use `ExPlasma.Builder` module:
+
+``` elixir
+ExPlasma.payment_v1()
+|> ExPlasma.Builder.new()
+|> ExPlasma.Builder.add_input(blknum: 1, txindex: 0, oindex: 0)
+|> ExPlasma.Builder.add_output(output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
+|> ExPlasma.Builder.sign(["0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"])
+{:ok,
+ %ExPlasma.Transaction{
+   inputs: [
+     %ExPlasma.Output{
+       output_data: nil,
+       output_id: %{blknum: 1, oindex: 0, txindex: 0},
+       output_type: nil
+     }
+   ],
+   metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+   nonce: nil,
+   outputs: [
+     %ExPlasma.Output{
+       output_data: %{
+         amount: 1,
+         output_guard: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+           0, 1>>,
+         token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+       },
+       output_id: nil,
+       output_type: 1
+     }
+   ],
+   sigs: [
+     <<236, 177, 165, 5, 109, 208, 210, 116, 68, 176, 199, 17, 168, 29, 30, 198,
+       77, 45, 233, 147, 149, 38, 93, 136, 24, 98, 53, 218, 52, 177, 200, 127,
+       26, 6, 138, 17, 36, 52, 97, 152, 240, 222, ...>>
+   ],
+   tx_data: 0,
+   tx_type: 1,
+   witnesses: []
+}}
 ```
 
 View the [documentation](https://hexdocs.pm/ex_plasma)
