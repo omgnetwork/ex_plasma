@@ -42,101 +42,15 @@ Debian/Ubuntu: `apt-get -y install autoconf build-essential libgmp3-dev libtool`
 
 ## Usage
 
-You can encode a transaction using `ExPlasma.encode/2`:
-
-``` elixir
-txn =
- %ExPlasma.Transaction{
-   inputs: [
-     %ExPlasma.Output{
-       output_data: nil,
-       output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-       output_type: nil
-     }
-   ],
-   metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-   outputs: [
-     %ExPlasma.Output{
-       output_data: %{
-         amount: 1,
-         output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-           217, 206, 65, 226, 241, 55, 0, 110>>,
-         token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-           65, 226, 241, 55, 0, 110>>
-       },
-       output_id: nil,
-       output_type: 1
-     }
-   ],
-   sigs: [],
-   tx_data: 0,
-   tx_type: 1
-}
-
-ExPlasma.encode(txn, signed: false)
-{:ok, <<248, 116, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148, 29, 246, 47,
-41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110,
-148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226,
-241, 55, 0, 110, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>}
-```
-
-You can decode a transaction using `ExPlasma.decode/2`:
-
-``` elixir
-rlp = <<248, 116, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 238, 237, 1, 235, 148,
- 29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
- 55, 0, 110, 148, 46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217,
- 206, 65, 226, 241, 55, 0, 110, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
-ExPlasma.decode(rlp, signed: false)
-{:ok,
-  %ExPlasma.Transaction{
-    inputs: [
-      %ExPlasma.Output{
-        output_data: nil,
-        output_id: %{blknum: 0, oindex: 0, position: 0, txindex: 0},
-        output_type: nil
-      }
-    ],
-    metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-    outputs: [
-      %ExPlasma.Output{
-        output_data: %{
-          amount: 1,
-          output_guard: <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153,
-            217, 206, 65, 226, 241, 55, 0, 110>>,
-          token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206,
-            65, 226, 241, 55, 0, 110>>
-        },
-        output_id: nil,
-        output_type: 1
-      }
-    ],
-    witnesses: [],
-    sigs: [],
-    tx_data: 0,
-    tx_type: 1
-  }
-}
-```
-
-You can validate a transaction using `ExPlasma.validate/1`:
-
-``` elixir
-ExPlasma.validate(txn)
-```
-
 To build a transaction use `ExPlasma.Builder` module:
 
 ``` elixir
-ExPlasma.payment_v1()
-|> ExPlasma.Builder.new()
-|> ExPlasma.Builder.add_input(blknum: 1, txindex: 0, oindex: 0)
-|> ExPlasma.Builder.add_output(output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
-|> ExPlasma.Builder.sign(["0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"])
+{:ok, txn} =
+  ExPlasma.payment_v1()
+  |> ExPlasma.Builder.new()
+  |> ExPlasma.Builder.add_input(blknum: 1, txindex: 0, oindex: 0)
+  |> ExPlasma.Builder.add_output(output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
+  |> ExPlasma.Builder.sign(["0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"])
 {:ok,
  %ExPlasma.Transaction{
    inputs: [
@@ -170,6 +84,59 @@ ExPlasma.payment_v1()
    tx_type: 1,
    witnesses: []
 }}
+```
+
+You can encode a transaction using `ExPlasma.encode/2`:
+
+``` elixir
+{:ok, rlp} = ExPlasma.encode(txn, signed: false)
+{:ok,
+ <<248, 116, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0, 238, 237, 1, 235, 148, 0, 0,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 148, 0, 0, 0, 0, 0, 0,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>}
+```
+
+You can decode a transaction using `ExPlasma.decode/2`:
+
+``` elixir
+{:ok, txn} = ExPlasma.decode(rlp, signed: false)
+{:ok,
+ %ExPlasma.Transaction{
+   inputs: [
+     %ExPlasma.Output{
+       output_data: nil,
+       output_id: %{blknum: 1, oindex: 0, position: 1000000000, txindex: 0},
+       output_type: nil
+     }
+   ],
+   metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+   nonce: nil,
+   outputs: [
+     %ExPlasma.Output{
+       output_data: %{
+         amount: 1,
+         output_guard: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+           0, 1>>,
+         token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+       },
+       output_id: nil,
+       output_type: 1
+     }
+   ],
+   sigs: [],
+   tx_data: 0,
+   tx_type: 1,
+   witnesses: []
+ }}
+```
+
+You can validate a transaction using `ExPlasma.validate/1`:
+
+``` elixir
+ExPlasma.validate(txn)
 ```
 
 View the [documentation](https://hexdocs.pm/ex_plasma)
