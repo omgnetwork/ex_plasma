@@ -121,6 +121,6 @@ workflows:
       - dialyzer:
           requires:
             - build
-      - conformance
+      - conformance:
           requires:
             - build
