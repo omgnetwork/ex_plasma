@@ -41,7 +41,7 @@ defmodule ExPlasma.MixProject do
       {:ex_rlp, "~> 0.5.3"},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:ex_keccak, "~> 0.1.0"},
-      {:rusty_secp256k1, "~> 0.1.6"},
+      {:libsecp256k1, git: "https://github.com/omisego/libsecp256k1.git", branch: "elixir-only", override: true},
       {:merkle_tree, "~> 2.0.0"},
       {:stream_data, "~>0.4.3", only: [:test]},
       {:telemetry, "~> 0.4", only: [:test]}
