@@ -9,3 +9,4 @@
 :0: Unknown function 'Elixir.ExPlasma.TypedData.Port':'__impl__'/1
 :0: Unknown function 'Elixir.ExPlasma.TypedData.Reference':'__impl__'/1
 :0: Unknown function 'Elixir.ExPlasma.TypedData.Tuple':'__impl__'/1
+:0: Unknown function 'Elixir.ExKeccak':hash_256/1
