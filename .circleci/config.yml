@@ -122,3 +122,5 @@ workflows:
           requires:
             - build
       - conformance
+          requires:
+            - build
