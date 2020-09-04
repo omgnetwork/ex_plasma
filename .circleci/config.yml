@@ -56,6 +56,9 @@ jobs:
     working_directory: ~/ex_plasma
     steps:
       - checkout
+      - run:
+          name: Install Rust
+          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
       - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
       - run:
           name: Install Erlang and Elixir
@@ -75,13 +78,15 @@ jobs:
           paths:
             - "deps"
             - "_build"
+            - "~/.cargo/"
       - run: mix test --only conformance
+
   dialyzer:
     working_directory: ~/ex_plasma
     docker:
       - image: circleci/elixir:1.10.2
     environment:
-      MIX_ENV=dev
+      MIX_ENV=test
     steps:
       - checkout
       - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
@@ -122,6 +127,4 @@ workflows:
       - dialyzer:
           requires:
             - build
-      - conformance:
-          requires:
-            - build
+      - conformance
