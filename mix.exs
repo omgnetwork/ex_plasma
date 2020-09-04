@@ -37,7 +37,7 @@ defmodule ExPlasma.MixProject do
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.6.0", only: [:test]},
-      {:ex_abi, "~> 0.4.0"},
+      {:ex_abi, git: "https://github.com/ayrat555/ex_abi-1", branch: "ayrat555/migrate-to-ex-keccak"},
       {:ex_rlp, "~> 0.5.3"},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:ex_keccak, "~> 0.1.0"},
@@ -63,7 +63,6 @@ defmodule ExPlasma.MixProject do
     do: [
       :ex_abi,
       :ex_rlp,
-      :exth_crypto,
       :merkle_tree,
       :libsecp256k1
     ]
