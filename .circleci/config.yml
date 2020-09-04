@@ -84,6 +84,7 @@ jobs:
       MIX_ENV=dev
     steps:
       - checkout
+      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
