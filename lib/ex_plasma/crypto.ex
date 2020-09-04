@@ -15,8 +15,6 @@ defmodule ExPlasma.Crypto do
   @doc """
   Produces a KECCAK digest for the message.
 
-  see https://hexdocs.pm/exth_crypto/ExthCrypto.Hash.html#kec/0
-
   ## Example
 
     iex> ExPlasma.Crypto.keccak_hash("omg!")
@@ -24,7 +22,11 @@ defmodule ExPlasma.Crypto do
       171, 76, 106, 229, 69, 102, 203, 7, 21, 134, 230, 92, 23, 209, 187, 12>>
   """
   @spec keccak_hash(binary()) :: hash_t()
-  def keccak_hash(message), do: ExthCrypto.Hash.hash(message, ExthCrypto.Hash.kec())
+  def keccak_hash(message) do
+    {:ok, hash} = ExKeccak.hash_256(message)
+
+    hash
+  end
 
   @doc """
   Recovers the address of the signer from a binary-encoded signature.
