@@ -35,7 +35,7 @@ defmodule ExPlasma.MixProject do
   defp deps do
     [
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.6.0", only: [:test]},
       {:ex_abi, git: "https://github.com/ayrat555/ex_abi-1", branch: "ayrat555/migrate-to-ex-keccak"},
       {:ex_rlp, "~> 0.5.3"},

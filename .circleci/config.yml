@@ -86,9 +86,12 @@ jobs:
     docker:
       - image: circleci/elixir:1.10.2
     environment:
-      MIX_ENV=test
+      MIX_ENV=dev
     steps:
       - checkout
+      - run:
+          name: Install Rust
+          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
       - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
