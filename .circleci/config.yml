@@ -99,7 +99,6 @@ jobs:
     steps:
       - checkout
       - install_rust
-      - add_rust_to_path
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
