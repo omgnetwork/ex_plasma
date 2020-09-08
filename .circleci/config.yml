@@ -1,4 +1,19 @@
 version: 2.1
+commands:
+  add_rust_to_path:
+    description: "Add path to PATH env var"
+    steps:
+      - run:
+          name: Add rust to PATH env
+          command: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
+  install_rust:
+    description: "Install Rust"
+    steps:
+      - run:
+          name: Install Rust
+          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - add_rust_to_path
+
 jobs:
   build:
     working_directory: ~/ex_plasma
@@ -8,10 +23,7 @@ jobs:
       MIX_ENV=test
     steps:
       - checkout
-      - run:
-          name: Install Rust
-          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
+      - install_rust
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -32,7 +44,7 @@ jobs:
       MIX_ENV=test
     steps:
       - checkout
-      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
+      - add_rust_to_path
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -56,10 +68,7 @@ jobs:
     working_directory: ~/ex_plasma
     steps:
       - checkout
-      - run:
-          name: Install Rust
-          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
+      - install_rust
       - run:
           name: Install Erlang and Elixir
           command: |
@@ -89,10 +98,8 @@ jobs:
       MIX_ENV=dev
     steps:
       - checkout
-      - run:
-          name: Install Rust
-          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - run: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
+      - install_rust
+      - add_rust_to_path
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
