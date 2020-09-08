@@ -1,10 +1,7 @@
-[![Coverage Status](https://coveralls.io/repos/github/omisego/ex_plasma/badge.svg?branch=master)](https://coveralls.io/github/omisego/ex_plasma?branch=master)
+## ExPlasma
+[![Build Status](https://circleci.com/gh/omgnetwork/ex_plasma.svg?style=svg)](https://circleci.com/gh/omgnetwork/ex_plasma)
 
-# ExPlasma
-
-**TODO: Add description**
-
-(ExPlasma)[] is an elixir client library to interact with the OmiseGO Plasma contracts.
+ExPlasma is an Elixir library for encoding, decoding and validating transactions used for the OMG Network Plasma contracts.
 
 ## Installation
 
@@ -14,7 +11,7 @@ by adding `ex_plasma` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_plasma, "~> 0.1.0"}
+    {:ex_plasma, "~> 0.2.0"}
   ]
 end
 ```
@@ -24,22 +21,127 @@ You will also need to specify some configurations in your [config/config.exs]():
 ```elixir
 config :ex_plasma,
   eip_712_domain: %{
-    name: "ExPlasma",
-    salt: "some-salt",
-    verifying_contract: "contract_address",
+    name: "OMG Network",
+    salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
+    verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
     version: "1"
   }
 ```
 
-## Setup (Mac OS)
+## Setup
 
-1. Clone the repo to your desktop `git@github.com:omisego/ex_plasma.git`
+1. Clone the repo to your desktop `git@github.com:omgnetwork/ex_plasma.git`
 2. Run `mix compile` in your terminal.
 3. If there are any unavailable dependencies, run `mix deps.get`.
-*If you run into any issues with* ***libsecp256k1_source***, *run* `brew install automake pkg-config libtool libffi gmp` *in your terminal.* 
+
+
+*If you run into any issues with* ***libsecp256k1_source***, *run in your terminal:*
+
+Mac OS: `brew install automake pkg-config libtool libffi gmp`
+Debian/Ubuntu: `apt-get -y install autoconf build-essential libgmp3-dev libtool`
+
+## Usage
+
+To build a transaction use `ExPlasma.Builder` module:
+
+``` elixir
+{:ok, txn} =
+  ExPlasma.payment_v1()
+  |> ExPlasma.Builder.new()
+  |> ExPlasma.Builder.add_input(blknum: 1, txindex: 0, oindex: 0)
+  |> ExPlasma.Builder.add_output(output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1})
+  |> ExPlasma.Builder.sign(["0x79298b0292bbfa9b15705c56b6133201c62b798f102d7d096d31d7637f9b2382"])
+{:ok,
+ %ExPlasma.Transaction{
+   inputs: [
+     %ExPlasma.Output{
+       output_data: nil,
+       output_id: %{blknum: 1, oindex: 0, txindex: 0},
+       output_type: nil
+     }
+   ],
+   metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+   nonce: nil,
+   outputs: [
+     %ExPlasma.Output{
+       output_data: %{
+         amount: 1,
+         output_guard: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+           0, 1>>,
+         token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+       },
+       output_id: nil,
+       output_type: 1
+     }
+   ],
+   sigs: [
+     <<236, 177, 165, 5, 109, 208, 210, 116, 68, 176, 199, 17, 168, 29, 30, 198,
+       77, 45, 233, 147, 149, 38, 93, 136, 24, 98, 53, 218, 52, 177, 200, 127,
+       26, 6, 138, 17, 36, 52, 97, 152, 240, 222, ...>>
+   ],
+   tx_data: 0,
+   tx_type: 1,
+   witnesses: []
+}}
+```
+
+You can encode a transaction using `ExPlasma.encode/2`:
+
+``` elixir
+{:ok, rlp} = ExPlasma.encode(txn, signed: false)
+{:ok,
+ <<248, 116, 1, 225, 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0, 238, 237, 1, 235, 148, 0, 0,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 148, 0, 0, 0, 0, 0, 0,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 128, 160, 0, 0, 0, 0, 0, 0, 0,
+   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>}
+```
+
+You can decode a transaction using `ExPlasma.decode/2`:
+
+``` elixir
+{:ok, txn} = ExPlasma.decode(rlp, signed: false)
+{:ok,
+ %ExPlasma.Transaction{
+   inputs: [
+     %ExPlasma.Output{
+       output_data: nil,
+       output_id: %{blknum: 1, oindex: 0, position: 1000000000, txindex: 0},
+       output_type: nil
+     }
+   ],
+   metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+   nonce: nil,
+   outputs: [
+     %ExPlasma.Output{
+       output_data: %{
+         amount: 1,
+         output_guard: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+           0, 1>>,
+         token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+       },
+       output_id: nil,
+       output_type: 1
+     }
+   ],
+   sigs: [],
+   tx_data: 0,
+   tx_type: 1,
+   witnesses: []
+ }}
+```
+
+You can validate a transaction using `ExPlasma.validate/1`:
+
+``` elixir
+ExPlasma.validate(txn)
+```
+
+View the [documentation](https://hexdocs.pm/ex_plasma)
 
 ## Testing
-
 
 You can run the tests by running;
 
@@ -47,21 +149,6 @@ You can run the tests by running;
 mix test
 mix credo
 mix dialyzer
-```
-
-### exvcr
-
-The test suite has network requests recorded by [exvcr](). To record new cassettes, spin up docker:
-
-```sh
-docker-compose up
-```
-
-Or alternatively, you can use the make command to spin up a detached docker compose.
-
-```sh
-make up # docker-compose detached
-make logs # connects to logs from docker-compose
 ```
 
 This will load up Ganche and the plasma contracts to deploy.
@@ -79,18 +166,14 @@ mix test --only conformance
 
 This will spin up ganache and deploy the mock contracts.
 
-### Integration test
+## Contributing
 
-We also have more integrated flows we need to test, such as the exit game. These use live interactions with
-the plasma framework contracts. To run those, you can execute:
+1. [Fork it!](https://github.com/omgnetwork/ex_plasma)
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
 
-```sh
-make up
-mix test --only integration
-```
+## License
 
-This will spin up ganache and deploy the plasma framework and run the integration suite.
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/ex_plasma](https://hexdocs.pm/ex_plasma).
+ExPlasma is released under the Apache-2.0 License.
