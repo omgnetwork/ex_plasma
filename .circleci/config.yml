@@ -111,7 +111,9 @@ jobs:
             cp plts/dialyxir*.plt _build/dev/ || true
             mkdir -p ~/.mix
             cp plts/dialyxir*.plt ~/.mix/ || true
-      - run: mix do deps.get, dialyzer --halt-exit-status
+      - run:
+          command: mix do deps.get, dialyzer --halt-exit-status
+          no_output_timeout: 30m
       - run:
           name: Pack PLT cache
           command: |
