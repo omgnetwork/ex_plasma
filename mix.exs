@@ -37,7 +37,7 @@ defmodule ExPlasma.MixProject do
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ethereumex, "~> 0.6.0", only: [:test]},
-      {:ex_abi, git: "https://github.com/ayrat555/ex_abi-1", ref: "4584a2e90f8acb0a1710e196a1a627b4f373a33d"},
+      {:ex_abi, "~> 0.5.0"},
       {:ex_rlp, "~> 0.5.3"},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:ex_keccak, "~> 0.1.1"},
