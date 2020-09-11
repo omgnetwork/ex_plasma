@@ -7,7 +7,7 @@ defmodule ExPlasma.Output.PositionTest do
 
   describe "build/3" do
     test "builds an output_id" do
-      assert Position.build(1, 2, 3) == %{blknum: 1, oindex: 3, position: 1000020003, txindex: 2}
+      assert Position.build(1, 2, 3) == %{blknum: 1, oindex: 3, position: 1_000_020_003, txindex: 2}
     end
   end
 

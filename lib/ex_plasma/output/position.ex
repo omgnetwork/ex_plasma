@@ -16,6 +16,12 @@ defmodule ExPlasma.Output.Position do
   @type position() :: pos_integer()
 
   @type t() :: %{
+          blknum: non_neg_integer(),
+          txindex: non_neg_integer(),
+          oindex: non_neg_integer()
+        }
+
+  @type with_position() :: %{
           position: position(),
           blknum: non_neg_integer(),
           txindex: non_neg_integer(),
@@ -38,7 +44,6 @@ defmodule ExPlasma.Output.Position do
   def block_offset(), do: @block_offset
   def transaction_offset(), do: @transaction_offset
 
-
   @doc """
   Builds an output_id from a block number, a tx index and an output index.
 
@@ -47,7 +52,7 @@ defmodule ExPlasma.Output.Position do
   iex> ExPlasma.Output.Position.build(1, 0, 0)
   %{blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000}
   """
-  @spec build(non_neg_integer(), non_neg_integer(), non_neg_integer()) :: t()
+  @spec build(non_neg_integer(), non_neg_integer(), non_neg_integer()) :: with_position()
   def build(blknum, txindex, oindex) do
     output_id = %{blknum: blknum, txindex: txindex, oindex: oindex}
     Map.put(output_id, :position, pos(output_id))
@@ -62,7 +67,7 @@ defmodule ExPlasma.Output.Position do
   iex> ExPlasma.Output.Position.pos(pos)
   1_000_000_000
   """
-  @spec pos(%{blknum: non_neg_integer(), txindex: non_neg_integer(), oindex: non_neg_integer()}) :: position()
+  @spec pos(t() | with_position()) :: position()
   def pos(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     blknum * @block_offset + txindex * @transaction_offset + oindex
   end
@@ -77,7 +82,7 @@ defmodule ExPlasma.Output.Position do
   <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
   @impl Output
-  @spec to_rlp(t()) :: binary()
+  @spec to_rlp(t() | with_position()) :: binary()
   def to_rlp(output_id), do: output_id |> pos() |> encode()
 
   @doc """
@@ -104,7 +109,7 @@ defmodule ExPlasma.Output.Position do
   {:ok, %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}
   """
   @impl Output
-  @spec to_map(position()) :: {:ok, t()} | {:error, :malformed_output_position}
+  @spec to_map(position()) :: {:ok, with_position()} | {:error, :malformed_output_position}
   def to_map(pos) when is_integer(pos) do
     blknum = div(pos, @block_offset)
     txindex = pos |> rem(@block_offset) |> div(@transaction_offset)
@@ -141,7 +146,7 @@ defmodule ExPlasma.Output.Position do
   :ok
   """
   @impl Output
-  @spec validate(t()) :: validation_responses()
+  @spec validate(t() | with_position()) :: validation_responses()
   def validate(nil), do: :ok
 
   def validate(output_id) do
