@@ -31,19 +31,17 @@ defmodule ExPlasma.Signature do
   def signature_digest(hash_digest, private_key_hash) do
     private_key_binary = Encoding.to_binary!(private_key_hash)
 
-    {:ok, <<r::size(256), s::size(256)>>, recovery_id} =
-      :libsecp256k1.ecdsa_sign_compact(
+    {:ok, {r, s, recovery_id}} =
+      ExSecp256k1.sign(
         hash_digest,
-        private_key_binary,
-        :default,
-        <<>>
+        private_key_binary
       )
 
     # EIP-155
     # See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
     rid = @base_recovery_id + recovery_id
 
-    <<r::integer-size(256), s::integer-size(256), rid::integer-size(8)>>
+    r <> s <> <<rid::integer-size(8)>>
   end
 
   @doc """
@@ -66,9 +64,8 @@ defmodule ExPlasma.Signature do
   @spec recover_public(keccak_hash(), hash_v, hash_r, hash_s, integer() | nil) ::
           {:ok, public_key} | {:error, String.t()}
   def recover_public(hash, v, r, s, chain_id \\ nil) do
-    signature =
-      pad(:binary.encode_unsigned(r), @signature_len) <>
-        pad(:binary.encode_unsigned(s), @signature_len)
+    r_bin = pad(:binary.encode_unsigned(r), @signature_len)
+    s_bin = pad(:binary.encode_unsigned(s), @signature_len)
 
     # Fork Ψ EIP-155
     recovery_id =
@@ -78,7 +75,7 @@ defmodule ExPlasma.Signature do
         v - @base_recovery_id
       end
 
-    case :libsecp256k1.ecdsa_recover_compact(hash, signature, :uncompressed, recovery_id) do
+    case ExSecp256k1.recover(hash, r_bin, s_bin, recovery_id) do
       {:ok, <<_byte::8, public_key::binary()>>} -> {:ok, public_key}
       {:error, reason} -> {:error, to_string(reason)}
     end
