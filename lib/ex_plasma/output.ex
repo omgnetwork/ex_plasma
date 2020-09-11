@@ -23,7 +23,7 @@ defmodule ExPlasma.Output do
         }
 
   @type input_position() :: %__MODULE__{
-          output_id: Position.t(),
+          output_id: Position.with_position(),
           output_type: nil,
           output_data: nil
         }

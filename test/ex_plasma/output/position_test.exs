@@ -5,6 +5,12 @@ defmodule ExPlasma.Output.PositionTest do
 
   alias ExPlasma.Output.Position
 
+  describe "new/3" do
+    test "creates an output_id" do
+      assert Position.new(1, 2, 3) == %{blknum: 1, oindex: 3, position: 1_000_020_003, txindex: 2}
+    end
+  end
+
   describe "pos/1" do
     test "returns the position" do
       output_id = %{blknum: 1, txindex: 2, oindex: 3}
