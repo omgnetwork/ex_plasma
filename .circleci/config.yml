@@ -69,6 +69,8 @@ jobs:
     steps:
       - checkout
       - install_rust
+      - restore_cache:
+          key: v5-asdf-install
       - run:
           name: Install Erlang and Elixir
           command: |
@@ -80,8 +82,13 @@ jobs:
             asdf install
             asdf global elixir 1.10.4-otp-23
             asdf global erlang 23.0.3
+            mix local.rebar --force && mix local.hex --force
           no_output_timeout: 30m
-      - run: mix local.rebar --force && mix local.hex --force
+      - save_cache:
+          key: v5-asdf-install
+          paths:
+            - ~/.asdf
+            - ~/.asdf-vm
       - run: make up-mocks
       - restore_cache:
           key: v1-conformance-deps-cache-{{ checksum "mix.lock" }}
