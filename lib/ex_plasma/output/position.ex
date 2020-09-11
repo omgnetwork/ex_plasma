@@ -38,6 +38,21 @@ defmodule ExPlasma.Output.Position do
   def block_offset(), do: @block_offset
   def transaction_offset(), do: @transaction_offset
 
+
+  @doc """
+  Builds an output_id from a block number, a tx index and an output index.
+
+  ## Example
+
+  iex> ExPlasma.Output.Position.build(1, 0, 0)
+  %{blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000}
+  """
+  @spec build(non_neg_integer(), non_neg_integer(), non_neg_integer()) :: t()
+  def build(blknum, txindex, oindex) do
+    output_id = %{blknum: blknum, txindex: txindex, oindex: oindex}
+    Map.put(output_id, :position, pos(output_id))
+  end
+
   @doc """
   Encodes the blknum, txindex, and oindex into a single integer.
 
@@ -47,7 +62,7 @@ defmodule ExPlasma.Output.Position do
   iex> ExPlasma.Output.Position.pos(pos)
   1_000_000_000
   """
-  @spec pos(t()) :: position()
+  @spec pos(%{blknum: non_neg_integer(), txindex: non_neg_integer(), oindex: non_neg_integer()}) :: position()
   def pos(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     blknum * @block_offset + txindex * @transaction_offset + oindex
   end
