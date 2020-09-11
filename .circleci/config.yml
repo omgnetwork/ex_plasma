@@ -18,7 +18,7 @@ jobs:
   build:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.10.4-otp-23
+      - image: circleci/elixir:1.10.4
     environment:
       MIX_ENV=test
     steps:
@@ -39,7 +39,7 @@ jobs:
   test:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.10.4-otp-23
+      - image: circleci/elixir:1.10.4
     environment:
       MIX_ENV=test
     steps:
@@ -53,7 +53,7 @@ jobs:
   credo:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.10.4-otp-23
+      - image: circleci/elixir:1.10.4
     environment:
       MIX_ENV=test
     steps:
@@ -96,7 +96,7 @@ jobs:
   dialyzer:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.10.4-otp-23
+      - image: circleci/elixir:1.10.4
     environment:
       MIX_ENV=dev
     steps:
