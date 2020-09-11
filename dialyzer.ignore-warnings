@@ -10,3 +10,5 @@
 :0: Unknown function 'Elixir.ExPlasma.TypedData.Reference':'__impl__'/1
 :0: Unknown function 'Elixir.ExPlasma.TypedData.Tuple':'__impl__'/1
 :0: Unknown function 'Elixir.ExKeccak':hash_256/1
+:0: Unknown function 'Elixir.ExSecp256k1':recover/4
+:0: Unknown function 'Elixir.ExSecp256k1':sign/2
