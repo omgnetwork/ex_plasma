@@ -80,6 +80,7 @@ jobs:
             asdf install
             asdf global elixir 1.10.4-otp-23
             asdf global erlang 23.0.3
+          no_output_timeout: 30m
       - run: mix local.rebar --force && mix local.hex --force
       - run: make up-mocks
       - restore_cache:
