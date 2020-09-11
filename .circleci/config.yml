@@ -18,7 +18,7 @@ jobs:
   build:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.10.2
+      - image: circleci/elixir:1.10.4-otp-23
     environment:
       MIX_ENV=test
     steps:
@@ -39,7 +39,7 @@ jobs:
   test:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.10.2
+      - image: circleci/elixir:1.10.4-otp-23
     environment:
       MIX_ENV=test
     steps:
@@ -53,7 +53,7 @@ jobs:
   credo:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.10.2
+      - image: circleci/elixir:1.10.4-otp-23
     environment:
       MIX_ENV=test
     steps:
@@ -72,11 +72,14 @@ jobs:
       - run:
           name: Install Erlang and Elixir
           command: |
-            set -e
-            wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
-            sudo dpkg -i erlang-solutions_2.0_all.deb
-            sudo apt-get update
-            sudo apt-get install esl-erlang=1:21.3.8.10-1 elixir=1.10.2-1
+            [ -d ~/.asdf-vm ] || git clone https://github.com/asdf-vm/asdf.git ~/.asdf-vm --branch v0.7.4
+            echo 'source ~/.asdf-vm/asdf.sh' >> $BASH_ENV
+            source $BASH_ENV
+            asdf plugin-add erlang || asdf plugin-update erlang
+            asdf plugin-add elixir || asdf plugin-update elixir
+            asdf install
+            asdf global elixir 1.10.4-otp-23
+            asdf global erlang 23.0.3
       - run: mix local.rebar --force && mix local.hex --force
       - run: make up-mocks
       - restore_cache:
@@ -93,7 +96,7 @@ jobs:
   dialyzer:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.10.2
+      - image: circleci/elixir:1.10.4-otp-23
     environment:
       MIX_ENV=dev
     steps:
