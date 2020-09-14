@@ -69,7 +69,7 @@ defmodule ExPlasma.MixProject do
       {:ex_rlp, "~> 0.5.3"},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:ex_keccak, "~> 0.1.2"},
-      {:ex_secp256k1, git: "https://github.com/ayrat555/ex_secp256k1", ref: "9c2371bd108abd447226bb92d939917100d2e0c7"},
+      {:ex_secp256k1, "~> 0.1.1"},
       {:merkle_tree, "~> 2.0.0"},
       {:stream_data, "~>0.4.3", only: [:test]},
       {:telemetry, "~> 0.4", only: [:test]}
