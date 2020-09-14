@@ -23,7 +23,7 @@ defmodule ExPlasma.SignatureTest do
 
   describe "recover_public/3" do
     test "returns an error from an invalid hash" do
-      {:error, "Recovery id invalid 0-3"} =
+      {:error, "invalid_recovery_id"} =
         Signature.recover_public(
           <<2::256>>,
           55,
