@@ -30,15 +30,11 @@ config :ex_plasma,
 
 ## Setup
 
+`ExPlasma` requires Rust to be installed because it uses Rust NIFs for keccak hash and secp256k1.
+
 1. Clone the repo to your desktop `git@github.com:omgnetwork/ex_plasma.git`
 2. Run `mix compile` in your terminal.
 3. If there are any unavailable dependencies, run `mix deps.get`.
-
-
-*If you run into any issues with* ***libsecp256k1_source***, *run in your terminal:*
-
-Mac OS: `brew install automake pkg-config libtool libffi gmp`
-Debian/Ubuntu: `apt-get -y install autoconf build-essential libgmp3-dev libtool`
 
 ## Usage
 
