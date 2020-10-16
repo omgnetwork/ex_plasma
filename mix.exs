@@ -51,7 +51,7 @@ defmodule ExPlasma.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      applications: [],
+      applications: [:ex_abi, :ex_rlp, :ex_keccak, :ex_secp256k1, :merkle_tree],
       extra_applications: [:logger]
     ]
   end
