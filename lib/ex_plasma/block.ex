@@ -24,24 +24,24 @@ defmodule ExPlasma.Block do
 
   ## Example
 
-  iex> %ExPlasma.Transaction{tx_type: 1} |> List.wrap() |> ExPlasma.Block.new()
-  %ExPlasma.Block{
-    hash: <<168, 54, 172, 201, 1, 212, 18, 167, 34, 57, 232, 89, 151, 225, 172,
-      150, 208, 77, 194, 12, 174, 250, 146, 254, 93, 42, 28, 253, 203, 237, 247,
-      62>>,
-    transactions: [
-      %ExPlasma.Transaction{
-        sigs: [],
-        witnesses: [],
-        inputs: [],
-        metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
-        outputs: [],
-        tx_data: 0,
-        tx_type: 1
+      iex> %ExPlasma.Transaction{tx_type: 1} |> List.wrap() |> ExPlasma.Block.new()
+      %ExPlasma.Block{
+        hash: <<168, 54, 172, 201, 1, 212, 18, 167, 34, 57, 232, 89, 151, 225, 172,
+          150, 208, 77, 194, 12, 174, 250, 146, 254, 93, 42, 28, 253, 203, 237, 247,
+          62>>,
+        transactions: [
+          %ExPlasma.Transaction{
+            sigs: [],
+            witnesses: [],
+            inputs: [],
+            metadata: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>,
+            outputs: [],
+            tx_data: 0,
+            tx_type: 1
+          }
+        ]
       }
-    ]
-  }
   """
   @spec new(maybe_improper_list()) :: t()
   def new(transactions) do

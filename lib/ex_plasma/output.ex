@@ -53,20 +53,20 @@ defmodule ExPlasma.Output do
 
   ## Examples
 
-  # Generate an Output from an RLP list
+      # Generate an Output from an RLP list
 
-  iex> encoded = <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
-  ...> 50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ...> 0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>
-  iex> ExPlasma.Output.decode(encoded)
-  {:ok, %ExPlasma.Output{
-    output_data: %{
-      amount: 1000000000000000000,
-      output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>,
-      token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>},
-    output_id: nil,
-    output_type: 1
-  }}
+      iex> encoded = <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
+      ...> 50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      ...> 0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>
+      iex> ExPlasma.Output.decode(encoded)
+      {:ok, %ExPlasma.Output{
+        output_data: %{
+          amount: 1000000000000000000,
+          output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>,
+          token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>},
+        output_id: nil,
+        output_type: 1
+      }}
   """
   @spec decode(binary()) :: {:ok, output()} | {:error, decoding_error()}
   def decode(data) do
@@ -90,18 +90,18 @@ defmodule ExPlasma.Output do
 
   ## Example
 
-  iex> encoded_position = <<59, 154, 202, 0>>
-  iex> ExPlasma.Output.decode_id(encoded_position)
-  {:ok, %ExPlasma.Output{
-    output_data: nil,
-    output_id: %{
-      blknum: 1,
-      oindex: 0,
-      position: 1000000000,
-      txindex: 0
-    },
-    output_type: nil
-  }}
+      iex> encoded_position = <<59, 154, 202, 0>>
+      iex> ExPlasma.Output.decode_id(encoded_position)
+      {:ok, %ExPlasma.Output{
+        output_data: nil,
+        output_id: %{
+          blknum: 1,
+          oindex: 0,
+          position: 1000000000,
+          txindex: 0
+        },
+        output_type: nil
+      }}
   """
   @spec decode_id(binary()) :: {:ok, input_position()} | {:error, :malformed_input_position_rlp}
   def decode_id(data) do
@@ -125,30 +125,30 @@ defmodule ExPlasma.Output do
 
   The RLP list must start with the output type and follow with its data.
 
-  ## Examples
-
-  iex> rlp = [
-  ...>  <<1>>,
-  ...>  [
-  ...>    <<11, 246, 22, 41, 33, 46, 44, 159, 55, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
-  ...>    <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
-  ...>    <<1>>
-  ...>  ]
-  ...>]
-  iex> ExPlasma.Output.to_map(rlp)
-  {:ok,
-    %ExPlasma.Output{
-      output_data: %{
-        amount: 1,
-        output_guard: <<11, 246, 22, 41, 33, 46, 44, 159, 55, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
-        token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>
-      },
-      output_id: nil,
-      output_type: 1}
-  }
-
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
+
+  ## Examples
+
+      iex> rlp = [
+      ...>  <<1>>,
+      ...>  [
+      ...>    <<11, 246, 22, 41, 33, 46, 44, 159, 55, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
+      ...>    <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
+      ...>    <<1>>
+      ...>  ]
+      ...>]
+      iex> ExPlasma.Output.to_map(rlp)
+      {:ok,
+        %ExPlasma.Output{
+          output_data: %{
+            amount: 1,
+            output_guard: <<11, 246, 22, 41, 33, 46, 44, 159, 55, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>,
+            token: <<46, 38, 45, 41, 28, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>
+          },
+          output_id: nil,
+          output_type: 1}
+      }
   """
   @spec to_map(list()) :: {:ok, output()} | {:error, mapping_error()}
   def to_map([raw_output_type | _output_rlp_items] = rlp) do
@@ -163,14 +163,14 @@ defmodule ExPlasma.Output do
   @doc """
   Maps the given integer position into an output.
 
-  ## Examples
-
-  iex> pos = 1_000_000_000
-  iex> ExPlasma.Output.to_map_id(pos)
-  {:ok, %ExPlasma.Output{output_id: %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}}
-
   Only validates that the RLP is structurally correct.
   Does not perform any other kind of validation, use validate/1 for that.
+
+  ## Examples
+
+      iex> pos = 1_000_000_000
+      iex> ExPlasma.Output.to_map_id(pos)
+      {:ok, %ExPlasma.Output{output_id: %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}}
   """
   @spec to_map_id(Position.position()) :: {:ok, input_position()} | {:error, :malformed_output_position}
   def to_map_id(position) do
@@ -184,35 +184,35 @@ defmodule ExPlasma.Output do
 
   ## Examples
 
-  # Encode as an Output
+      # Encode as an Output
 
-  iex> output = %ExPlasma.Output{
-  ...>   output_data: %{
-  ...>     amount: 1000000000000000000,
-  ...>     output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>,
-  ...>     token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>},
-  ...>   output_id: nil,
-  ...>   output_type: 1
-  ...> }
-  iex> ExPlasma.Output.encode(output)
-  {:ok, <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
-  50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>}
+      iex> output = %ExPlasma.Output{
+      ...>   output_data: %{
+      ...>     amount: 1000000000000000000,
+      ...>     output_guard: <<205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214, 50, 125, 202, 87, 133, 226, 40, 180>>,
+      ...>     token: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>},
+      ...>   output_id: nil,
+      ...>   output_type: 1
+      ...> }
+      iex> ExPlasma.Output.encode(output)
+      {:ok, <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
+      50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>}
 
-  # Encode as an Input
+      # Encode as an Input
 
-  iex> output = %ExPlasma.Output{
-  ...>   output_data: nil,
-  ...>   output_id: %{
-  ...>     blknum: 1,
-  ...>     oindex: 0,
-  ...>     position: 1000000000,
-  ...>     txindex: 0
-  ...>   },
-  ...>   output_type: nil
-  ...> }
-  iex> ExPlasma.Output.encode(output, as: :input)
-  {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
+      iex> output = %ExPlasma.Output{
+      ...>   output_data: nil,
+      ...>   output_id: %{
+      ...>     blknum: 1,
+      ...>     oindex: 0,
+      ...>     position: 1000000000,
+      ...>     txindex: 0
+      ...>   },
+      ...>   output_type: nil
+      ...> }
+      iex> ExPlasma.Output.encode(output, as: :input)
+      {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
   """
   @spec encode(t() | list()) ::
           {:ok, binary()} | {:error, :invalid_output_id | :invalid_output_data | :unrecognized_output_type}
@@ -232,13 +232,13 @@ defmodule ExPlasma.Output do
 
   ## Example
 
-  iex> output = %ExPlasma.Output{
-  ...>      output_id: nil,
-  ...>      output_type: 1,
-  ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
-  ...>    }
-  iex> ExPlasma.Output.to_rlp(output)
-  {:ok, [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<1>>]]}
+      iex> output = %ExPlasma.Output{
+      ...>      output_id: nil,
+      ...>      output_type: 1,
+      ...>      output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}
+      ...>    }
+      iex> ExPlasma.Output.to_rlp(output)
+      {:ok, [<<1>>, [<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1>>, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>, <<1>>]]}
   """
   @spec to_rlp(output()) :: {:ok, list()} | {:error, :invalid_output_data | :unrecognized_output_type}
   def to_rlp(%__MODULE__{output_type: nil}), do: {:error, :invalid_output_data}
@@ -256,18 +256,18 @@ defmodule ExPlasma.Output do
 
   ## Example
 
-  iex> output = %ExPlasma.Output{
-  ...>   output_data: nil,
-  ...>   output_id: %{
-  ...>     blknum: 1,
-  ...>     oindex: 0,
-  ...>     position: 1000000000,
-  ...>     txindex: 0
-  ...>   },
-  ...>   output_type: nil
-  ...> }
-  iex> ExPlasma.Output.to_rlp_id(output)
-  {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
+      iex> output = %ExPlasma.Output{
+      ...>   output_data: nil,
+      ...>   output_id: %{
+      ...>     blknum: 1,
+      ...>     oindex: 0,
+      ...>     position: 1000000000,
+      ...>     txindex: 0
+      ...>   },
+      ...>   output_type: nil
+      ...> }
+      iex> ExPlasma.Output.to_rlp_id(output)
+      {:ok, <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>}
   """
   @spec to_rlp_id(input_position()) :: {:ok, binary()} | {:error, :invalid_output_id}
   def to_rlp_id(%__MODULE__{output_id: id}) when is_map(id), do: {:ok, Position.to_rlp(id)}
@@ -278,19 +278,19 @@ defmodule ExPlasma.Output do
 
   ## Example
 
-  # Validate a Payment v1 Output
+      # Validate a Payment v1 Output
 
-  iex> encoded = <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
-  ...>  50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ...>  0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>
-  iex> encoded |> ExPlasma.Output.decode!() |> ExPlasma.Output.validate()
-  :ok
+      iex> encoded = <<245, 1, 243, 148, 205, 193, 229, 59, 220, 116, 187, 245, 181, 247, 21, 214,
+      ...>  50, 125, 202, 87, 133, 226, 40, 180, 148, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      ...>  0, 0, 0, 0, 0, 0, 0, 0, 136, 13, 224, 182, 179, 167, 100, 0, 0>>
+      iex> encoded |> ExPlasma.Output.decode!() |> ExPlasma.Output.validate()
+      :ok
 
-  # Validate a Output position
+      # Validate a Output position
 
-  iex> encoded_position = <<59, 154, 202, 0>>
-  iex> encoded_position |> ExPlasma.Output.decode_id!() |> ExPlasma.Output.validate()
-  :ok
+      iex> encoded_position = <<59, 154, 202, 0>>
+      iex> encoded_position |> ExPlasma.Output.decode_id!() |> ExPlasma.Output.validate()
+      :ok
   """
   @spec validate(t()) :: validation_responses()
   def validate(%__MODULE__{} = output) do
