@@ -17,9 +17,9 @@ defmodule ExPlasma.Crypto do
 
   ## Example
 
-    iex> ExPlasma.Crypto.keccak_hash("omg!")
-    <<241, 85, 204, 147, 187, 239, 139, 133, 69, 248, 239, 233, 219, 51, 189, 54,
-      171, 76, 106, 229, 69, 102, 203, 7, 21, 134, 230, 92, 23, 209, 187, 12>>
+      iex> ExPlasma.Crypto.keccak_hash("omg!")
+      <<241, 85, 204, 147, 187, 239, 139, 133, 69, 248, 239, 233, 219, 51, 189, 54,
+        171, 76, 106, 229, 69, 102, 203, 7, 21, 134, 230, 92, 23, 209, 187, 12>>
   """
   @spec keccak_hash(binary()) :: hash_t()
   def keccak_hash(message) do

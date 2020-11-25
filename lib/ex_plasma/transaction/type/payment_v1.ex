@@ -40,12 +40,12 @@ defmodule ExPlasma.Transaction.Type.PaymentV1 do
 
   ## Example
 
-  iex> output = new_output(<<1::160>>, <<0::160>>, 1)
-  iex> %ExPlasma.Output{
-  ...>   output_data: %{amount: 1, output_guard: <<1::160>>, token: <<0::160>>},
-  ...>   output_id: nil,
-  ...>   output_type: 1
-  ...> } = output
+      iex> output = new_output(<<1::160>>, <<0::160>>, 1)
+      iex> %ExPlasma.Output{
+      ...>   output_data: %{amount: 1, output_guard: <<1::160>>, token: <<0::160>>},
+      ...>   output_id: nil,
+      ...>   output_type: 1
+      ...> } = output
   """
   @spec new_output(Crypto.address_t(), Crypto.address_t(), pos_integer()) :: Output.t()
   def new_output(owner, token, amount) do

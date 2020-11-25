@@ -49,8 +49,8 @@ defmodule ExPlasma.Output.Position do
 
   ## Example
 
-  iex> ExPlasma.Output.Position.new(1, 0, 0)
-  %{blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000}
+      iex> ExPlasma.Output.Position.new(1, 0, 0)
+      %{blknum: 1, txindex: 0, oindex: 0, position: 1_000_000_000}
   """
   @spec new(non_neg_integer(), non_neg_integer(), non_neg_integer()) :: with_position()
   def new(blknum, txindex, oindex) when is_integer(blknum) and is_integer(txindex) and is_integer(oindex) do
@@ -63,9 +63,9 @@ defmodule ExPlasma.Output.Position do
 
   ## Example
 
-  iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
-  iex> ExPlasma.Output.Position.pos(pos)
-  1_000_000_000
+      iex> pos = %{blknum: 1, txindex: 0, oindex: 0}
+      iex> ExPlasma.Output.Position.pos(pos)
+      1_000_000_000
   """
   @spec pos(t() | with_position()) :: position()
   def pos(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
@@ -77,9 +77,9 @@ defmodule ExPlasma.Output.Position do
 
   ## Example
 
-  iex> output_id = %{blknum: 1, txindex: 0, oindex: 0}
-  iex> ExPlasma.Output.Position.to_rlp(output_id)
-  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+      iex> output_id = %{blknum: 1, txindex: 0, oindex: 0}
+      iex> ExPlasma.Output.Position.to_rlp(output_id)
+      <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
   @impl Output
   @spec to_rlp(t() | with_position()) :: binary()
@@ -90,9 +90,9 @@ defmodule ExPlasma.Output.Position do
 
   ## Example
 
-  iex> pos = ExPlasma.Output.Position.pos(%{blknum: 1, txindex: 0, oindex: 0})
-  iex> ExPlasma.Output.Position.encode(pos)
-  <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+      iex> pos = ExPlasma.Output.Position.pos(%{blknum: 1, txindex: 0, oindex: 0})
+      iex> ExPlasma.Output.Position.encode(pos)
+      <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
   """
   @spec encode(position()) :: binary()
   def encode(position) do
@@ -104,9 +104,9 @@ defmodule ExPlasma.Output.Position do
 
   ## Example
 
-  iex> pos = 1_000_000_000
-  iex> ExPlasma.Output.Position.to_map(pos)
-  {:ok, %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}
+      iex> pos = 1_000_000_000
+      iex> ExPlasma.Output.Position.to_map(pos)
+      {:ok, %{position: 1_000_000_000, blknum: 1, txindex: 0, oindex: 0}}
   """
   @impl Output
   @spec to_map(position()) :: {:ok, with_position()} | {:error, :malformed_output_position}
@@ -125,9 +125,9 @@ defmodule ExPlasma.Output.Position do
 
   ## Example
 
-  iex> pos = <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
-  iex> ExPlasma.Output.Position.decode(pos)
-  {:ok, 1_000_000_000}
+      iex> pos = <<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 154, 202, 0>>
+      iex> ExPlasma.Output.Position.decode(pos)
+      {:ok, 1_000_000_000}
   """
   @spec decode(binary()) :: {:ok, position()} | {:error, :malformed_input_position_rlp}
   def decode(encoded_pos) do
@@ -141,9 +141,10 @@ defmodule ExPlasma.Output.Position do
   Validates that values can give a valid position.
 
   ## Example
-  iex> output_id = %{blknum: 1, txindex: 0, oindex: 0}
-  iex> ExPlasma.Output.Position.validate(output_id)
-  :ok
+
+      iex> output_id = %{blknum: 1, txindex: 0, oindex: 0}
+      iex> ExPlasma.Output.Position.validate(output_id)
+      :ok
   """
   @impl Output
   @spec validate(t() | with_position()) :: validation_responses()

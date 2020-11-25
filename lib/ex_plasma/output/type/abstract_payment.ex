@@ -38,9 +38,9 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
 
   ## Example
 
-  iex> output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}}
-  iex> ExPlasma.Output.Type.AbstractPayment.to_rlp(output)
-  [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
+      iex> output = %{output_type: 1, output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}}
+      iex> ExPlasma.Output.Type.AbstractPayment.to_rlp(output)
+      [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
   """
   @impl Output
   @spec to_rlp(Output.t()) :: rlp()
@@ -64,12 +64,13 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   Does not perform any other kind of validation, use validate/1 for that.
 
   ## Example
-  iex> data = [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
-  iex> ExPlasma.Output.Type.AbstractPayment.to_map(data)
-  {:ok, %{
-    output_type: 1,
-    output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}
-  }}
+
+      iex> data = [<<1>>, [<<1::160>>, <<1::160>>, <<1>>]]
+      iex> ExPlasma.Output.Type.AbstractPayment.to_map(data)
+      {:ok, %{
+        output_type: 1,
+        output_data: %{output_guard: <<1::160>>, token: <<1::160>>, amount: 1}
+      }}
   """
   @impl Output
   @spec to_map(rlp()) :: {:ok, %{output_data: t(), output_type: non_neg_integer()}} | {:error, mapping_errors()}
@@ -91,9 +92,10 @@ defmodule ExPlasma.Output.Type.AbstractPayment do
   Validates the output data
 
   ## Example
-  iex> data = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
-  iex> ExPlasma.Output.Type.AbstractPayment.validate(data)
-  :ok
+
+      iex> data = %{output_data: %{output_guard: <<1::160>>, token: <<0::160>>, amount: 1}}
+      iex> ExPlasma.Output.Type.AbstractPayment.validate(data)
+      :ok
   """
   @impl Output
   def validate(output) do

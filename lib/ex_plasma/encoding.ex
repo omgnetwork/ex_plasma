@@ -10,14 +10,14 @@ defmodule ExPlasma.Encoding do
 
   ## Examples
 
-    Convert a raw binary to hex
-    iex> raw = <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>
-    iex> ExPlasma.Encoding.to_hex(raw)
-    "0x1df62f291b2e969fb0849d99d9ce41e2f137006e"
+      # Convert a raw binary to hex
+      iex> raw = <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241, 55, 0, 110>>
+      iex> ExPlasma.Encoding.to_hex(raw)
+      "0x1df62f291b2e969fb0849d99d9ce41e2f137006e"
 
-    Convert an integer to hex
-    iex> ExPlasma.Encoding.to_hex(1)
-    "0x1"
+      # Convert an integer to hex
+      iex> ExPlasma.Encoding.to_hex(1)
+      "0x1"
   """
   @spec to_hex(binary | non_neg_integer) :: String.t()
   def to_hex(non_hex)
@@ -29,13 +29,13 @@ defmodule ExPlasma.Encoding do
 
   ## Examples
 
-    # Convert a hex string into an integer
-    iex> ExPlasma.Encoding.to_int("0xb")
-    11
+      # Convert a hex string into an integer
+      iex> ExPlasma.Encoding.to_int("0xb")
+      11
 
-    # Convert a binary into an integer
-    iex> ExPlasma.Encoding.to_int(<<11>>)
-    11
+      # Convert a binary into an integer
+      iex> ExPlasma.Encoding.to_int(<<11>>)
+      11
   """
   @spec to_int(String.t()) :: non_neg_integer
   def to_int("0x" <> encoded) do
@@ -50,9 +50,9 @@ defmodule ExPlasma.Encoding do
 
   ## Examples
 
-    iex> ExPlasma.Encoding.to_binary("0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e")
-    {:ok, <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
-      55, 0, 110>>}
+      iex> ExPlasma.Encoding.to_binary("0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e")
+      {:ok, <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
+        55, 0, 110>>}
   """
   @spec to_binary(String.t()) :: {:ok, binary} | {:error, :decoding_error}
   def to_binary("0x" <> unprefixed_hex) do
@@ -67,9 +67,9 @@ defmodule ExPlasma.Encoding do
 
   ## Examples
 
-    iex> ExPlasma.Encoding.to_binary!("0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e")
-    <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
-      55, 0, 110>>
+      iex> ExPlasma.Encoding.to_binary!("0x1dF62f291b2E969fB0849d99D9Ce41e2F137006e")
+      <<29, 246, 47, 41, 27, 46, 150, 159, 176, 132, 157, 153, 217, 206, 65, 226, 241,
+        55, 0, 110>>
   """
   @spec to_binary!(String.t()) :: binary | no_return()
   def to_binary!("0x" <> _unprefixed_hex = prefixed_hex) do
