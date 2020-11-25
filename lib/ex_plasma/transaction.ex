@@ -345,9 +345,8 @@ defmodule ExPlasma.Transaction do
   Only signs transactions that implement the ExPlasma.TypedData protocol.
 
   Returns
-  - {:ok, %Transaction{}} with sigs when succesfuly signed
-  or
-  - {:error, :not_signable} when the given transaction is not supported.
+  * `{:ok, %Transaction{}}` with sigs when succesfuly signed
+  * `{:error, :not_signable}` when the given transaction is not supported.
 
   ## Example
 
