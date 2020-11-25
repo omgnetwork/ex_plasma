@@ -60,7 +60,6 @@ defmodule ExPlasma.MixProject do
       :ex_abi,
       :ex_rlp,
       :exth_crypto,
-      :merkle_tree,
-      :libsecp256k1
+      :merkle_tree
     ]
 end
