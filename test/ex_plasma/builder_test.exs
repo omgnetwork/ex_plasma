@@ -167,7 +167,7 @@ defmodule ExPlasma.BuilderTest do
                |> Builder.add_input(blknum: 3, txindex: 0, oindex: 0, position: 3_000_000_000)
                |> Builder.sign([key_1, key_1, key_2])
 
-      assert [sig_1, sig_1, sig_2] = transaction.sigs
+      assert [_sig_1, _sig_2, _sig_3] = transaction.sigs
     end
   end
 

@@ -1,24 +1,41 @@
 version: 2.1
 commands:
-  add_rust_to_path:
-    description: "Add path to PATH env var"
+  install_rust_elixir:
+    parameters:
+      cache:
+        default: ""
+        type: string
+      dir:
+        default: ""
+        type: string
+    description: Install Erlang and Elixir
     steps:
+      - restore_cache:
+          key: v4-asdf-install-<<parameters.cache>>
       - run:
-          name: Add rust to PATH env
-          command: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
-  install_rust:
-    description: "Install Rust"
-    steps:
-      - run:
-          name: Install Rust
-          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - add_rust_to_path
-
+          name: Install Erlang and Elixir
+          command: |
+            cd <<parameters.dir>>
+            [ -d ~/.asdf-vm ] || git clone https://github.com/asdf-vm/asdf.git ~/.asdf-vm --branch v0.8.0
+            echo 'source ~/.asdf-vm/asdf.sh' >> $BASH_ENV
+            source $BASH_ENV
+            asdf plugin-add erlang || asdf plugin-update erlang
+            asdf plugin-add elixir || asdf plugin-update elixir
+            asdf install
+            mix local.rebar --force && mix local.hex --force
+          no_output_timeout: 2400
+      - save_cache:
+          key: v4-asdf-install-<<parameters.cache>>
+          paths:
+            - ~/.asdf
+            - ~/.asdf-vm
+      - restore_cache:
+          key: v2-mix-specs-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
 jobs:
   build:
     working_directory: ~/ex_plasma
-    docker:
-      - image: circleci/elixir:1.10.2
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
       MIX_ENV=test
     steps:
@@ -35,11 +52,11 @@ jobs:
           paths:
             - "deps"
             - "_build"
-            - "~/.cargo/"
+
   test:
     working_directory: ~/ex_plasma
-    docker:
-      - image: circleci/elixir:1.10.2
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
       MIX_ENV=test
     steps:
@@ -50,10 +67,12 @@ jobs:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
       - run: mix do deps.get, test --exclude skip
       - run: mix coveralls.circle
+
+
   credo:
     working_directory: ~/ex_plasma
-    docker:
-      - image: circleci/elixir:1.10.2
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
       MIX_ENV=test
     steps:
@@ -62,22 +81,16 @@ jobs:
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
       - run: mix do deps.get, credo, format --check-formatted --dry-run
+
   conformance:
     machine:
       image: ubuntu-1604:201903-01
     working_directory: ~/ex_plasma
     steps:
       - checkout
-      - install_rust
-      - run:
-          name: Install Erlang and Elixir
-          command: |
-            set -e
-            wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
-            sudo dpkg -i erlang-solutions_2.0_all.deb
-            sudo apt-get update
-            sudo apt-get install esl-erlang=1:21.3.8.10-1 elixir=1.10.2-1
-      - run: mix local.rebar --force && mix local.hex --force
+      - install_rust_elixir
+          cache: "conformance"
+          dir: "~/ex_plasma"
       - run: make up-mocks
       - restore_cache:
           key: v1-conformance-deps-cache-{{ checksum "mix.lock" }}
@@ -92,13 +105,15 @@ jobs:
 
   dialyzer:
     working_directory: ~/ex_plasma
-    docker:
-      - image: circleci/elixir:1.10.2
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
       MIX_ENV=dev
     steps:
       - checkout
-      - install_rust
+      - install_rust_elixir
+          cache: "dialyzer"
+          dir: "~/ex_plasma"
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -124,6 +139,26 @@ jobs:
           key: v1-dialyzer-plts-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths:
             - "plts"
+  integration:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/ex_plasma
+    steps:
+      - checkout
+      - install_rust_elixir
+          cache: "integration"
+          dir: "~/ex_plasma"
+      - run: mix local.rebar --force && mix local.hex --force
+      - run: make up
+      - restore_cache:
+          key: v1-conformance-deps-cache-{{ checksum "mix.lock" }}
+      - run: mix do deps.get, compile --warnings-as-errors --ignore-module-conflict --force
+      - save_cache:
+          key: v1-conformance-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+          paths:
+            - "deps"
+            - "_build"
+      - run: mix test --only integration
 workflows:
   version: 2
   build-test-lint:
