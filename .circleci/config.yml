@@ -21,6 +21,7 @@ commands:
             source $BASH_ENV
             asdf plugin-add erlang || asdf plugin-update erlang
             asdf plugin-add elixir || asdf plugin-update elixir
+            asdf plugin-add rust || asdf plugin-update rust
             asdf install
             mix local.rebar --force && mix local.hex --force
           no_output_timeout: 2400
