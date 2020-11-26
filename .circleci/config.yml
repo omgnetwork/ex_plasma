@@ -40,7 +40,9 @@ jobs:
       MIX_ENV=test
     steps:
       - checkout
-      - install_rust
+      - install_rust_elixir:
+          cache: "build"
+          dir: "~/ex_plasma"
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -88,7 +90,7 @@ jobs:
     working_directory: ~/ex_plasma
     steps:
       - checkout
-      - install_rust_elixir
+      - install_rust_elixir:
           cache: "conformance"
           dir: "~/ex_plasma"
       - run: make up-mocks
@@ -111,7 +113,7 @@ jobs:
       MIX_ENV=dev
     steps:
       - checkout
-      - install_rust_elixir
+      - install_rust_elixir:
           cache: "dialyzer"
           dir: "~/ex_plasma"
       - run: mix local.rebar --force && mix local.hex --force
@@ -145,7 +147,7 @@ jobs:
     working_directory: ~/ex_plasma
     steps:
       - checkout
-      - install_rust_elixir
+      - install_rust_elixir:
           cache: "integration"
           dir: "~/ex_plasma"
       - run: mix local.rebar --force && mix local.hex --force
