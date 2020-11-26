@@ -24,12 +24,20 @@ commands:
             asdf plugin-add rust || asdf plugin-update rust
             asdf install
             mix local.rebar --force && mix local.hex --force
+            # setup rust persistence
+            # this got us to bin folder
+            cd $(dirname $(asdf which rustc))
+            cd ../
+            echo 'source '$PWD/env >> $BASH_ENV
           no_output_timeout: 2400
       - save_cache:
           key: v4-asdf-install-<<parameters.cache>>
           paths:
             - ~/.asdf
             - ~/.asdf-vm
+      - run: |
+          cd <<parameters.dir>>
+          make install-hex-rebar
       - restore_cache:
           key: v2-mix-specs-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
 jobs:
