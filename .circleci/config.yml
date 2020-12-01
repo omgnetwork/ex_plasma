@@ -116,32 +116,6 @@ jobs:
           key: v1-dialyzer-plts-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths:
             - "plts"
-  integration:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: ~/ex_plasma
-    steps:
-      - checkout
-      - run:
-          name: Install Erlang and Elixir
-          command: |
-            set -e
-            wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
-            sudo dpkg -i erlang-solutions_2.0_all.deb
-            sudo apt-get update
-            sudo apt-get install esl-erlang=1:21.3.8.10-1 elixir=1.9.2-1
-      - install_rust
-      - run: mix local.rebar --force && mix local.hex --force
-      - run: make up
-      - restore_cache:
-          key: v1-conformance-deps-cache-{{ checksum "mix.lock" }}
-      - run: mix do deps.get, compile --warnings-as-errors --ignore-module-conflict --force
-      - save_cache:
-          key: v1-conformance-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
-          paths:
-            - "deps"
-            - "_build"
-      - run: mix test --only integration
 workflows:
   version: 2
   build-test-lint:
