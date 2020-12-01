@@ -22,8 +22,9 @@ defmodule Conformance.SignaturesTest do
   # deterministic
   @contract "0xd3aa556287afe63102e5797bfddd2a1e8dbb3ea5"
 
-  test "signs empty transactions",
-    do: assert_signs_conform(%Payment{})
+  # "reason" => "Transaction cannot have 0 outputs",
+  # test "signs empty transactions",
+  #   do: assert_signs_conform(%Payment{})
 
   test "signs without inputs",
     do:
@@ -31,8 +32,8 @@ defmodule Conformance.SignaturesTest do
         outputs: [%Utxo{owner: authority_address(), currency: <<0::160>>, amount: 1}]
       })
 
-  test "signs without outputs",
-    do: assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1, txindex: 0, oindex: 0}]})
+  # test "signs without outputs",
+  #  do: assert_signs_conform(%Payment{inputs: [%Utxo{blknum: 1, txindex: 0, oindex: 0}]})
 
   test "signs with metadata",
     do: %Transaction{metadata: <<1::160>>}
