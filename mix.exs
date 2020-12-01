@@ -23,7 +23,7 @@ defmodule ExPlasma.MixProject do
   def application do
     [
       applications: [:ethereumex],
-      extra_applications: [:logger]
+      extra_applications: [:logger, :telemetry]
     ]
   end
 
@@ -59,7 +59,8 @@ defmodule ExPlasma.MixProject do
     do: [
       :ex_abi,
       :ex_rlp,
-      :exth_crypto,
+      :ex_keccak,
+      :ex_secp256k1,
       :merkle_tree
     ]
 end

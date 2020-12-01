@@ -1,4 +1,18 @@
 version: 2.1
+commands:
+  add_rust_to_path:
+    description: "Add path to PATH env var"
+    steps:
+      - run:
+          name: Add rust to PATH env
+          command: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
+  install_rust:
+    description: "Install Rust"
+    steps:
+      - run:
+          name: Install Rust
+          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - add_rust_to_path
 jobs:
   build:
     working_directory: ~/ex_plasma
@@ -11,6 +25,7 @@ jobs:
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+      - install_rust
       - run: mix do deps.get, compile --warnings-as-errors --ignore-module-conflict --force
       - save_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -28,6 +43,7 @@ jobs:
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+      - install_rust
       - run: mix do deps.get, test --exclude skip
       - run: mix coveralls.circle
   credo:
@@ -56,6 +72,7 @@ jobs:
             sudo dpkg -i erlang-solutions_2.0_all.deb
             sudo apt-get update
             sudo apt-get install esl-erlang=1:21.3.8.10-1 elixir=1.9.2-1
+      - install_rust
       - run: mix local.rebar --force && mix local.hex --force
       - run: make up-mocks
       - restore_cache:
@@ -75,6 +92,7 @@ jobs:
       MIX_ENV=dev
     steps:
       - checkout
+      - install_rust
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -112,6 +130,7 @@ jobs:
             sudo dpkg -i erlang-solutions_2.0_all.deb
             sudo apt-get update
             sudo apt-get install esl-erlang=1:21.3.8.10-1 elixir=1.9.2-1
+      - install_rust
       - run: mix local.rebar --force && mix local.hex --force
       - run: make up
       - restore_cache:
