@@ -16,8 +16,8 @@ defmodule ExPlasma.InFlightExit do
     tx_bytes
     |> Crypto.keccak_hash()
     |> :binary.decode_unsigned()
-    |> Bitwise.>>>(105)
-    |> set_bit(151)
+    |> Bitwise.>>>(89)
+    |> set_bit(167)
   end
 
   defp set_bit(data, bit_position) do
