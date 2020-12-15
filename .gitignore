@@ -22,3 +22,7 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 ex_plasma-*.tar
 
+# Elixirls data directory
+.elixir_ls
+
+.history

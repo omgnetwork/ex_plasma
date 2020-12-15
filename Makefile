@@ -1,3 +1,8 @@
+.PHONY: test
+
+test:
+	mix test
+
 logs:
 	docker-compose logs -f
 up:

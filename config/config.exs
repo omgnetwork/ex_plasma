@@ -3,23 +3,12 @@
 use Mix.Config
 
 config :ex_plasma,
-  authority_address: "0x22d491bde2303f2f43325b2108d26f1eaba1e32b",
-  contract_address: "0xd17e1233a03affb9092d5109179b43d6a8828607",
-  eth_vault_address: "0x1967d06b1faba91eaadb1be33b277447ea24fa0e",
-  exit_game_address: "0x2a7be4e7f65afbc6e8f9b1d522fb403e9202363b",
-  gas: 1_000_000,
-  gas_price: 1_000_000,
-  standard_exit_bond_size: 14_000_000_000_000_000,
-  eip_712_domain: [
+  eip_712_domain: %{
     name: "OMG Network",
     salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
     verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
     version: "1"
-  ]
-
-config :ethereumex,
-  id_reset: true,
-  url: "http://localhost:8545"
+  }
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
@@ -46,4 +35,4 @@ config :ethereumex,
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 #
-#     import_config "#{Mix.env()}.exs"
+import_config "#{Mix.env()}.exs"

@@ -1,39 +1,59 @@
 version: 2.1
+commands:
+  add_rust_to_path:
+    description: "Add path to PATH env var"
+    steps:
+      - run:
+          name: Add rust to PATH env
+          command: echo 'export PATH=~/.cargo/bin/:$PATH' >> $BASH_ENV
+  install_rust:
+    description: "Install Rust"
+    steps:
+      - run:
+          name: Install Rust
+          command: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - add_rust_to_path
+
 jobs:
   build:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.9.2
+      - image: circleci/elixir:1.10.2
     environment:
       MIX_ENV=test
     steps:
       - checkout
+      - install_rust
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
-      - run: mix do deps.get, compile --warnings-as-errors --ignore-module-conflict --force
+      - run:
+          command: mix do deps.get, compile --warnings-as-errors --force
+          no_output_timeout: 20m
       - save_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths:
             - "deps"
             - "_build"
+            - "~/.cargo/"
   test:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.9.2
+      - image: circleci/elixir:1.10.2
     environment:
       MIX_ENV=test
     steps:
       - checkout
+      - add_rust_to_path
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
-      - run: mix test --exclude skip
+      - run: mix do deps.get, test --exclude skip
       - run: mix coveralls.circle
   credo:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.9.2
+      - image: circleci/elixir:1.10.2
     environment:
       MIX_ENV=test
     steps:
@@ -41,13 +61,14 @@ jobs:
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
-      - run: mix do credo, format --check-formatted --dry-run
+      - run: mix do deps.get, credo, format --check-formatted --dry-run
   conformance:
     machine:
       image: ubuntu-1604:201903-01
     working_directory: ~/ex_plasma
     steps:
       - checkout
+      - install_rust
       - run:
           name: Install Erlang and Elixir
           command: |
@@ -55,7 +76,7 @@ jobs:
             wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
             sudo dpkg -i erlang-solutions_2.0_all.deb
             sudo apt-get update
-            sudo apt-get install esl-erlang=1:21.3.8.10-1 elixir=1.9.2-1
+            sudo apt-get install esl-erlang=1:21.3.8.10-1 elixir=1.10.2-1
       - run: mix local.rebar --force && mix local.hex --force
       - run: make up-mocks
       - restore_cache:
@@ -66,15 +87,18 @@ jobs:
           paths:
             - "deps"
             - "_build"
+            - "~/.cargo/"
       - run: mix test --only conformance
+
   dialyzer:
     working_directory: ~/ex_plasma
     docker:
-      - image: circleci/elixir:1.9.2
+      - image: circleci/elixir:1.10.2
     environment:
       MIX_ENV=dev
     steps:
       - checkout
+      - install_rust
       - run: mix local.rebar --force && mix local.hex --force
       - restore_cache:
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
@@ -87,7 +111,9 @@ jobs:
             cp plts/dialyxir*.plt _build/dev/ || true
             mkdir -p ~/.mix
             cp plts/dialyxir*.plt ~/.mix/ || true
-      - run: mix dialyzer --halt-exit-status
+      - run:
+          command: mix do deps.get, dialyzer --halt-exit-status
+          no_output_timeout: 30m
       - run:
           name: Pack PLT cache
           command: |
@@ -98,31 +124,6 @@ jobs:
           key: v1-dialyzer-plts-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths:
             - "plts"
-  integration:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: ~/ex_plasma
-    steps:
-      - checkout
-      - run:
-          name: Install Erlang and Elixir
-          command: |
-            set -e
-            wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
-            sudo dpkg -i erlang-solutions_2.0_all.deb
-            sudo apt-get update
-            sudo apt-get install esl-erlang=1:21.3.8.10-1 elixir=1.9.2-1
-      - run: mix local.rebar --force && mix local.hex --force
-      - run: make up
-      - restore_cache:
-          key: v1-conformance-deps-cache-{{ checksum "mix.lock" }}
-      - run: mix do deps.get, compile --warnings-as-errors --ignore-module-conflict --force
-      - save_cache:
-          key: v1-conformance-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
-          paths:
-            - "deps"
-            - "_build"
-      - run: mix test --only integration
 workflows:
   version: 2
   build-test-lint:
@@ -138,4 +139,3 @@ workflows:
           requires:
             - build
       - conformance
-      - integration

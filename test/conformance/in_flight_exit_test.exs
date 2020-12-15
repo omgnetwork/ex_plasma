@@ -3,7 +3,6 @@ defmodule Conformance.InFlightExitTest do
   Conformance tests that check our local in-flight exit implementation aligns with the plasma contracts.
   """
   use ExUnit.Case, async: true
-  import ExPlasma.Client.Config, only: [contract_address: 0]
   alias ExPlasma.InFlightExit
 
   @moduletag :conformance
@@ -22,11 +21,11 @@ defmodule Conformance.InFlightExitTest do
     "0xffffffffffffffffffffffffffffffff"
   ]
 
-  describe "txbytes_to_id/1" do
+  describe "tx_bytes_to_id/1" do
     test "matches PaymentExitGame.getInFlightExitId(bytes)" do
       Enum.each(@ife_tx_hexes, fn hex ->
-        txbytes = ExPlasma.Encoding.to_binary(hex)
-        assert InFlightExit.txbytes_to_id(txbytes) == contract_get_in_flight_exit_id(txbytes)
+        tx_bytes = ExPlasma.Encoding.to_binary!(hex)
+        assert InFlightExit.tx_bytes_to_id(tx_bytes) == contract_get_in_flight_exit_id(tx_bytes)
       end)
     end
   end
@@ -38,7 +37,6 @@ defmodule Conformance.InFlightExitTest do
   end
 
   defp eth_call(contract_signature, data, [to: to], callback) when is_list(data) do
-    to = to || contract_address()
     options = %{data: encode_data(contract_signature, data), to: to}
 
     case Ethereumex.HttpClient.eth_call(options) do
