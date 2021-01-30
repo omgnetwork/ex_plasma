@@ -24,7 +24,7 @@ defmodule ExPlasma.Output.Type.AbstractPaymentTest do
       Enum.map(amounts, fn amount ->
         rlp = [<<1>>, [<<0::160>>, <<0::160>>, :binary.encode_unsigned(amount, :big)]]
 
-        assert {:ok, %{output_data: %{token: <<0::160>>, output_guard: <<0::160>>, amount: amount}}} =
+        assert {:ok, %{output_data: %{token: <<0::160>>, output_guard: <<0::160>>, amount: _amount}}} =
                  AbstractPayment.to_map(rlp)
       end)
     end

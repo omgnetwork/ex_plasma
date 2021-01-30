@@ -44,4 +44,9 @@ defmodule ExPlasma.Configuration do
     |> Application.get_env(:eip_712_domain)
     |> Validator.validate_eip_712_domain()
   end
+
+  @spec exit_id_size() :: 160 | 168
+  def exit_id_size() do
+    Application.get_env(@app, :exit_id_size)
+  end
 end

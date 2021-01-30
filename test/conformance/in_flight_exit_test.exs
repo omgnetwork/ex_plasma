@@ -32,7 +32,7 @@ defmodule Conformance.InFlightExitTest do
 
   defp contract_get_in_flight_exit_id(tx_bytes) do
     eth_call("getInFlightExitId(bytes)", [tx_bytes], [to: @contract], fn resp ->
-      resp |> decode_response([{:uint, 160}]) |> hd()
+      resp |> decode_response([{:uint, ExPlasma.Configuration.exit_id_size()}]) |> hd()
     end)
   end
 
