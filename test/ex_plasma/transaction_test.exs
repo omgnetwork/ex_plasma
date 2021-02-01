@@ -380,7 +380,7 @@ defmodule ExPlasma.TransactionTest do
         |> Builder.add_input(blknum: 3, txindex: 0, oindex: 0, position: 3_000_000_000)
 
       assert {:ok, %Transaction{} = signed} = Transaction.sign(tx, [key_1, key_1, key_2])
-      assert [sig_1, sig_1, sig_2] = signed.sigs
+      assert [_sig_1, _sig_2, _sig_3] = signed.sigs
     end
 
     test "returns {:error, :not_signable} when given an invalid struct" do

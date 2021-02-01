@@ -113,7 +113,7 @@ defmodule ExPlasma.Transaction.SignedTest do
         |> Builder.add_input(blknum: 2, txindex: 0, oindex: 0, position: 2_000_000_000)
         |> Builder.add_input(blknum: 3, txindex: 0, oindex: 0, position: 3_000_000_000)
 
-      assert {:ok, [sig_1, sig_1, sig_2]} = Signed.compute_signatures(tx, [key_1, key_1, key_2])
+      assert {:ok, [_sig_1, _sig_2, _sig_3]} = Signed.compute_signatures(tx, [key_1, key_1, key_2])
     end
 
     test "returns {:error, :not_signable} when given an invalid struct" do
