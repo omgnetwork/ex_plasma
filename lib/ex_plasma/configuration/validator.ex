@@ -17,7 +17,7 @@ defmodule ExPlasma.Configuration.Validator do
       name: "OMG Network",
       salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
       verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
-      version: "1"
+      version: "2"
   }
 
   Returns the domain if valid, or raise an exception otherwise.
@@ -28,13 +28,13 @@ defmodule ExPlasma.Configuration.Validator do
       ...>    name: "OMG Network",
       ...>    salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
       ...>    verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
-      ...>    version: "1"
+      ...>    version: "2"
       ...>})
       %{
           name: "OMG Network",
           salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
           verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
-          version: "1"
+          version: "2"
       }
   """
   @spec validate_eip_712_domain(any()) :: eip_712_domain_t() | no_return()
@@ -50,7 +50,7 @@ defmodule ExPlasma.Configuration.Validator do
       name: "OMG Network",
       salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",
       verifying_contract: "0xd17e1233a03affb9092d5109179b43d6a8828607",
-      version: "1"
+      version: "2"
     }
     """
   end

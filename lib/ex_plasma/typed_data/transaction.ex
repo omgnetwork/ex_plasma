@@ -11,28 +11,16 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction do
   @eip_191_prefix <<0x19, 0x01>>
 
   @domain_signature "EIP712Domain(string name,string version,address verifyingContract,bytes32 salt)"
-  @signature "Transaction(uint256 txType,Input input0,Input input1,Input input2,Input input3,Output output0,Output output1,Output output2,Output output3,uint256 txData,bytes32 metadata)"
+  @signature "Transaction(uint256 txType,Input[] inputs,Output[] outputs,uint256 txData,bytes32 metadata)"
   @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
   @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
 
   # The full encoded signature for the transaction
   @encoded_signature @signature <> @input_signature <> @output_signature
 
-  # NB: Currently we only support 1 type of transaction: Payment.
-  @max_output_count 4
-
-  @empty_input Output.decode_id!(<<0>>)
-  @empty_input_hash TypedData.hash(@empty_input, as: :input)
-
-  @empty_output %Output{
-    output_type: 0,
-    output_data: %{output_guard: <<0::160>>, token: <<0::160>>, amount: 0}
-  }
-  @empty_output_hash TypedData.hash(@empty_output, as: :output)
-
   def encode(%{} = transaction, _options) do
-    encoded_inputs = Enum.map(transaction.inputs, &encode_as_input/1)
-    encoded_outputs = Enum.map(transaction.outputs, &encode_as_output/1)
+    encoded_inputs = transaction.inputs |> Enum.map(&encode_as_input/1) |> Enum.join() |> keccak_hash
+    encoded_outputs = transaction.outputs |> Enum.map(&encode_as_output/1) |> Enum.join() |> keccak_hash
     encoded_transaction_type = encode_raw([transaction.tx_type], [{:uint, 256}])
     encoded_transaction_data = encode_raw([transaction.tx_data], [{:uint, 256}])
     encoded_metadata = encode_raw([transaction.metadata], [{:bytes, 32}])
@@ -98,16 +86,15 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Transaction do
 
   defp hash_inputs(inputs) do
     inputs
-    |> Stream.map(&hash_output/1)
-    |> Stream.concat(Stream.cycle([@empty_input_hash]))
-    |> Enum.take(@max_output_count)
+    |> Enum.map(&hash_output/1)
+    |> keccak_hash()
   end
 
   defp hash_outputs(outputs) do
     outputs
-    |> Stream.map(&hash_output/1)
-    |> Stream.concat(Stream.cycle([@empty_output_hash]))
-    |> Enum.take(@max_output_count)
+    |> Enum.map(&hash_output/1)
+    |> Enum.join()
+    |> keccak_hash()
   end
 
   defp hash_output([signature | encoded_list]) do
