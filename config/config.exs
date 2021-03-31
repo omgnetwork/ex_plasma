@@ -4,7 +4,7 @@ use Mix.Config
 
 config :ex_plasma,
   # 168 for v2
-  exit_id_size: 160,
+  exit_id_size: 168,
   eip_712_domain: %{
     name: "OMG Network",
     salt: "0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83",

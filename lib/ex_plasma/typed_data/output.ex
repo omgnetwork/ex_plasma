@@ -1,43 +1,46 @@
 defimpl ExPlasma.TypedData, for: ExPlasma.Output do
-  import ExPlasma.Crypto, only: [keccak_hash: 1]
-  import ABI.TypeEncoder, only: [encode_raw: 2]
-
+  alias ExPlasma.Crypto
+  alias ABI.TypeEncoder
   alias ExPlasma.Output
 
-  @output_signature "Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)"
-  @input_signature "Input(uint256 blknum,uint256 txindex,uint256 oindex)"
+  @output_signature Crypto.keccak_hash("Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)")
+  @input_signature Crypto.keccak_hash("Input(uint256 blknum,uint256 txindex,uint256 oindex)")
 
   @spec encode(Output.t(), as: atom()) :: list()
   def encode(output, as: :input), do: do_to_rlp_id(output.output_id)
   def encode(output, as: :output), do: do_encode(output)
 
-  @spec hash(Output.t(), [{:as, :input | :output}, ...]) :: <<_::256>>
-  def hash(output, options), do: output |> encode(options) |> do_hash(options)
+  @spec hash(Output.t(), [{:as, :input | :output}, ...]) :: :not_implemented
+  def hash(_output, _options), do: :not_implemented
 
   defp do_encode(%{output_type: type, output_data: data}) do
     [
       @output_signature,
-      encode_raw([type], [{:uint, 256}]),
-      encode_raw([data.output_guard], [{:bytes, 20}]),
-      encode_raw([data.token], [:address]),
-      encode_raw([data.amount], [{:uint, 256}])
+      TypeEncoder.encode_raw([type], [{:uint, 256}]),
+      TypeEncoder.encode_raw([data.output_guard], [{:bytes, 20}]),
+      TypeEncoder.encode_raw([data.token], [:address]),
+      TypeEncoder.encode_raw([data.amount], [{:uint, 256}])
     ]
+    |> Enum.join()
+    |> Crypto.keccak_hash()
   end
 
   defp do_to_rlp_id(%{blknum: blknum, txindex: txindex, oindex: oindex}) do
     [
       @input_signature,
-      encode_raw([blknum], [{:uint, 256}]),
-      encode_raw([txindex], [{:uint, 256}]),
-      encode_raw([oindex], [{:uint, 256}])
+      TypeEncoder.encode_raw([blknum], [{:uint, 256}]),
+      TypeEncoder.encode_raw([txindex], [{:uint, 256}]),
+      TypeEncoder.encode_raw([oindex], [{:uint, 256}])
     ]
-  end
-
-  defp do_hash([signature | encoded_list], _options) do
-    data = [keccak_hash(signature) | encoded_list]
-
-    data
     |> Enum.join()
-    |> keccak_hash()
+    |> Crypto.keccak_hash()
   end
+
+  # defp do_hash([signature | encoded_list], _options) do
+  #   data = [Crypto.keccak_hash(signature) | encoded_list]
+
+  #   data
+  #   |> Enum.join()
+  #   |> Crypto.keccak_hash()
+  # end
 end

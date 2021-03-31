@@ -42,7 +42,7 @@ defmodule Conformance.SignaturesTest do
     assert_signs_conform(%Transaction{tx_type: 1, inputs: [input], outputs: [output]})
   end
 
-  test "signs with a minimal transaction (4x4)" do
+  test "signs with a max transaction (5x5)" do
     input = %Output{output_id: %{blknum: 1, txindex: 0, oindex: 0}}
 
     output = %Output{
@@ -52,8 +52,8 @@ defmodule Conformance.SignaturesTest do
 
     assert_signs_conform(%Transaction{
       tx_type: 1,
-      inputs: List.duplicate(input, 4),
-      outputs: List.duplicate(output, 4)
+      inputs: List.duplicate(input, 5),
+      outputs: List.duplicate(output, 5)
     })
   end
 
