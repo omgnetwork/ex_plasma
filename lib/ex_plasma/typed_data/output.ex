@@ -6,7 +6,7 @@ defimpl ExPlasma.TypedData, for: ExPlasma.Output do
   @output_signature Crypto.keccak_hash("Output(uint256 outputType,bytes20 outputGuard,address currency,uint256 amount)")
   @input_signature Crypto.keccak_hash("Input(uint256 blknum,uint256 txindex,uint256 oindex)")
 
-  @spec encode(Output.t(), as: atom()) :: list()
+  @spec encode(Output.t(), as: atom()) :: binary()
   def encode(output, as: :input), do: do_to_rlp_id(output.output_id)
   def encode(output, as: :output), do: do_encode(output)
 
