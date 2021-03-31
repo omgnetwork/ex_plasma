@@ -31,11 +31,7 @@ defmodule ExPlasma.Signature do
   def signature_digest(hash_digest, private_key_hash) do
     private_key_binary = Encoding.to_binary!(private_key_hash)
 
-    {:ok, {r, s, recovery_id}} =
-      ExSecp256k1.sign(
-        hash_digest,
-        private_key_binary
-      )
+    {:ok, {r, s, recovery_id}} = ExSecp256k1.sign(hash_digest, private_key_binary)
 
     # EIP-155
     # See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
